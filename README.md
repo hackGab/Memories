@@ -1,20 +1,11 @@
 # Memories
-Projet de création d'un jeu vidéo en équipe
+🎮 Projet de création d'un jeu vidéo en équipe
 ---
-## Équipe:
+## 👥 Équipe:
 
-### Programmation
-- Dave
-- Pierre-Luc
-- Gabriel
-- Thomas
-### Design
-- Ludo
-- Alexis
-- MP
-- Loucas
-### Art
-- Guillaume
-- Alexane
-- Michelle
-- Justine
+| Programmation 💻 | Design 🎨 | Art 🖌️ |
+| :--- | :--- | :--- |
+| Dave | Ludo | Guillaume |
+| Pierre-Luc | Alexis | Alexane |
+| Gabriel | MP | Michelle |
+| Thomas | Loucas | Justine |
