@@ -10,5 +10,5 @@ Projet de création d'un jeu vidéo en équipe de 12
 | :--- | :--- | :--- |
 | Dave | Ludo | Guillaume |
 | Pierre-Luc | Alexis | Alexane |
-| Gabriel | MP | Michelle |
+| Gabriel | -- | Michelle |
 | Thomas | Loucas | Justine |
