@@ -1,0 +1,77 @@
+# ============================
+# Unreal Engine - Git Ignore
+# Projet C++ en équipe
+# ============================
+
+# --- Dossiers générés automatiquement ---
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/Android/
+Build/IOS/
+Build/WindowsNoEditor/
+Build/Windows/
+Build/Linux/
+Build/HoloLens/
+
+# --- Fichiers temporaires UE ---
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.cache
+*.log
+*.vs/
+*.VC.db
+*.VC.opendb
+
+# --- Fichiers de build ---
+*.pdb
+*.obj
+*.exe
+*.dll
+*.lib
+*.app
+*.ipa
+
+# --- Dossiers de projet générés ---
+.vs/
+.vscode/
+.idea/
+RiderLink/
+
+# --- Caches ---
+DerivedDataCache/
+Intermediate/
+Saved/
+*.tmp
+*.temp
+*_Backup/
+
+# --- Fichiers spécifiques Unreal ---
+*.generated.h
+*.generated.cpp
+
+# --- Plugins ---
+Plugins/*/Intermediate/
+Plugins/*/Binaries/
+Plugins/*/Saved/
+
+# --- Plateformes ---
+Windows/
+Linux/
+Mac/
+
+# --- Logs ---
+*.log
+*.dmp
+
+# --- Fichiers système ---
+.DS_Store
+Thumbs.db
+
+# --- Perforce (si jamais utilisé en parallèle) ---
+p4config.txt
+*.p4ignore
+*.p4d
