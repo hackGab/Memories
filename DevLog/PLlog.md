@@ -35,7 +35,7 @@ Cette première étape de développement avait pour objectif de mettre en place 
 
 ### Progression
 
-- Implémentation d’un système de **ladder (échelle)** permettant au joueur de monter et descendre de façon fluide.
+- Implémentation d’un système de **ladder (échelle)** permettant le joueur de monter et descendre de façon fluide.
 - Ajout d’une mécanique de **sprint** pour améliorer la mobilité du joueur en exploration.
 - Développement et intégration d’un système d’interaction amélioré pour les objets manipulables (prise en main, rotation, lancement).
 
@@ -54,3 +54,20 @@ Cette première étape de développement avait pour objectif de mettre en place 
 ### Notes
 
 Cette mise à jour marque une avancée importante dans la fluidité du gameplay. Le joueur dispose maintenant de plus de contrôle sur sa mobilité (sprint + ladder) ainsi que d’un système d’interaction plus stable et extensible pour les mécaniques futures.
+
+---
+
+## Prochaines étapes (Roadmap)
+
+### Gameplay & Interactions
+
+- Ajouter des **portes interactives** (ouvrir / fermer avec animation)
+- Implémenter des **tiroirs (drawers)** interactifs
+- Ajouter des objets avec **inspection avancée**
+
+### Nouvelle mécanique
+
+- Système de **note / document interactif**
+  - Peut être **ramassé et tenu devant le joueur**
+  - Peut être **agrandi / rapproché vers la caméra pour lecture**
+  - Possibilité de fermer / reposer la note
