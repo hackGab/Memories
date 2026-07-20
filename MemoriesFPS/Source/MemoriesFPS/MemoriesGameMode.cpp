@@ -3,7 +3,8 @@
 #include "MemoriesGameMode.h"
 #include "MemoriesGameState.h"
 #include "TimerManager.h"
-//#include "Sound/SoundBase.h"
+#include "Sound/SoundBase.h"
+#include "Components/AudioComponent.h"
 
 
 AMemoriesGameMode::AMemoriesGameMode()
@@ -20,6 +21,8 @@ void AMemoriesGameMode::BeginPlay()
 	if (GS)
 		GS->TimeRemaining = GameDuration;
 	
+	AudioProperties();
+	
 	GetWorld()->GetTimerManager().SetTimer(
 		GameTimerHandle,
 		this,
@@ -27,8 +30,23 @@ void AMemoriesGameMode::BeginPlay()
 		1.0f,
 		true
 	);
-	
-	//AudioProperties();
+}
+
+void AMemoriesGameMode::AudioProperties()
+{
+	if (TimeWarningSound)
+	{
+		TimeWarningAudioComponent = NewObject<UAudioComponent>(this);
+		TimeWarningAudioComponent->bAutoActivate = false;
+		TimeWarningAudioComponent->SetSound(TimeWarningSound);
+		TimeWarningAudioComponent->SetPitchMultiplier(TimeWarningSoundPitch);
+		TimeWarningAudioComponent->SetVolumeMultiplier(CurrentVolume);
+		TimeWarningAudioComponent->RegisterComponent();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TimeWarningSound is not assigned in the MemoriesGameMode."));
+	}
 }
 
 void AMemoriesGameMode::TickGameTimer()
@@ -47,7 +65,7 @@ void AMemoriesGameMode::TickGameTimer()
 	}
 	
 	// Quand il reste moins de TimeWarningThreshold minutes, on peut jouer un son d'indice toutes les 30 secondes (en intensifiant le pitch)
-	if (GS->TimeRemaining > 0.0f && GS->TimeRemaining <= TimeWarningThreshold && FMath::Fmod(GS->TimeRemaining, 30.0f) == 0.0f)
+	if (GS->TimeRemaining >= 0.0f && GS->TimeRemaining <= TimeWarningThreshold && FMath::Fmod(GS->TimeRemaining, 30.0f) == 0.0f)
 		PlayTimeWarningSound(true);
 	
 	// Indice sonore à chaque tranche de X minutes (TimeWarningThreshold)
@@ -56,44 +74,39 @@ void AMemoriesGameMode::TickGameTimer()
 }
 
 
+float AMemoriesGameMode::GetIntensity(float TimeRemaining) const
+{
+	// Normalise entre 0 et 1
+	float Alpha = TimeRemaining / TimeWarningThreshold;
+	Alpha = FMath::Clamp(Alpha, 0.0f, 1.0f);
+
+	// Courbe douce : plus on approche de 0, plus ça monte vite
+	return 1.0f - FMath::Pow(Alpha, 2.0f);
+}
+
+void AMemoriesGameMode::PlayTimeWarningSound(bool intensify) const
+{
+	AMemoriesGameState* GS = GetGameState<AMemoriesGameState>();
+	if (!GS || !TimeWarningAudioComponent) return;
+
+	if (intensify)
+	{
+		float Intensity = GetIntensity(GS->TimeRemaining);
+
+		float NewPitch = TimeWarningSoundPitch + Intensity * PitchIntensity;   
+		float NewVolume = CurrentVolume + Intensity * VolumeIntensity;         
+
+		TimeWarningAudioComponent->SetPitchMultiplier(NewPitch);
+		TimeWarningAudioComponent->SetVolumeMultiplier(NewVolume);
+
+		//UE_LOG(LogTemp, Warning, TEXT("Intensity=%f Pitch=%f Volume=%f"), Intensity, NewPitch, NewVolume);
+	}
+
+	TimeWarningAudioComponent->Play();
+}
+
+
 void AMemoriesGameMode::EndGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("Game Over!"));
 }
-
-void AMemoriesGameMode::PlayTimeWarningSound(bool intensify)
-{
-	
-	// Implémentez la logique pour jouer un son d'indice ici
-	
-	if (intensify)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Playing intensified time warning sound."));
-		//TimeWarningAudioComponent->SetPitchMultiplier(TimeWarningSoundPitch * 1.5f); // Augmente le pitch pour intensifier le son
-		//TimeWarningAudioComponent->Play();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("Playing time warning sound."));
-		//TimeWarningAudioComponent->SetPitchMultiplier(TimeWarningSoundPitch); // Réinitialise le pitch
-		//TimeWarningAudioComponent->Play();
-	}
-}
-
-
-/*void AMemoriesGameMode::AudioProperties()
-{
-	if (TimeWarningSound)
-	{
-		TimeWarningAudioComponent = NewObject<UAudioComponent>(this);
-		TimeWarningAudioComponent->bAutoActivate = false;
-		TimeWarningAudioComponent->SetSound(TimeWarningSound);
-		TimeWarningAudioComponent->SetPitchMultiplier(TimeWarningSoundPitch);
-		TimeWarningAudioComponent->SetVolumeMultiplier(CurrentVolume);
-		TimeWarningAudioComponent->RegisterComponent();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("TimeWarningSound is not assigned in the MemoriesGameMode."));
-	}
-}*/

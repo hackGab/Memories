@@ -27,22 +27,33 @@ protected:
 	
 	
 	static void EndGame();
-	static void PlayTimeWarningSound(bool intensify);
+	float GetIntensity(float TimeRemaining) const;
+	void PlayTimeWarningSound(bool intensify) const;
 	
 	
 	// TimeWarningSound properties
-	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
 	USoundBase* TimeWarningSound;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
 	float TimeWarningSoundPitch = 1.0f;
+	
+	// Plus le pitch augmente, plus le son est aigu. Seulement quand il reste moins de TimeWarningThreshold minutes, on peut jouer un son d'indice toutes les 30 secondes (en intensifiant le pitch)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
+	float PitchIntensity = 1.2f;
+	
 	
 	UPROPERTY()
 	UAudioComponent* TimeWarningAudioComponent;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
 	float CurrentVolume = 0.5f;
 	
-	void AudioProperties();*/
+	// Quand il reste moins de TimeWarningThreshold minutes, on peut jouer un son d'indice toutes les 30 secondes (en intensifiant le volume)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
+	float VolumeIntensity = 0.7f;
+	
+	void AudioProperties();
 	
 private:
 	FTimerHandle GameTimerHandle;
