@@ -12,22 +12,18 @@ UCLASS()
 class MEMORIESFPS_API AGameTimer : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	AGameTimer();
 
+public:
+	AGameTimer();
+	
+	virtual void Tick(float DeltaTime) override;
+	
 protected:
 	virtual void BeginPlay() override;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Timer")
 	UTextRenderComponent* TimerText;
 	
-	FTimerHandle TimerHandle;
-	
-	float GameDuration; // Probablement plus tard on va le récupérer du GameManager
-	float TimeRemaining;
-	float GetTimeRemaining() const;
-	
-	void UpdateTimerText();
-	void StartTimer();
+private:
+	void UpdateTimerText(float TimeRemaining) const;
 };
