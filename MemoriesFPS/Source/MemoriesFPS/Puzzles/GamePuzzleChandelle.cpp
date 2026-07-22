@@ -1,27 +1,37 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Created By Gabriel Laplante on 2026-07-22
 
 
 #include "GamePuzzleChandelle.h"
+#include "Kismet/GameplayStatics.h"
 
-// Sets default values
-AGamePuzzleChandelle::AGamePuzzleChandelle()
-{
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
 
-}
-
-// Called when the game starts or when spawned
 void AGamePuzzleChandelle::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetAllCandles();
 }
 
-// Called every frame
-void AGamePuzzleChandelle::Tick(float DeltaTime)
+
+void AGamePuzzleChandelle::GetAllCandles() const
 {
-	Super::Tick(DeltaTime);
-
+	FName CandleTag = FName(TEXT("Candle"));
+	
+	TArray<AActor*> FoundCandles;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), CandleTag, FoundCandles);
+	
+	UE_LOG(LogTemp, Log, TEXT("Found %d candles in the scene."), FoundCandles.Num());
+	
+	for (AActor* Candle : FoundCandles)
+	{
+		if (Candle)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Candle found: %s"), *Candle->GetName());
+		}
+		
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Found a null candle actor."));
+		}
+	}
 }
-

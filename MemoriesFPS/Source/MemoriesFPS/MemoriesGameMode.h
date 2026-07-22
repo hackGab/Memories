@@ -1,4 +1,4 @@
-// By Gabriel Laplante on 2026-07-20
+// Created By Gabriel Laplante on 2026-07-20
 
 #pragma once
 
@@ -59,4 +59,9 @@ private:
 	FTimerHandle GameTimerHandle;
 	
 	void TickGameTimer();
+	
+	// Spawns all game puzzles in the level
+	void SpawnGamePuzzles() const;
+	void SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const;
+	
 };

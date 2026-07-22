@@ -1,10 +1,11 @@
-// By Gabriel Laplante on 2026-07-20
+// Created By Gabriel Laplante on 2026-07-20
 
 #include "MemoriesGameMode.h"
 #include "MemoriesGameState.h"
 #include "TimerManager.h"
 #include "Sound/SoundBase.h"
 #include "Components/AudioComponent.h"
+#include "Puzzles/GamePuzzleChandelle.h"
 
 
 AMemoriesGameMode::AMemoriesGameMode()
@@ -30,6 +31,8 @@ void AMemoriesGameMode::BeginPlay()
 		1.0f,
 		true
 	);
+	
+	SpawnGamePuzzles();
 }
 
 void AMemoriesGameMode::AudioProperties()
@@ -109,4 +112,35 @@ void AMemoriesGameMode::PlayTimeWarningSound(bool intensify) const
 void AMemoriesGameMode::EndGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("Game Over!"));
+}
+
+
+
+// Spawns all game puzzles in the level.
+void AMemoriesGameMode::SpawnGamePuzzles() const
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	FTransform SpawnTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
+	
+	SpawnChandellePuzzle(SpawnParams, SpawnTransform);
+}
+
+void AMemoriesGameMode::SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const
+{
+	AGamePuzzleChandelle* ChandellePuzzleInstance = GetWorld()->SpawnActor<AGamePuzzleChandelle>(
+		AGamePuzzleChandelle::StaticClass(),
+		SpawnTransform,
+		SpawnParams
+	);
+	
+	if (ChandellePuzzleInstance)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Chandelle puzzle spawned successfully by MemoriesGameMode."));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to spawn the Chandelle puzzle."));
+	}
 }

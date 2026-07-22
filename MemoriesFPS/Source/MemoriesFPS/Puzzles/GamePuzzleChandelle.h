@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Created By Gabriel Laplante on 2026-07-22
 
 #pragma once
 
@@ -10,17 +10,11 @@ UCLASS()
 class MEMORIESFPS_API AGamePuzzleChandelle : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	AGamePuzzleChandelle();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	
+	void GetAllCandles() const;
 
 };

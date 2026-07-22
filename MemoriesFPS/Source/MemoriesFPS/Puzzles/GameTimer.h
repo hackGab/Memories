@@ -1,4 +1,4 @@
-// By Gabriel Laplante on 2026-07-20
+// Created By Gabriel Laplante on 2026-07-20
 
 #pragma once
 
