@@ -6,15 +6,61 @@
 #include "GameFramework/Actor.h"
 #include "GamePuzzleChandelle.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCandleStateChanged, const FString& /*CandleSymbole*/, bool /*bIsLit*/);
+
+// Structure to hold candle configuration data
+USTRUCT(BlueprintType)
+struct FCandleSolutionConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|CandlesConfig")
+	FString CandleSymbole;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|CandlesConfig")
+	bool bShouldBeLit;
+};
+
+// Structure to hold candle state data (those are the candles that are found in the scene)
+USTRUCT(BlueprintType)
+struct FCandleState
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|CandlesFoundState")
+	FString CandleSymbole;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|CandlesFoundState")
+	bool bIsLit;
+};
+
+
 UCLASS()
 class MEMORIESFPS_API AGamePuzzleChandelle : public AActor
 {
 	GENERATED_BODY()
+	
+public:
+	FOnCandleStateChanged OnCandleStateChanged;
+	
+	UFUNCTION(BlueprintCallable, Category = "Puzzle")
+	void OnCandleLitChanged(const FString& CandleSymbole, bool bIsLit);
+	
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
-	void GetAllCandles() const;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle", meta = (TitleProperty = "CandleSymbole"))
+	TArray<FCandleSolutionConfig> CandleSolutions;
+	
+	UPROPERTY()
+	TMap<FString, int32> CandleLookup;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Puzzle", meta = (TitleProperty = "CandleSymbole"))
+	TArray<FCandleState> FoundCandles;
+	
+	void GetAllCandles();
+	void UpdateCandleStateFromEvent(const FString& CandleSymbole, bool bIsLit);
+	
 };

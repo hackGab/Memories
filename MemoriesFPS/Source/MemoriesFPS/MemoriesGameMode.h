@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Puzzles/GamePuzzleChandelle.h"
 #include "MemoriesGameMode.generated.h"
 
 UCLASS()
@@ -62,6 +63,10 @@ private:
 	
 	// Spawns all game puzzles in the level
 	void SpawnGamePuzzles() const;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle Setup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AGamePuzzleChandelle> ChandellePuzzleClass; // Référence vers BP_GamePuzzleChandelle
+	
 	void SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const;
 	
 };

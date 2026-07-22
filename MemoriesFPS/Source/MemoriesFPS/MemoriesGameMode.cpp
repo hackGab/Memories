@@ -129,8 +129,15 @@ void AMemoriesGameMode::SpawnGamePuzzles() const
 
 void AMemoriesGameMode::SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const
 {
+	
+	if (!ChandellePuzzleClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ChandellePuzzleClass is not assigned in MemoriesGameMode."));
+		return;
+	}
+	
 	AGamePuzzleChandelle* ChandellePuzzleInstance = GetWorld()->SpawnActor<AGamePuzzleChandelle>(
-		AGamePuzzleChandelle::StaticClass(),
+		ChandellePuzzleClass,
 		SpawnTransform,
 		SpawnParams
 	);
