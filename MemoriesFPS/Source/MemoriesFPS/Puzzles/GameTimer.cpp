@@ -2,7 +2,7 @@
 
 #include "GameTimer.h"
 #include "Components/TextRenderComponent.h"
-#include "MemoriesGameState.h"
+#include "../MemoriesGameState.h"
 
 AGameTimer::AGameTimer()
 {
