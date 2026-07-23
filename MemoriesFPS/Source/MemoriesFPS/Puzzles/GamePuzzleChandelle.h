@@ -6,7 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "GamePuzzleChandelle.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCandleStateChanged, const FString& /*CandleSymbole*/, bool /*bIsLit*/);
+//DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCandleStateChanged, const FString& /*CandleSymbole*/, bool /*bIsLit*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCandleStateChanged, const FString&, CandleSymbole, bool, bIsLit);
+
 
 // Structure to hold candle configuration data
 USTRUCT(BlueprintType)
@@ -41,6 +43,7 @@ class MEMORIESFPS_API AGamePuzzleChandelle : public AActor
 	GENERATED_BODY()
 	
 public:
+	UPROPERTY(BlueprintAssignable)
 	FOnCandleStateChanged OnCandleStateChanged;
 	
 	UFUNCTION(BlueprintCallable, Category = "Puzzle")
@@ -57,10 +60,17 @@ protected:
 	UPROPERTY()
 	TMap<FString, int32> CandleLookup;
 	
+	UPROPERTY()
+	TMap<FString, bool> CandleSolutionLookup;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Puzzle", meta = (TitleProperty = "CandleSymbole"))
 	TArray<FCandleState> FoundCandles;
 	
 	void GetAllCandles();
 	void UpdateCandleStateFromEvent(const FString& CandleSymbole, bool bIsLit);
+	
+	void VerifyPuzzleSolution(const FString& CandleSymbole, bool bIsLit);
+	
+	static FString NormalizeSymbol(const FString& RawSymbol);
 	
 };

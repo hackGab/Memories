@@ -32,7 +32,7 @@ void AMemoriesGameMode::BeginPlay()
 		true
 	);
 	
-	SpawnGamePuzzles();
+	//SpawnGamePuzzles();
 }
 
 void AMemoriesGameMode::AudioProperties()
@@ -116,7 +116,7 @@ void AMemoriesGameMode::EndGame()
 
 
 
-// Spawns all game puzzles in the level.
+/* Spawns all game puzzles in the level.
 void AMemoriesGameMode::SpawnGamePuzzles() const
 {
 	FActorSpawnParameters SpawnParams;
@@ -150,4 +150,4 @@ void AMemoriesGameMode::SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to spawn the Chandelle puzzle."));
 	}
-}
+}*/
