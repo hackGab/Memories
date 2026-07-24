@@ -15,6 +15,9 @@ class MEMORIESFPS_API AMemoriesGameMode : public AGameModeBase
 public:
 	AMemoriesGameMode();
 	
+	void SetIsPuzzleCandleResolve(bool isResolve);
+	bool GetIsPuzzleCandleResolve() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -70,4 +73,7 @@ private:
 	void SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const;
 	*/
 	
+	
+	// Variable Puzzle résolut
+	bool _isPuzzleCandleResolve;
 };
