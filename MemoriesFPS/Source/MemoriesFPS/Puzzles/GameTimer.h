@@ -1,0 +1,29 @@
+// Created By Gabriel Laplante on 2026-07-20
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "GameTimer.generated.h"
+
+class UTextRenderComponent;
+
+UCLASS()
+class MEMORIESFPS_API AGameTimer : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	AGameTimer();
+	
+	virtual void Tick(float DeltaTime) override;
+	
+protected:
+	virtual void BeginPlay() override;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Timer")
+	UTextRenderComponent* TimerText;
+	
+private:
+	void UpdateTimerText(float TimeRemaining) const;
+};
