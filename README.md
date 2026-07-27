@@ -1,6 +1,6 @@
 # Memories
 
-Projet de création d'un jeu vidéo en équipe de 9
+Projet de création d'un jeu vidéo en équipe de 8
 
 ## 🎮 Projet de création d'un jeu vidéo en équipe
 
@@ -11,7 +11,7 @@ Projet de création d'un jeu vidéo en équipe de 9
 |Dave|Ludo|--|
 |Pierre-Luc|Alexis|Alexane|
 |Gabriel|--|Michelle|
-|--|Loucas|Justine|
+|--|Loucas|--|
 
 
 
