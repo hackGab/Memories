@@ -151,3 +151,16 @@ void AMemoriesGameMode::SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, 
 		UE_LOG(LogTemp, Warning, TEXT("Failed to spawn the Chandelle puzzle."));
 	}
 }*/
+
+
+
+// Puzzles
+void AMemoriesGameMode::SetIsPuzzleCandleResolve(bool isResolve)
+{
+	this->_isPuzzleCandleResolve = isResolve;
+}
+
+bool AMemoriesGameMode::GetIsPuzzleCandleResolve() const
+{
+	return this->_isPuzzleCandleResolve;
+}

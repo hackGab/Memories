@@ -73,4 +73,9 @@ protected:
 	
 	static FString NormalizeSymbol(const FString& RawSymbol);
 	
+	
+	int32 nbCandlesToLit;
+	int32 nbCandlesAreLit;
+	bool isPuzzleCandleResolve = false;
+	
 };

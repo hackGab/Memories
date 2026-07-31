@@ -3,6 +3,7 @@
 
 #include "GamePuzzleChandelle.h"
 #include "Kismet/GameplayStatics.h"
+#include "../MemoriesGameMode.h"
 
 
 void AGamePuzzleChandelle::BeginPlay()
@@ -15,22 +16,31 @@ void AGamePuzzleChandelle::BeginPlay()
 	for (const FCandleSolutionConfig& Solution : CandleSolutions)
 	{
 		CandleSolutionLookup.Add(Solution.CandleSymbole, Solution.bShouldBeLit);
+		
+		if (Solution.bShouldBeLit)
+			nbCandlesToLit++;
 	}
 }
 
 
 void AGamePuzzleChandelle::OnCandleLitChanged(const FString& CandleSymbole, bool bIsLit)
 {
+	if (isPuzzleCandleResolve)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Yo le puzzle est déjà résolut, lâche le !"));
+		return;
+	}
+	
 	if (IsActorBeingDestroyed() || !IsValid(this))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("OnCandleLitChanged called on a destroyed or invalid actor."));
 		return;
 	}
 	
-	UE_LOG(LogTemp, Log, TEXT("BP called OnCandleLitChanged: CandleSymbole: %s, bIsLit: %s"),
+	/*UE_LOG(LogTemp, Log, TEXT("BP called OnCandleLitChanged: CandleSymbole: %s, bIsLit: %s"),
 		*CandleSymbole,
 		bIsLit ? TEXT("True") : TEXT("False"));
-	
+	*/
 	
 	UpdateCandleStateFromEvent(CandleSymbole, bIsLit);
 }
@@ -59,6 +69,13 @@ void AGamePuzzleChandelle::UpdateCandleStateFromEvent(const FString& CandleSymbo
 		if (!FoundCandles.IsValidIndex(Index))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("UpdateCandleStateFromEvent: FoundCandles is empty or invalid."));
+			return;
+		}
+		
+		// Évite de rappuyer sur un qui est déjà allumé
+		if (FoundCandles[Index].bIsLit == bIsLit)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Tu ne peux pas allumé une qui est déjà allumé"));
 			return;
 		}
 		
@@ -91,17 +108,40 @@ void AGamePuzzleChandelle::VerifyPuzzleSolution(const FString& CandleSymbole, bo
 			*CandleSymbole,
 			bIsLit ? TEXT("Lit") : TEXT("Unlit"));
 		
-		// Check if all candles are in the correct state
-		// save the state of the puzzle in a variable, and if all candles are in the correct state, trigger the puzzle completion event
+		
+		nbCandlesAreLit++;
+		
+		if (nbCandlesAreLit == nbCandlesToLit)
+		{
+			isPuzzleCandleResolve = true;
+			
+			// Appeler la méthode SetIsPuzzleCandleResolve de MemoriesGameMode
+			AMemoriesGameMode* GM = Cast<AMemoriesGameMode>(UGameplayStatics::GetGameMode(this));
+			if (!GM)
+			{
+				UE_LOG(LogTemp, Error, TEXT("AMemoriesGameMode introuvable ou mauvais type !"));
+				return;
+			}
+			
+			GM->SetIsPuzzleCandleResolve(isPuzzleCandleResolve);
+			UE_LOG(LogTemp, Display, TEXT("Tous les bonnes chandelles sont allumés ! Le AMemoriesGameMode recoit : %hhd"), GM->GetIsPuzzleCandleResolve());
+			
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green,
+				FString::Printf(TEXT("Puzzle chandelle : %s"),
+					GM->GetIsPuzzleCandleResolve() ? TEXT("résolu") : TEXT("non résolu")));
+
+		}
 	}
 	
 	// RESET
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("Candle %s is NOT in the correct state. Expected: %s, Actual: %s"), 
+		/*UE_LOG(LogTemp, Log, TEXT("Candle %s is NOT in the correct state. Expected: %s, Actual: %s"), 
 			*CandleSymbole,
 			bShouldBeLit ? TEXT("Lit") : TEXT("Unlit"),
-			bIsLit ? TEXT("Lit") : TEXT("Unlit"));
+			bIsLit ? TEXT("Lit") : TEXT("Unlit"));*/
+		
+		nbCandlesAreLit = 0;
 		
 
 		// Reset all the candles to their initial state (off)
@@ -110,11 +150,11 @@ void AGamePuzzleChandelle::VerifyPuzzleSolution(const FString& CandleSymbole, bo
 		{
 			if (CandleState.bIsLit)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Reset: broadcasting OFF for %s"), *CandleState.CandleSymbole);
+				//UE_LOG(LogTemp, Warning, TEXT("Reset: broadcasting OFF for %s"), *CandleState.CandleSymbole);
+				
 				
 				CandleState.bIsLit = false;
 				OnCandleStateChanged.Broadcast(CandleState.CandleSymbole, false);
-				//OnCandleStateChanged.Broadcast("BP_Candle_Soleil", false);
 			}
 		}
 	}
