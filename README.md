@@ -9,7 +9,7 @@ Projet de création d'un jeu vidéo en équipe de 8
 |Programmation 💻|Design 🎨|Art 🖌️|
 |-|-|-|
 |Dave|Ludo|--|
-|Pierre-Luc|Alexis|Alexane|
+|Pierre-Luc|Hugo|Alexane|
 |Gabriel|--|Michelle|
 |--|Loucas|--|
 
