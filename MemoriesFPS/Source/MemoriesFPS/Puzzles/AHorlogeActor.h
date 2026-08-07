@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/AudioComponent.h"
+#include "Camera/CameraComponent.h"
 #include "AHorlogeActor.generated.h"
 
 UENUM(BlueprintType)
@@ -57,6 +58,16 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UAudioComponent* AudioFail;
 
+    // --- Focus Camera ---
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Horloge|Focus")
+    UCameraComponent* FocusCamera;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Focus")
+    float FocusBlendTime = 0.5f;
+
+    UPROPERTY(BlueprintReadOnly, Category="Horloge|Focus")
+    bool bIsFocused = false;
+
     // --- Materials ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UMaterialInterface* DefaultMaterial;
@@ -71,6 +82,22 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 Minutes;
 
+    // --- Feedback (light/logo colors + sounds) ---
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Horloge|Feedback")
+    UStaticMeshComponent* LogoMesh;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Feedback")
+    FLinearColor SuccessColor = FLinearColor::Green;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Feedback")
+    FLinearColor FailColor = FLinearColor::Red;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Feedback")
+    FName LogoEmissiveParamName = TEXT("EmissiveColor");
+
+    UPROPERTY()
+    UMaterialInstanceDynamic* LogoDynMat;
+
     // --- Delegates ---
     UPROPERTY(BlueprintAssignable)
     FOnHoursChanged OnHoursChanged;
@@ -83,6 +110,9 @@ public:
     void SelectHand(EClockHand Hand);
 
     UFUNCTION(BlueprintCallable, Category="Horloge")
+    void CycleSelectedHand();
+
+    UFUNCTION(BlueprintCallable, Category="Horloge")
     void RotateSelectedHand(int32 Amount);
 
     UFUNCTION(BlueprintCallable, Category="Horloge")
@@ -90,6 +120,13 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="Horloge")
     void PlayFailCue();
+
+    // --- Focus ---
+    UFUNCTION(BlueprintCallable, Category="Horloge|Focus")
+    void FocusOnHorloge(APlayerController* PC);
+
+    UFUNCTION(BlueprintCallable, Category="Horloge|Focus")
+    void UnfocusHorloge(APlayerController* PC);
 
     // --- Hover Events ---
     UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
@@ -103,7 +140,6 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
     void OnBigHandHoverEnd(UPrimitiveComponent* TouchedComponent);
-    
 
     // --- Click Events ---
     UFUNCTION(BlueprintCallable, Category="Horloge|Click")
@@ -112,7 +148,7 @@ public:
     UFUNCTION(BlueprintCallable, Category="Horloge|Click")
     void OnBigHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed);
 
-
+    EClockHand GetSelectedHand() const { return SelectedHand; }
 
 private:
     EClockHand SelectedHand;
