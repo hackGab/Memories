@@ -111,6 +111,7 @@ void AGamePuzzleChandelle::VerifyPuzzleSolution(const FString& CandleSymbole, bo
 		
 		nbCandlesAreLit++;
 		
+		// Envoyer l'info au GM
 		if (nbCandlesAreLit == nbCandlesToLit)
 		{
 			isPuzzleCandleResolve = true;

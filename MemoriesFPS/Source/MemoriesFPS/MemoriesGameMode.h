@@ -18,6 +18,9 @@ public:
 	void SetIsPuzzleCandleResolve(bool isResolve);
 	bool GetIsPuzzleCandleResolve() const;
 	
+	void SetIsPuzzleHorlogeResolve(bool isResolve);
+	bool GetIsPuzzleHorlogeResolve() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -76,4 +79,5 @@ private:
 	
 	// Variable Puzzle résolut
 	bool _isPuzzleCandleResolve;
+	bool _isPuzzleHorlogeResolve;
 };
