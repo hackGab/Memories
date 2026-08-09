@@ -77,3 +77,5 @@ p4config.txt
 *.p4d
 MemoriesFPS/Plugins/WwiseSoundEngine/ThirdParty/Mac_Xcode*
 MemoriesFPS/Plugins/WwiseSoundEngine/ThirdParty/Mac_Xcode*
+
+Plugins/Wwise/ThirdParty/
