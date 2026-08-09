@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "Puzzles/GamePuzzleChandelle.h"
 #include "MemoriesGameMode.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTimeWarningEvent, bool, bIntensify, float, Intensity);
 
 UCLASS()
 class MEMORIESFPS_API AMemoriesGameMode : public AGameModeBase
@@ -21,6 +22,10 @@ public:
 	void SetIsPuzzleHorlogeResolve(bool isResolve);
 	bool GetIsPuzzleHorlogeResolve() const;
 	
+	UPROPERTY(BlueprintAssignable, Category ="Events")
+	FOnTimeWarningEvent OnTimeWarningEvent;
+	
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -34,48 +39,24 @@ protected:
 	
 	
 	static void EndGame();
-	float GetIntensity(float TimeRemaining) const;
 	void PlayTimeWarningSound(bool intensify) const;
+	
+	float GetIntensity(float TimeRemaining) const;
 	
 	
 	// TimeWarningSound properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
 	USoundBase* TimeWarningSound;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
-	float TimeWarningSoundPitch = 1.0f;
-	
-	// Plus le pitch augmente, plus le son est aigu. Seulement quand il reste moins de TimeWarningThreshold minutes, on peut jouer un son d'indice toutes les 30 secondes (en intensifiant le pitch)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
-	float PitchIntensity = 1.2f;
-	
-	
 	UPROPERTY()
 	UAudioComponent* TimeWarningAudioComponent;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
-	float CurrentVolume = 0.5f;
-	
-	// Quand il reste moins de TimeWarningThreshold minutes, on peut jouer un son d'indice toutes les 30 secondes (en intensifiant le volume)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TimeWarningSound")
-	float VolumeIntensity = 0.7f;
 	
 	void AudioProperties();
 	
 private:
 	FTimerHandle GameTimerHandle;
 	
-	void TickGameTimer();
-	
-	/* Spawns all game puzzles in the level
-	void SpawnGamePuzzles() const;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle Setup", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AGamePuzzleChandelle> ChandellePuzzleClass; // Référence vers BP_GamePuzzleChandelle
-	
-	void SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const;
-	*/
-	
+	void TickGameTimer();	
 	
 	// Variable Puzzle résolut
 	bool _isPuzzleCandleResolve;
