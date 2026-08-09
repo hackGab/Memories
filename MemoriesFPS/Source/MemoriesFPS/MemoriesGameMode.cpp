@@ -164,3 +164,13 @@ bool AMemoriesGameMode::GetIsPuzzleCandleResolve() const
 {
 	return this->_isPuzzleCandleResolve;
 }
+
+void AMemoriesGameMode::SetIsPuzzleHorlogeResolve(bool isResolve)
+{
+	this->_isPuzzleHorlogeResolve = isResolve;
+}
+
+bool AMemoriesGameMode::GetIsPuzzleHorlogeResolve() const
+{
+	return this->_isPuzzleHorlogeResolve;
+}
