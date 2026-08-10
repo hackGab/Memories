@@ -6,7 +6,6 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/AudioComponent.h"
-#include "Camera/CameraComponent.h"
 #include "AHorlogeActor.generated.h"
 
 UENUM(BlueprintType)
@@ -57,16 +56,6 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UAudioComponent* AudioFail;
-
-    // --- Focus Camera ---
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Horloge|Focus")
-    UCameraComponent* FocusCamera;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Focus")
-    float FocusBlendTime = 0.5f;
-
-    UPROPERTY(BlueprintReadOnly, Category="Horloge|Focus")
-    bool bIsFocused = false;
 
     // --- Materials ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -121,13 +110,6 @@ public:
     UFUNCTION(BlueprintCallable, Category="Horloge")
     void PlayFailCue();
 
-    // --- Focus ---
-    UFUNCTION(BlueprintCallable, Category="Horloge|Focus")
-    void FocusOnHorloge(APlayerController* PC);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge|Focus")
-    void UnfocusHorloge(APlayerController* PC);
-
     // --- Hover Events ---
     UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
     void OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent);
@@ -148,6 +130,7 @@ public:
     UFUNCTION(BlueprintCallable, Category="Horloge|Click")
     void OnBigHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed);
 
+    UFUNCTION(BlueprintCallable, Category="Horloge")
     EClockHand GetSelectedHand() const { return SelectedHand; }
 
 private:
