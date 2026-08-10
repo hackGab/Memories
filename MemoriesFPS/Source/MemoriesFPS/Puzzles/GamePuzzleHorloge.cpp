@@ -118,7 +118,7 @@ void AGamePuzzleHorloge::UpdateMinutesStateFromEvent(const FString& HorlogeSymbo
 		}*/
 		
 		FoundHorloges[Index].timeMinutes = timeMinutes;
-		OnHoursStateChanged.Broadcast(HorlogeSymbole, timeMinutes);
+		OnMinutesStateChanged.Broadcast(HorlogeSymbole, timeMinutes);
 		
 		VerifyPuzzleSolution(FoundHorloges[Index]); // <-- ajout
 		return;

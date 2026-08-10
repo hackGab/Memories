@@ -104,9 +104,7 @@ void AHorlogeActor::DebugMessage(const FString& Msg, FColor Color)
     }
 }
 
-// ------------------------------------------------------------------
 // Focus / Zoom caméra
-// ------------------------------------------------------------------
 
 void AHorlogeActor::FocusOnHorloge(APlayerController* PC)
 {
@@ -145,9 +143,7 @@ void AHorlogeActor::UnfocusHorloge(APlayerController* PC)
     DebugMessage("Sortie du focus", FColor::Cyan);
 }
 
-// ------------------------------------------------------------------
 // Sélection des aiguilles
-// ------------------------------------------------------------------
 
 void AHorlogeActor::SelectHand(EClockHand Hand)
 {
@@ -191,10 +187,7 @@ void AHorlogeActor::CycleSelectedHand()
     }
 }
 
-// ------------------------------------------------------------------
 // Rotation
-// ------------------------------------------------------------------
-
 void AHorlogeActor::RotateSelectedHand(int32 Amount)
 {
     DebugMessage(FString("RotateSelectedHand Amount = ") + FString::FromInt(Amount), FColor::Cyan);
@@ -239,9 +232,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
     }
 }
 
-// ------------------------------------------------------------------
 // Hover
-// ------------------------------------------------------------------
 
 void AHorlogeActor::OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent)
 {
@@ -276,9 +267,7 @@ void AHorlogeActor::OnBigHandHoverEnd(UPrimitiveComponent* TouchedComponent)
     DebugMessage("End Hover Big Hand", FColor::Blue);
 }
 
-
 // Click
-
 
 void AHorlogeActor::OnSmallHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed)
 {
@@ -292,10 +281,8 @@ void AHorlogeActor::OnBigHandClicked(UPrimitiveComponent* TouchedComponent, FKey
     SelectHand(EClockHand::Big);
 }
 
-// ------------------------------------------------------------------
-// Cues son + lumière + logo
-// ------------------------------------------------------------------
 
+// Cues son + lumière + logo
 void AHorlogeActor::PlaySuccessCue()
 {
     LightCue->SetVisibility(true);
