@@ -17,7 +17,7 @@ enum class EPuzzleColor : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFlameColorChanged, FName, CardinalPoint, EPuzzleColor, Color);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPuzzleSolved);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPuzzleChandelierSolved);
 
 USTRUCT(BlueprintType)
 struct FExteriorLight
@@ -114,7 +114,7 @@ public:
     FOnFlameColorChanged OnFlameColorChanged;
 
     UPROPERTY(BlueprintAssignable, Category="Puzzle")
-    FOnPuzzleSolved OnPuzzleSolved;
+    FOnPuzzleChandelierSolved OnPuzzleSolved;
 
     // Class of the statue to spawn
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")

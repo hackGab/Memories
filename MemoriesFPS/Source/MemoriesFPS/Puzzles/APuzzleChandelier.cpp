@@ -13,11 +13,6 @@ void APuzzleChandelier::BeginPlay()
 
     InitColorRotation();
     InitSolution();
-
-    // Optionnel : initialiser MissingColor pour chaque lumière
-    // Ici tu peux définir manuellement dans l’éditeur,
-    // ou calculer à partir d’une rotation custom.
-
     GetWorld()->GetTimerManager().SetTimer(
         RotationTimer,
         this,
