@@ -88,6 +88,9 @@ public:
 	// --- Delegates ---
 	UPROPERTY(BlueprintAssignable)
 	FOnHorlogeStateChanged OnHoursStateChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnHorlogeStateChanged OnMinutesStateChanged;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnPuzzleSolved OnPuzzleSolved;
