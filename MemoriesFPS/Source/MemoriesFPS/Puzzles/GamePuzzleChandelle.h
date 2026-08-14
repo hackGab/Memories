@@ -6,7 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "GamePuzzleChandelle.generated.h"
 
-//DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCandleStateChanged, const FString& /*CandleSymbole*/, bool /*bIsLit*/);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCandleStateChanged, const FString&, CandleSymbole, bool, bIsLit);
 
 

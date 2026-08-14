@@ -5,7 +5,6 @@
 #include "TimerManager.h"
 #include "Sound/SoundBase.h"
 #include "Components/AudioComponent.h"
-#include "Puzzles/GamePuzzleChandelle.h"
 
 
 AMemoriesGameMode::AMemoriesGameMode()
@@ -31,8 +30,6 @@ void AMemoriesGameMode::BeginPlay()
 		1.0f,
 		true
 	);
-	
-	//SpawnGamePuzzles();
 }
 
 void AMemoriesGameMode::AudioProperties()
@@ -42,8 +39,6 @@ void AMemoriesGameMode::AudioProperties()
 		TimeWarningAudioComponent = NewObject<UAudioComponent>(this);
 		TimeWarningAudioComponent->bAutoActivate = false;
 		TimeWarningAudioComponent->SetSound(TimeWarningSound);
-		TimeWarningAudioComponent->SetPitchMultiplier(TimeWarningSoundPitch);
-		TimeWarningAudioComponent->SetVolumeMultiplier(CurrentVolume);
 		TimeWarningAudioComponent->RegisterComponent();
 	}
 	else
@@ -76,7 +71,6 @@ void AMemoriesGameMode::TickGameTimer()
 		PlayTimeWarningSound(false);
 }
 
-
 float AMemoriesGameMode::GetIntensity(float TimeRemaining) const
 {
 	// Normalise entre 0 et 1
@@ -87,72 +81,24 @@ float AMemoriesGameMode::GetIntensity(float TimeRemaining) const
 	return 1.0f - FMath::Pow(Alpha, 2.0f);
 }
 
+
 void AMemoriesGameMode::PlayTimeWarningSound(bool intensify) const
 {
 	AMemoriesGameState* GS = GetGameState<AMemoriesGameState>();
-	if (!GS || !TimeWarningAudioComponent) return;
+	if (!GS) return;
 
-	if (intensify)
-	{
-		float Intensity = GetIntensity(GS->TimeRemaining);
+	float Intensity = intensify ? GetIntensity(GS->TimeRemaining) : 0.0f;
 
-		float NewPitch = TimeWarningSoundPitch + Intensity * PitchIntensity;   
-		float NewVolume = CurrentVolume + Intensity * VolumeIntensity;         
-
-		TimeWarningAudioComponent->SetPitchMultiplier(NewPitch);
-		TimeWarningAudioComponent->SetVolumeMultiplier(NewVolume);
-
-		//UE_LOG(LogTemp, Warning, TEXT("Intensity=%f Pitch=%f Volume=%f"), Intensity, NewPitch, NewVolume);
-	}
-
-	TimeWarningAudioComponent->Play();
+	OnTimeWarningEvent.Broadcast(intensify, Intensity);
 }
+
+
 
 
 void AMemoriesGameMode::EndGame()
 {
 	UE_LOG(LogTemp, Log, TEXT("Game Over!"));
 }
-
-
-
-/* Spawns all game puzzles in the level.
-void AMemoriesGameMode::SpawnGamePuzzles() const
-{
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	FTransform SpawnTransform = FTransform(FRotator::ZeroRotator, FVector::ZeroVector);
-	
-	SpawnChandellePuzzle(SpawnParams, SpawnTransform);
-}
-
-void AMemoriesGameMode::SpawnChandellePuzzle(FActorSpawnParameters SpawnParams, FTransform SpawnTransform) const
-{
-	
-	if (!ChandellePuzzleClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("ChandellePuzzleClass is not assigned in MemoriesGameMode."));
-		return;
-	}
-	
-	AGamePuzzleChandelle* ChandellePuzzleInstance = GetWorld()->SpawnActor<AGamePuzzleChandelle>(
-		ChandellePuzzleClass,
-		SpawnTransform,
-		SpawnParams
-	);
-	
-	if (ChandellePuzzleInstance)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Chandelle puzzle spawned successfully by MemoriesGameMode."));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to spawn the Chandelle puzzle."));
-	}
-}*/
-
-
 
 // Puzzles
 void AMemoriesGameMode::SetIsPuzzleCandleResolve(bool isResolve)
@@ -163,4 +109,14 @@ void AMemoriesGameMode::SetIsPuzzleCandleResolve(bool isResolve)
 bool AMemoriesGameMode::GetIsPuzzleCandleResolve() const
 {
 	return this->_isPuzzleCandleResolve;
+}
+
+void AMemoriesGameMode::SetIsPuzzleHorlogeResolve(bool isResolve)
+{
+	this->_isPuzzleHorlogeResolve = isResolve;
+}
+
+bool AMemoriesGameMode::GetIsPuzzleHorlogeResolve() const
+{
+	return this->_isPuzzleHorlogeResolve;
 }
