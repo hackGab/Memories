@@ -6,8 +6,8 @@ Projet de création d'un jeu vidéo en équipe de 8
 
 ## 👥 Équipe:
 
-|Programmation 💻|Design 🎨|Art 🖌️|
-|-|-|-|
+|Programmation 💻|Design 🎨|Art 🖌️| Son |
+|-|-|-|-|
 |Dave|Ludo|--|
 |Pierre-Luc|Hugo|Alexane|
 |Gabriel|--|Michelle|
