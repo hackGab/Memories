@@ -34,6 +34,8 @@ public:
     virtual void Tick(float DeltaTime) override;
 
     void DebugMessage(const FString& Msg, FColor Color = FColor::White);
+    
+    void SyncToPuzzleValues();
 
     // --- Components ---
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -56,7 +58,15 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     UAudioComponent* AudioFail;
+    
+    UPROPERTY(BlueprintReadWrite)
+    bool bRotateLeft = false;
 
+    UPROPERTY(BlueprintReadWrite)
+    bool bRotateRight = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float RotationSpeedDegreesPerSecond = 60.f;
     // --- Materials ---
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UMaterialInterface* DefaultMaterial;

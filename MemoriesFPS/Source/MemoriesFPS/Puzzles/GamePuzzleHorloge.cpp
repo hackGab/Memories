@@ -240,6 +240,9 @@ void AGamePuzzleHorloge::GetAllHorloges()
 		if (AHorlogeActor* HorlogeActor = Cast<AHorlogeActor>(Horloge))
 		{
 			HorlogeActorLookup.Add(NewHorlogeState.HorlogeSymbole, HorlogeActor);
+			HorlogeActor->Hours = NewHorlogeState.timeHours;
+			HorlogeActor->Minutes = NewHorlogeState.timeMinutes;
+			HorlogeActor->SyncToPuzzleValues();
 		}
 	}
 }

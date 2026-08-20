@@ -79,11 +79,56 @@ void AHorlogeActor::BeginPlay()
     // Bind click events
     SmallHandMesh->OnClicked.AddDynamic(this, &AHorlogeActor::OnSmallHandClicked);
     BigHandMesh->OnClicked.AddDynamic(this, &AHorlogeActor::OnBigHandClicked);
+    
+    float InitialMinutesRotation = (Minutes / 60.f) * 360.f;
+    BigHandMesh->SetRelativeRotation(FRotator(InitialMinutesRotation, 0.f, 0.f));
+
+    float InitialHoursRotation = (Hours / 12.f) * 360.f;
+    SmallHandMesh->SetRelativeRotation(FRotator(InitialHoursRotation, 0.f, 0.f));
 }
 
 void AHorlogeActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    if (SelectedHand == EClockHand::None)
+        return;
+
+    float Direction = 0.f;
+    if (bRotateLeft)  Direction -= 1.f;
+    if (bRotateRight) Direction += 1.f;
+
+    if (Direction == 0.f)
+        return;
+
+    float Degrees = Direction * RotationSpeedDegreesPerSecond * DeltaTime;
+
+    AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
+        UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
+    );
+
+    if (SelectedHand == EClockHand::Small)
+    {
+        float HoursFloat = static_cast<float>(Hours) + Degrees / 30.f;
+        Hours = static_cast<int32>(FMath::Fmod(HoursFloat + 12.f, 12.f));
+
+        float Rotation = (Hours / 12.f) * 360.f;
+        SmallHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
+
+        if (Puzzle)
+            Puzzle->OnHoursTimeChanged(GetActorLabel(), Hours);
+    }
+    else if (SelectedHand == EClockHand::Big)
+    {
+        float MinutesFloat = static_cast<float>(Minutes) + Degrees / 6.f;
+        Minutes = static_cast<int32>(FMath::Fmod(MinutesFloat + 60.f, 60.f));
+
+        float Rotation = (Minutes / 60.f) * 360.f;
+        BigHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
+
+        if (Puzzle)
+            Puzzle->OnMinutesTimeChanged(GetActorLabel(), Minutes);
+    }
 }
 
 void AHorlogeActor::DebugMessage(const FString& Msg, FColor Color)
@@ -117,9 +162,6 @@ void AHorlogeActor::SelectHand(EClockHand Hand)
             BigHandMesh->SetMaterial(0, M_OutlineHover);
         }
     }
-
-    FString HandName = (Hand == EClockHand::Small ? "Small" : Hand == EClockHand::Big ? "Big" : "None");
-    DebugMessage(FString("Selected hand: ") + HandName, FColor::Yellow);
 }
 
 void AHorlogeActor::CycleSelectedHand()
@@ -145,7 +187,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
     {
         Hours = (Hours + Amount + 12) % 12;
         float Rotation = (Hours / 12.f) * 360.f;
-        SmallHandMesh->SetRelativeRotation(FRotator(0.f, Rotation, 0.f));
+        SmallHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
 
         AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
             UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
@@ -162,7 +204,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
     {
         Minutes = (Minutes + Amount + 60) % 60;
         float Rotation = (Minutes / 60.f) * 360.f;
-        BigHandMesh->SetRelativeRotation(FRotator(0.f, Rotation, 0.f));
+        BigHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
 
         AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
             UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
@@ -240,6 +282,15 @@ void AHorlogeActor::PlaySuccessCue()
     }
 
     AudioSuccess->Play();
+}
+
+void AHorlogeActor::SyncToPuzzleValues()
+{
+    float MinutesRotation = (Minutes / 60.f) * 360.f;
+    BigHandMesh->SetRelativeRotation(FRotator(MinutesRotation, 0.f, 0.f));
+
+    float HoursRotation = (Hours / 12.f) * 360.f;
+    SmallHandMesh->SetRelativeRotation(FRotator(HoursRotation, 0.f, 0.f));
 }
 
 void AHorlogeActor::PlayFailCue()
