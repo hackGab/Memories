@@ -4,13 +4,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/AudioComponent.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/PlayerController.h"
-#include "GameFramework/Pawn.h"
 #include "Engine/Engine.h"
 #include "GamePuzzleHorloge.h"
 #include "Kismet/GameplayStatics.h"
-
 
 AHorlogeActor::AHorlogeActor()
 {
@@ -51,12 +47,6 @@ AHorlogeActor::AHorlogeActor()
     AudioFail->SetupAttachment(SceneRoot);
     AudioFail->bAutoActivate = false;
 
-    // --- Focus Camera ---
-    FocusCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FocusCamera"));
-    FocusCamera->SetupAttachment(SceneRoot);
-    FocusCamera->SetRelativeLocation(FVector(-40.f, 0.f, 20.f)); // à ajuster selon l'angle voulu
-    FocusCamera->SetRelativeRotation(FRotator(-10.f, 180.f, 0.f));
-
     Hours = 0;
     Minutes = 0;
     SelectedHand = EClockHand::None;
@@ -89,11 +79,56 @@ void AHorlogeActor::BeginPlay()
     // Bind click events
     SmallHandMesh->OnClicked.AddDynamic(this, &AHorlogeActor::OnSmallHandClicked);
     BigHandMesh->OnClicked.AddDynamic(this, &AHorlogeActor::OnBigHandClicked);
+    
+    float InitialMinutesRotation = (Minutes / 60.f) * 360.f;
+    BigHandMesh->SetRelativeRotation(FRotator(InitialMinutesRotation, 0.f, 0.f));
+
+    float InitialHoursRotation = (Hours / 12.f) * 360.f;
+    SmallHandMesh->SetRelativeRotation(FRotator(InitialHoursRotation, 0.f, 0.f));
 }
 
 void AHorlogeActor::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    if (SelectedHand == EClockHand::None)
+        return;
+
+    float Direction = 0.f;
+    if (bRotateLeft)  Direction -= 1.f;
+    if (bRotateRight) Direction += 1.f;
+
+    if (Direction == 0.f)
+        return;
+
+    float Degrees = Direction * RotationSpeedDegreesPerSecond * DeltaTime;
+
+    AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
+        UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
+    );
+
+    if (SelectedHand == EClockHand::Small)
+    {
+        float HoursFloat = static_cast<float>(Hours) + Degrees / 30.f;
+        Hours = static_cast<int32>(FMath::Fmod(HoursFloat + 12.f, 12.f));
+
+        float Rotation = (Hours / 12.f) * 360.f;
+        SmallHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
+
+        if (Puzzle)
+            Puzzle->OnHoursTimeChanged(GetActorLabel(), Hours);
+    }
+    else if (SelectedHand == EClockHand::Big)
+    {
+        float MinutesFloat = static_cast<float>(Minutes) + Degrees / 6.f;
+        Minutes = static_cast<int32>(FMath::Fmod(MinutesFloat + 60.f, 60.f));
+
+        float Rotation = (Minutes / 60.f) * 360.f;
+        BigHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
+
+        if (Puzzle)
+            Puzzle->OnMinutesTimeChanged(GetActorLabel(), Minutes);
+    }
 }
 
 void AHorlogeActor::DebugMessage(const FString& Msg, FColor Color)
@@ -104,63 +139,18 @@ void AHorlogeActor::DebugMessage(const FString& Msg, FColor Color)
     }
 }
 
-// ------------------------------------------------------------------
-// Focus / Zoom caméra
-// ------------------------------------------------------------------
-
-void AHorlogeActor::FocusOnHorloge(APlayerController* PC)
-{
-    if (!PC || bIsFocused)
-        return;
-
-    bIsFocused = true;
-
-    PC->SetViewTargetWithBlend(this, FocusBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut);
-
-    if (APawn* Pawn = PC->GetPawn())
-    {
-        Pawn->DisableInput(PC);
-    }
-
-    PC->bShowMouseCursor = true;
-
-    DebugMessage("Focus sur l'horloge", FColor::Cyan);
-}
-
-void AHorlogeActor::UnfocusHorloge(APlayerController* PC)
-{
-    if (!PC || !bIsFocused)
-        return;
-
-    bIsFocused = false;
-
-    if (APawn* Pawn = PC->GetPawn())
-    {
-        PC->SetViewTargetWithBlend(Pawn, FocusBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut);
-        Pawn->EnableInput(PC);
-    }
-
-    PC->bShowMouseCursor = false;
-
-    DebugMessage("Sortie du focus", FColor::Cyan);
-}
-
-// ------------------------------------------------------------------
 // Sélection des aiguilles
-// ------------------------------------------------------------------
 
 void AHorlogeActor::SelectHand(EClockHand Hand)
 {
     SelectedHand = Hand;
 
-    // Reset visuel
     if (DefaultMaterial)
     {
         SmallHandMesh->SetMaterial(0, DefaultMaterial);
         BigHandMesh->SetMaterial(0, DefaultMaterial);
     }
 
-    // Highlight de l'aiguille sélectionnée
     if (M_OutlineHover)
     {
         if (Hand == EClockHand::Small)
@@ -172,9 +162,6 @@ void AHorlogeActor::SelectHand(EClockHand Hand)
             BigHandMesh->SetMaterial(0, M_OutlineHover);
         }
     }
-
-    FString HandName = (Hand == EClockHand::Small ? "Small" : Hand == EClockHand::Big ? "Big" : "None");
-    DebugMessage(FString("Selected hand: ") + HandName, FColor::Yellow);
 }
 
 void AHorlogeActor::CycleSelectedHand()
@@ -191,10 +178,7 @@ void AHorlogeActor::CycleSelectedHand()
     }
 }
 
-// ------------------------------------------------------------------
 // Rotation
-// ------------------------------------------------------------------
-
 void AHorlogeActor::RotateSelectedHand(int32 Amount)
 {
     DebugMessage(FString("RotateSelectedHand Amount = ") + FString::FromInt(Amount), FColor::Cyan);
@@ -203,7 +187,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
     {
         Hours = (Hours + Amount + 12) % 12;
         float Rotation = (Hours / 12.f) * 360.f;
-        SmallHandMesh->SetRelativeRotation(FRotator(0.f, Rotation, 0.f));
+        SmallHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
 
         AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
             UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
@@ -220,7 +204,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
     {
         Minutes = (Minutes + Amount + 60) % 60;
         float Rotation = (Minutes / 60.f) * 360.f;
-        BigHandMesh->SetRelativeRotation(FRotator(0.f, Rotation, 0.f));
+        BigHandMesh->SetRelativeRotation(FRotator(Rotation, 0.f, 0.f));
 
         AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
             UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
@@ -239,10 +223,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
     }
 }
 
-// ------------------------------------------------------------------
 // Hover
-// ------------------------------------------------------------------
-
 void AHorlogeActor::OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent)
 {
     if (M_OutlineHover)
@@ -253,7 +234,6 @@ void AHorlogeActor::OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent)
 
 void AHorlogeActor::OnSmallHandHoverEnd(UPrimitiveComponent* TouchedComponent)
 {
-    // Ne pas retirer le highlight si l'aiguille est actuellement sélectionnée
     if (SelectedHand != EClockHand::Small && DefaultMaterial)
         SmallHandMesh->SetMaterial(0, DefaultMaterial);
 
@@ -276,10 +256,7 @@ void AHorlogeActor::OnBigHandHoverEnd(UPrimitiveComponent* TouchedComponent)
     DebugMessage("End Hover Big Hand", FColor::Blue);
 }
 
-
 // Click
-
-
 void AHorlogeActor::OnSmallHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed)
 {
     DebugMessage("Clicked Small Hand", FColor::Red);
@@ -292,10 +269,7 @@ void AHorlogeActor::OnBigHandClicked(UPrimitiveComponent* TouchedComponent, FKey
     SelectHand(EClockHand::Big);
 }
 
-// ------------------------------------------------------------------
 // Cues son + lumière + logo
-// ------------------------------------------------------------------
-
 void AHorlogeActor::PlaySuccessCue()
 {
     LightCue->SetVisibility(true);
@@ -308,6 +282,15 @@ void AHorlogeActor::PlaySuccessCue()
     }
 
     AudioSuccess->Play();
+}
+
+void AHorlogeActor::SyncToPuzzleValues()
+{
+    float MinutesRotation = (Minutes / 60.f) * 360.f;
+    BigHandMesh->SetRelativeRotation(FRotator(MinutesRotation, 0.f, 0.f));
+
+    float HoursRotation = (Hours / 12.f) * 360.f;
+    SmallHandMesh->SetRelativeRotation(FRotator(HoursRotation, 0.f, 0.f));
 }
 
 void AHorlogeActor::PlayFailCue()

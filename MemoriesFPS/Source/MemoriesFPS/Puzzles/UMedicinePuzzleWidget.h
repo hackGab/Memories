@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/UniformGridPanel.h"      
 #include "UMedicinePuzzleWidget.generated.h"
 
 class AMedicinePuzzle;
@@ -12,6 +13,10 @@ class MEMORIESFPS_API UMedicinePuzzleWidget : public UUserWidget
     GENERATED_BODY()
 
 public:
+
+    // Ton GridPanel dans le widget Blueprint
+    UPROPERTY(meta = (BindWidget))
+    UUniformGridPanel* BottleGrid;
 
     // Appelé par l’acteur quand le widget est créé
     UFUNCTION(BlueprintCallable)
