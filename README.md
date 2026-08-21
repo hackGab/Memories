@@ -10,7 +10,7 @@ Projet de création d'un jeu vidéo en équipe
 |-|-|-|
 |Dave|Ludo|Gabriel|
 |Pierre-Luc|Hugo|Alexane|
-|Gabriel|--|Michelle|
+|Gabriel|Olivier|Michelle|
 |--|Loucas|Guillaume|
 
 
