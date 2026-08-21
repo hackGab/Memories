@@ -2,147 +2,199 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/SceneComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Components/PointLightComponent.h"
-#include "Components/AudioComponent.h"
 #include "AHorlogeActor.generated.h"
+
+class USceneComponent;
+class UStaticMeshComponent;
+class UPointLightComponent;
+class UAudioComponent;
+class UMaterialInterface;
+class UMaterialInstanceDynamic;
+class AGamePuzzleHorloge;
 
 UENUM(BlueprintType)
 enum class EClockHand : uint8
 {
-    None,
-    Small,
-    Big
+	None,
+	Small,
+	Big
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoursChanged, int32, NewHours);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMinutesChanged, int32, NewMinutes);
 
-UCLASS(BlueprintType, Blueprintable)
+UCLASS()
 class MEMORIESFPS_API AHorlogeActor : public AActor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    AHorlogeActor();
+
+	AHorlogeActor();
 
 protected:
-    virtual void BeginPlay() override;
+
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	
+	// Components
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	USceneComponent* SceneRoot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UStaticMeshComponent* ClockFaceMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UStaticMeshComponent* LogoMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UStaticMeshComponent* SmallHandMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UStaticMeshComponent* BigHandMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UPointLightComponent* LightCue;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UAudioComponent* AudioSuccess;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	UAudioComponent* AudioFail;
+	
+	// Materials
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
+	UMaterialInterface* DefaultMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
+	UMaterialInterface* M_OutlineHover;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
+	FName LogoEmissiveParamName = TEXT("EmissiveColor");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
+	FLinearColor SuccessColor = FLinearColor::Green;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
+	FLinearColor FailColor = FLinearColor::Red;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* LogoDynMat;
+	
+	// Rotation
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Rotation")
+	float RotationSpeedDegreesPerSecond = 180.f;
+
+	float SmallHandRotation = 0.f;
+	float BigHandRotation = 0.f;
+
+	float TargetSmallHandRotation = 0.f;
+	float TargetBigHandRotation = 0.f;
+
+	// Animation state
+	float SmallHandAnimationStart = 0.f;
+	float BigHandAnimationStart = 0.f;
+
+	float SmallHandAnimationElapsed = 0.f;
+	float BigHandAnimationElapsed = 0.f;
+
+	float SmallHandAnimationDuration = 0.2f;
+	float BigHandAnimationDuration = 0.15f;
+
+	bool bAnimatingSmallHand = false;
+	bool bAnimatingBigHand = false;
+	
+	// Input state
+
+	bool bRotateLeft = false;
+	bool bRotateRight = false;
+	
+	// Selected hand
+
+	EClockHand SelectedHand;
+
+	// Hover / click
+	UFUNCTION()
+	void OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent);
+
+	UFUNCTION()
+	void OnSmallHandHoverEnd(UPrimitiveComponent* TouchedComponent);
+
+	UFUNCTION()
+	void OnBigHandHoverBegin(UPrimitiveComponent* TouchedComponent);
+
+	UFUNCTION()
+	void OnBigHandHoverEnd(UPrimitiveComponent* TouchedComponent);
+
+	UFUNCTION()
+	void OnSmallHandClicked(
+		UPrimitiveComponent* TouchedComponent,
+		FKey ButtonPressed
+	);
+
+	UFUNCTION()
+	void OnBigHandClicked(
+		UPrimitiveComponent* TouchedComponent,
+		FKey ButtonPressed
+	);
 
 public:
-    virtual void Tick(float DeltaTime) override;
+	// Clock data
 
-    void DebugMessage(const FString& Msg, FColor Color = FColor::White);
-    
-    void SyncToPuzzleValues();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
+	FString Symbole;
 
-    // --- Components ---
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    USceneComponent* SceneRoot;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
+	int32 Hours = 0;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    UStaticMeshComponent* ClockFaceMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
+	int32 Minutes = 0;
+	
+	// Delegates
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    UStaticMeshComponent* SmallHandMesh;
+	UPROPERTY(BlueprintAssignable, Category = "Horloge")
+	FOnHoursChanged OnHoursChanged;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    UStaticMeshComponent* BigHandMesh;
+	UPROPERTY(BlueprintAssignable, Category = "Horloge")
+	FOnMinutesChanged OnMinutesChanged;
+	
+	// Functions
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    UPointLightComponent* LightCue;
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void SelectHand(EClockHand Hand);
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    UAudioComponent* AudioSuccess;
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void CycleSelectedHand();
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    UAudioComponent* AudioFail;
-    
-    UPROPERTY(BlueprintReadWrite)
-    bool bRotateLeft = false;
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void RotateSelectedHand(int32 Amount);
 
-    UPROPERTY(BlueprintReadWrite)
-    bool bRotateRight = false;
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void SyncToPuzzleValues();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float RotationSpeedDegreesPerSecond = 60.f;
-    // --- Materials ---
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UMaterialInterface* DefaultMaterial;
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void PlaySuccessCue();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UMaterialInterface* M_OutlineHover;
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void PlayFailCue();
 
-    // --- Time Values ---
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 Hours;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 Minutes;
-
-    // --- Feedback (light/logo colors + sounds) ---
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Horloge|Feedback")
-    UStaticMeshComponent* LogoMesh;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Feedback")
-    FLinearColor SuccessColor = FLinearColor::Green;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Feedback")
-    FLinearColor FailColor = FLinearColor::Red;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Feedback")
-    FName LogoEmissiveParamName = TEXT("EmissiveColor");
-
-    UPROPERTY()
-    UMaterialInstanceDynamic* LogoDynMat;
-
-    // --- Delegates ---
-    UPROPERTY(BlueprintAssignable)
-    FOnHoursChanged OnHoursChanged;
-
-    UPROPERTY(BlueprintAssignable)
-    FOnMinutesChanged OnMinutesChanged;
-
-    // --- Functions ---
-    UFUNCTION(BlueprintCallable, Category="Horloge")
-    void SelectHand(EClockHand Hand);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge")
-    void CycleSelectedHand();
-
-    UFUNCTION(BlueprintCallable, Category="Horloge")
-    void RotateSelectedHand(int32 Amount);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge")
-    void PlaySuccessCue();
-
-    UFUNCTION(BlueprintCallable, Category="Horloge")
-    void PlayFailCue();
-
-    // --- Hover Events ---
-    UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
-    void OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
-    void OnSmallHandHoverEnd(UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
-    void OnBigHandHoverBegin(UPrimitiveComponent* TouchedComponent);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge|Hover")
-    void OnBigHandHoverEnd(UPrimitiveComponent* TouchedComponent);
-
-    // --- Click Events ---
-    UFUNCTION(BlueprintCallable, Category="Horloge|Click")
-    void OnSmallHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge|Click")
-    void OnBigHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed);
-
-    UFUNCTION(BlueprintCallable, Category="Horloge")
-    EClockHand GetSelectedHand() const { return SelectedHand; }
+	void DebugMessage(const FString& Msg, FColor Color);
 
 private:
-    EClockHand SelectedHand;
+	
+	void PrintCurrentClockTime();
+	// Rotation helpers
+
+
+	float GetContinuousHourRotation() const;
+	float GetMinuteRotation() const;
+
+	void StartSmallHandAnimation(float Degrees);
+	void StartBigHandAnimation(float Degrees);
+
+	void UpdateSmallHandAnimation(float DeltaTime);
+	void UpdateBigHandAnimation(float DeltaTime);
 };
