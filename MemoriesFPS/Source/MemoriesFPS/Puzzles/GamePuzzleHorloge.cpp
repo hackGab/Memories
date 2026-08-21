@@ -9,18 +9,35 @@
 void AGamePuzzleHorloge::BeginPlay()
 {
 	Super::BeginPlay();
-	GetAllHorloges();
 	
 	HorlogeSolutionLookup.Empty();
+	FoundHorloges.Empty();
+	HorlogeLookup.Empty();
+	HorlogeActorLookup.Empty();
+	
 	nbHorlogesToSolve = 0;
 	nbHorlogesAreSolve = 0;
 	isPuzzleHorlogeResolve = false;
 
 	for (const FHorlogeSolutionConfig& Solution : HorlogeSolutions)
 	{
-		HorlogeSolutionLookup.Add(Solution.HorlogeSymbole, Solution);
+		HorlogeSolutionLookup.Add(
+		   Solution.HorlogeSymbole,
+		   Solution
+	   );
+
 		nbHorlogesToSolve++;
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("SOLUTION REGISTERED: '%s' -> %f:%f"),
+			*Solution.HorlogeSymbole,
+			Solution.ShouldBeTimeHours,
+			Solution.ShouldBeTimeMinutes
+		);
 	}
+	GetAllHorloges();
 }
 
 
@@ -72,13 +89,13 @@ void AGamePuzzleHorloge::UpdateHoursStateFromEvent(const FString& HorlogeSymbole
 {
 	FString NormalizedSymbol = NormalizeSymbol(HorlogeSymbole);
 
-	if (int32* IndexPtr = HorlogeLookup.Find(HorlogeSymbole))
+	if (int32* IndexPtr = HorlogeLookup.Find(NormalizedSymbol))
 	{
 		int32 Index = *IndexPtr;
 
 		if (!FoundHorloges.IsValidIndex(Index))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UpdateHoursStateFromEvent: FoundHorloges is empty or invalid."));
+			UE_LOG(LogTemp, Warning, TEXT("Horloge with symbole %s not found in FoundHorloges."), *HorlogeSymbole)
 			return;
 		}
 		// Évite de rotate une aiguille qui est déjà dans la bonne direction
@@ -208,9 +225,12 @@ void AGamePuzzleHorloge::GetAllHorloges()
 	FName HorlogeTag = FName(TEXT("Horloge"));
 
 	TArray<AActor*> TempFoundHorloges;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), HorlogeTag, TempFoundHorloges);
 
-	UE_LOG(LogTemp, Log, TEXT("Found %d horloges in the scene."), TempFoundHorloges.Num());
+	UGameplayStatics::GetAllActorsWithTag(
+		GetWorld(),
+		HorlogeTag,
+		TempFoundHorloges
+	);
 
 	FoundHorloges.Empty();
 	HorlogeLookup.Empty();
@@ -218,34 +238,54 @@ void AGamePuzzleHorloge::GetAllHorloges()
 
 	for (AActor* Horloge : TempFoundHorloges)
 	{
-		FHorlogeState NewHorlogeState;
-		NewHorlogeState.HorlogeSymbole = Horloge->GetActorLabel();
+		AHorlogeActor* HorlogeActor = Cast<AHorlogeActor>(Horloge);
 
-		FProperty* timeHoursProperty = Horloge->GetClass()->FindPropertyByName("timeHours");
-		FProperty* timeMinutesProperty = Horloge->GetClass()->FindPropertyByName("timeMinutes");
-
-		if (FDoubleProperty* DoubleHoursProp = CastField<FDoubleProperty>(timeHoursProperty))
-			NewHorlogeState.timeHours = DoubleHoursProp->GetPropertyValue_InContainer(Horloge);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Horloge %s does not have a public variable 'timeHours'."), *NewHorlogeState.HorlogeSymbole);
-
-		if (FDoubleProperty* DoubleMinutesProp = CastField<FDoubleProperty>(timeMinutesProperty))
-			NewHorlogeState.timeMinutes = DoubleMinutesProp->GetPropertyValue_InContainer(Horloge);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Horloge %s does not have a public variable 'timeMinutes'."), *NewHorlogeState.HorlogeSymbole);
-
-		int32 Index = FoundHorloges.Add(NewHorlogeState);
-		HorlogeLookup.Add(NewHorlogeState.HorlogeSymbole, Index);
-
-		if (AHorlogeActor* HorlogeActor = Cast<AHorlogeActor>(Horloge))
+		if (!HorlogeActor)
 		{
-			HorlogeActorLookup.Add(NewHorlogeState.HorlogeSymbole, HorlogeActor);
-			HorlogeActor->Hours = NewHorlogeState.timeHours;
-			HorlogeActor->Minutes = NewHorlogeState.timeMinutes;
-			HorlogeActor->SyncToPuzzleValues();
+			UE_LOG(
+				LogTemp,
+				Warning,
+				TEXT("Actor %s tagged Horloge but is not an AHorlogeActor."),
+				*Horloge->GetName()
+			);
+
+			continue;
 		}
+		
+		const FString ClockSymbol = HorlogeActor->Symbole;
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("REGISTERING CLOCK: Actor=%s | Symbol=%s"),
+			*HorlogeActor->GetActorLabel(),
+			*ClockSymbol
+		);
+
+		FHorlogeState NewHorlogeState;
+
+		NewHorlogeState.HorlogeSymbole = ClockSymbol;
+		NewHorlogeState.timeHours = static_cast<double>(HorlogeActor->Hours);
+		NewHorlogeState.timeMinutes = static_cast<double>(HorlogeActor->Minutes);
+		NewHorlogeState.bIsSolved = false;
+
+		const int32 Index = FoundHorloges.Add(NewHorlogeState);
+
+		HorlogeLookup.Add(ClockSymbol, Index);
+		HorlogeActorLookup.Add(ClockSymbol, HorlogeActor);
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("CLOCK REGISTERED: Symbol=%s | Index=%d | Time=%f:%f"),
+			*ClockSymbol,
+			Index,
+			NewHorlogeState.timeHours,
+			NewHorlogeState.timeMinutes
+		);
 	}
 }
+
 
 
 void AGamePuzzleHorloge::EndPlay(const EEndPlayReason::Type EndPlayReason)

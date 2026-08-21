@@ -41,12 +41,15 @@ struct FHorlogeState
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|HorlogeConfig")
 	double timeMinutes = 0.0;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
+	FString Symbole;
+	
 	// Empêche de recompter une horloge déjà validée
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsSolved = false;
 };
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class MEMORIESFPS_API AGamePuzzleHorloge : public AActor
 {
 	GENERATED_BODY()
@@ -86,17 +89,22 @@ public:
 	USoundBase* YaySound;
 
 	// --- Delegates ---
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnHorlogeStateChanged OnHoursStateChanged;
 	
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnHorlogeStateChanged OnMinutesStateChanged;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnPuzzleSolved OnPuzzleSolved;
+	
+	
 
 	// --- Functions ---
+	UFUNCTION(BlueprintCallable, Category="Horloge")
 	void OnHoursTimeChanged(const FString& HorlogeSymbole, double timeHours);
+	
+	UFUNCTION(BlueprintCallable, Category="Horloge")
 	void OnMinutesTimeChanged(const FString& HorlogeSymbole, double timeMinutes);
 
 	FString NormalizeSymbol(const FString& RawSymbol);
