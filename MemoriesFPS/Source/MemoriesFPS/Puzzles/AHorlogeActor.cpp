@@ -274,17 +274,22 @@ float AHorlogeActor::GetMinuteRotation() const
 
 void AHorlogeActor::StartSmallHandAnimation(float Degrees)
 {
-	SmallHandAnimationStart = SmallHandRotation;
-
-	// Move relative to current position.
-	// +30 = clockwise one hour
-	// -30 = counter-clockwise one hour
-	TargetSmallHandRotation = SmallHandRotation + Degrees;
+	if (bAnimatingSmallHand)
+	{
+		SmallHandAnimationStart = TargetSmallHandRotation;
+	}
+	else
+	{
+		SmallHandAnimationStart = SmallHandRotation;
+	}
+	TargetSmallHandRotation =
+		SmallHandAnimationStart + Degrees;
 
 	SmallHandAnimationElapsed = 0.f;
 
 	float Distance = FMath::Abs(
-		TargetSmallHandRotation - SmallHandAnimationStart
+		TargetSmallHandRotation -
+		SmallHandAnimationStart
 	);
 
 	SmallHandAnimationDuration =
@@ -295,20 +300,28 @@ void AHorlogeActor::StartSmallHandAnimation(float Degrees)
 
 	bAnimatingSmallHand = true;
 }
+
 // Start big hand animation
 
 void AHorlogeActor::StartBigHandAnimation(float Degrees)
 {
-	BigHandAnimationStart = BigHandRotation;
+	if (bAnimatingBigHand)
+	{
+		BigHandAnimationStart = TargetBigHandRotation;
+	}
+	else
+	{
+		BigHandAnimationStart = BigHandRotation;
+	}
 
-	// +6 = one minute clockwise
-	// -6 = one minute counter-clockwise
-	TargetBigHandRotation = BigHandRotation + Degrees;
+	TargetBigHandRotation =
+		BigHandAnimationStart + Degrees;
 
 	BigHandAnimationElapsed = 0.f;
 
 	float Distance = FMath::Abs(
-		TargetBigHandRotation - BigHandAnimationStart
+		TargetBigHandRotation -
+		BigHandAnimationStart
 	);
 
 	BigHandAnimationDuration =
@@ -372,6 +385,7 @@ void AHorlogeActor::UpdateSmallHandAnimation(float DeltaTime)
 		);
 
 		bAnimatingSmallHand = false;
+		PrintCurrentClockTime();
 	}
 }
 
@@ -424,8 +438,9 @@ void AHorlogeActor::UpdateBigHandAnimation(float DeltaTime)
 				0.f
 			)
 		);
-
-		bAnimatingBigHand = false;
+		
+		bWaitingForClockAnimation = false;
+		PrintCurrentClockTime();
 	}
 }
 
@@ -557,17 +572,30 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 	// BIG HAND
 	else if (SelectedHand == EClockHand::Big)
 	{
-		Minutes = (Minutes + Amount + 60) % 60;
+		const int32 OldMinutes = Minutes;
 
-		// One minute = 6 degrees
-		float BigDegrees = Amount * 6.f;
+		// Calculate new minutes
+		Minutes = (Minutes + Amount + 60) % 60;
+		
+		// Detect hour rollover
+
+		if (Amount > 0 && OldMinutes == 59 && Minutes == 0)
+		{
+			Hours = (Hours + 1) % 12;
+		}
+		else if (Amount < 0 && OldMinutes == 0 && Minutes == 59)
+		{
+			Hours = (Hours - 1 + 12) % 12;
+		}
+
+		const float BigDegrees = Amount * 6.f;
 
 		StartBigHandAnimation(BigDegrees);
-		
-		float SmallDegrees = Amount * 0.5f;
+
+		const float SmallDegrees = Amount * 0.5f;
 
 		StartSmallHandAnimation(SmallDegrees);
-
+		// Notify puzzle
 		if (Puzzle)
 		{
 			Puzzle->OnMinutesTimeChanged(
@@ -582,6 +610,7 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 		}
 
 		OnMinutesChanged.Broadcast(Minutes);
+		OnHoursChanged.Broadcast(Hours);
 	}
 	else
 	{

@@ -107,6 +107,8 @@ protected:
 	bool bAnimatingSmallHand = false;
 	bool bAnimatingBigHand = false;
 	
+	bool bWaitingForClockAnimation = false;
+	
 	// Input state
 
 	bool bRotateLeft = false;
