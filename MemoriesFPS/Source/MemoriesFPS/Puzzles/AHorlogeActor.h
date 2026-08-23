@@ -117,6 +117,7 @@ protected:
 	// Selected hand
 
 	EClockHand SelectedHand;
+	float LastRotationTime = -800.f;
 
 	// Hover / click
 	UFUNCTION()
@@ -155,8 +156,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
 	int32 Minutes = 0;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge")
+	float RotationRepeatInterval = 0.2f; // seconds between steps while holding
+	
 	// Delegates
-
 	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnHoursChanged OnHoursChanged;
 
@@ -164,7 +167,6 @@ public:
 	FOnMinutesChanged OnMinutesChanged;
 	
 	// Functions
-
 	UFUNCTION(BlueprintCallable, Category = "Horloge")
 	void SelectHand(EClockHand Hand);
 
@@ -186,11 +188,9 @@ public:
 	void DebugMessage(const FString& Msg, FColor Color);
 
 private:
-	
 	void PrintCurrentClockTime();
+	
 	// Rotation helpers
-
-
 	float GetContinuousHourRotation() const;
 	float GetMinuteRotation() const;
 
