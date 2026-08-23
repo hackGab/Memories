@@ -242,18 +242,6 @@ void AHorlogeActor::Tick(float DeltaTime)
 }
 
 
-// ============================================================
-// Get continuous hour rotation
-// ============================================================
-//
-// Example:
-//
-// 3:00  = 90 degrees
-// 3:30  = 105 degrees
-// 3:45  = 112.5 degrees
-//
-// This makes the hour hand behave like a real clock.
-// ============================================================
 
 float AHorlogeActor::GetContinuousHourRotation() const
 {
@@ -269,7 +257,6 @@ float AHorlogeActor::GetMinuteRotation() const
 {
 	return Minutes * 6.f;
 }
-
 // Start small hand animation
 
 void AHorlogeActor::StartSmallHandAnimation(float Degrees)
@@ -541,6 +528,13 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 	{
 		return;
 	}
+	
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	if (CurrentTime - LastRotationTime < RotationRepeatInterval)
+	{
+		return; // too soon since the last step, ignore this call
+	}
+	LastRotationTime = CurrentTime;
 
 	AGamePuzzleHorloge* Puzzle =
 		Cast<AGamePuzzleHorloge>(
