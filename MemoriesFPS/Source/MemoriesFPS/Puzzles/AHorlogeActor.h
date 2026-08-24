@@ -87,8 +87,16 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Rotation")
 	float RotationSpeedDegreesPerSecond = 180.f;
+	
+	UFUNCTION(BlueprintCallable, Category="Horloge")
+	void LockClock();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge")
+	bool bIsLocked = false;
 
-	float SmallHandRotation = 0.f;
+	UFUNCTION(BlueprintCallable, Category="Horloge")
+	void ActivatePuzzleEntry();
+		float SmallHandRotation = 0.f;
 	float BigHandRotation = 0.f;
 
 	float TargetSmallHandRotation = 0.f;

@@ -529,6 +529,12 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 		return;
 	}
 	
+	if (bIsLocked)
+	{
+		DebugMessage("Clock is locked", FColor::Red);
+		return;
+	}
+	
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	if (CurrentTime - LastRotationTime < RotationRepeatInterval)
 	{
@@ -696,7 +702,32 @@ void AHorlogeActor::OnSmallHandHoverEnd(
 }
 
 // Big hand hover
+void AHorlogeActor::LockClock()
+{
+	bIsLocked = true;
 
+	// Son de verrouillage
+	if (AudioSuccess)
+		AudioSuccess->Play();
+
+	// Petit flash visuel
+	if (LogoDynMat)
+		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, SuccessColor);
+}
+void AHorlogeActor::ActivatePuzzleEntry()
+{
+	// Lumière qui augmente
+	if (LightCue)
+		LightCue->SetIntensity(5000.f);
+
+	// Logo qui s’allume
+	if (LogoDynMat)
+		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, FLinearColor(1.f, 1.f, 1.f));
+
+	// Aiguilles qui se recentrent légèrement
+	StartSmallHandAnimation(5.f); // petit mouvement
+	StartBigHandAnimation(-5.f);  // petit mouvement inverse
+}
 void AHorlogeActor::OnBigHandHoverBegin(
 	UPrimitiveComponent* TouchedComponent
 )
@@ -708,7 +739,6 @@ void AHorlogeActor::OnBigHandHoverBegin(
 			M_OutlineHover
 		);
 	}
-
 	DebugMessage(
 		TEXT("Hover Big Hand"),
 		FColor::Blue
