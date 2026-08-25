@@ -1,17 +1,10 @@
 #include "AMedicinePuzzle.h"
 #include "UMedicinePuzzleWidget.h"
 #include "Blueprint/UserWidget.h"
-#include "GameFramework/PlayerController.h"
 
 AMedicinePuzzle::AMedicinePuzzle()
 {
     PrimaryActorTick.bCanEverTick = false;
-
-    // Exemple de séquence correcte
-    CorrectSequence = {1, 7, 3, 10, 4};
-
-    bPuzzleCompleted = false;
-    CorrectCount = 0;
 }
 
 void AMedicinePuzzle::BeginPlay()
@@ -21,8 +14,7 @@ void AMedicinePuzzle::BeginPlay()
 
 void AMedicinePuzzle::Interact(APlayerController* PlayerController)
 {
-    if (!PuzzleWidgetClass || !PlayerController)
-        return;
+    if (!PuzzleWidgetClass) return;
 
     ActiveWidget = CreateWidget<UMedicinePuzzleWidget>(PlayerController, PuzzleWidgetClass);
 
@@ -30,38 +22,34 @@ void AMedicinePuzzle::Interact(APlayerController* PlayerController)
     {
         ActiveWidget->AddToViewport();
         ActiveWidget->SetPuzzleActor(this);
-
-        PlayerController->SetShowMouseCursor(true);
-        PlayerController->SetInputMode(FInputModeUIOnly());
     }
 }
 
-void AMedicinePuzzle::ValidatePuzzle(const TArray<int32>& PlayerSequence)
+TArray<int32> AMedicinePuzzle::GetInitialSequence() const
+{
+    return CorrectSequence;
+}
+
+void AMedicinePuzzle::ValidateSequence(const TArray<int32>& PlayerSequence)
 {
     CorrectCount = 0;
-    bPuzzleCompleted = true;
 
-    for (int32 i = 0; i < CorrectSequence.Num(); i++)
+    for (int32 i = 0; i < PlayerSequence.Num(); i++)
     {
-        if (PlayerSequence.IsValidIndex(i))
+        if (PlayerSequence[i] == CorrectSequence[i])
         {
-            if (PlayerSequence[i] == CorrectSequence[i])
-            {
-                CorrectCount++;
-            }
-            else
-            {
-                bPuzzleCompleted = false;
-            }
+            CorrectCount++;
         }
     }
 
+    bPuzzleCompleted = (CorrectCount == CorrectSequence.Num());
+
     if (bPuzzleCompleted)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Puzzle réussi !"));
+        UE_LOG(LogTemp, Warning, TEXT("Puzzle solved!"));
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Puzzle raté. %d bouteilles bien placées."), CorrectCount);
+        UE_LOG(LogTemp, Warning, TEXT("Incorrect sequence."));
     }
 }
