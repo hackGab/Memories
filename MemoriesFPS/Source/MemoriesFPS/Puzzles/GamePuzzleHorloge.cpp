@@ -118,7 +118,7 @@ void AGamePuzzleHorloge::UpdateMinutesStateFromEvent(const FString& HorlogeSymbo
 		}*/
 		
 		FoundHorloges[Index].timeMinutes = timeMinutes;
-		OnHoursStateChanged.Broadcast(HorlogeSymbole, timeMinutes);
+		OnMinutesStateChanged.Broadcast(HorlogeSymbole, timeMinutes);
 		
 		VerifyPuzzleSolution(FoundHorloges[Index]); // <-- ajout
 		return;
@@ -240,6 +240,9 @@ void AGamePuzzleHorloge::GetAllHorloges()
 		if (AHorlogeActor* HorlogeActor = Cast<AHorlogeActor>(Horloge))
 		{
 			HorlogeActorLookup.Add(NewHorlogeState.HorlogeSymbole, HorlogeActor);
+			HorlogeActor->Hours = NewHorlogeState.timeHours;
+			HorlogeActor->Minutes = NewHorlogeState.timeMinutes;
+			HorlogeActor->SyncToPuzzleValues();
 		}
 	}
 }

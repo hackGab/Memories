@@ -18,9 +18,13 @@ public:
     UFUNCTION()
     void Interact(APlayerController* PlayerController);
 
-    // Appelé par le widget quand le joueur clique sur "Confirmer"
+    // Le widget demande la séquence initiale
     UFUNCTION(BlueprintCallable)
-    void ValidatePuzzle(const TArray<int32>& PlayerSequence);
+    TArray<int32> GetInitialSequence() const;
+
+    // Le widget envoie la séquence finale
+    UFUNCTION(BlueprintCallable)
+    void ValidateSequence(const TArray<int32>& PlayerSequence);
 
 protected:
     virtual void BeginPlay() override;
