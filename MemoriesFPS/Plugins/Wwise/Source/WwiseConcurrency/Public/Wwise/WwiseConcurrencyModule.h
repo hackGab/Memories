@@ -68,9 +68,7 @@ public:
 		{
 			if (UNLIKELY(IsEngineExitRequested()))
 			{
-				static bool bShown{ false };
-				UE_CLOG(!bShown, LogLoad, Log, TEXT("Skipping reloading missing WwiseConcurrency module: Exiting."));
-				bShown = true;
+				UE_LOG(LogLoad, Log, TEXT("Skipping reloading missing WwiseConcurrency module: Exiting."));
 			}
 			else if (UNLIKELY(!IsInGameThread()))
 			{
@@ -89,6 +87,8 @@ public:
 
 		return Module;
 	}
+
+	virtual FWwiseExecutionQueue* GetDefaultQueue() = 0;
 
 private:
 	static inline FName GetModuleNameFromConfig()

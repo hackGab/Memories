@@ -24,28 +24,26 @@
 #define AUTOBAHN_H
 
 #include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <functional>
+#include <future>
 #include <istream>
 #include <map>
+#include <mutex>
 #include <ostream>
 #include <queue>
 #include <stdexcept>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
-#include "AK/WwiseAuthoringAPI/AkAutobahn/AkFuture.h"
 #include "AK/WwiseAuthoringAPI/AkAutobahn/AkVariant.h"
 #include "AK/WwiseAuthoringAPI/AkAutobahn/AkJson.h"
 #include "AK/WwiseAuthoringAPI/AkAutobahn/JsonProvider.h"
 
 #include "AK/WwiseAuthoringAPI/AkAutobahn/IWebSocketClientHandler.h"
 #include "AK/WwiseAuthoringAPI/AkAutobahn/WebSocketClient.h"
-
-#include <AK/Tools/Common/AkAutoLock.h>
-#include <AK/Tools/Common/AkLock.h>
 
 // thank you microsoft
 #ifdef ERROR
@@ -143,21 +141,21 @@ namespace AK
 			* passphrase.
 			* \return A future that resolves with the session ID when the realm was joined.
 			*/
-			AK::AkFuture<uint64_t> join(const std::string& realm, const std::string& method = "", const std::string& authid = "",
+			std::future<uint64_t> join(const std::string& realm, const std::string& method = "", const std::string& authid = "",
 				const std::string& signature = "");
 
 			authinfo getAuthInfo() const;
 
-			bool subscribe(const std::string& topic, handler_t handler, const AkJson& options, AK::AkFuture<subscription>& out_future, AkJson& out_jsonError);
+			bool subscribe(const std::string& topic, handler_t handler, const AkJson& options, std::future<subscription>& out_future, AkJson& out_jsonError);
 
-			bool unsubscribe(uint64_t subscription_id, AK::AkFuture<result_t>& out_future, AkJson& out_jsonError);
+			bool unsubscribe(uint64_t subscription_id, std::future<result_t>& out_future, AkJson& out_jsonError);
 
 			bool call_options(
 				const std::string& procedure,
 				const anyvec& args,
 				const AkJson& kwargs,
 				const AkJson& options,
-				AK::AkFuture<result_t>& out_future,
+				std::future<result_t>& out_future,
 				AkJson& out_jsonError);
 
 		private:
@@ -170,7 +168,7 @@ namespace AK
 			{
 				call_t() {}
 				call_t(call_t&& c) : m_res(std::move(c.m_res)) {}
-				AK::AkPromise<result_t> m_res;
+				std::promise<result_t> m_res;
 			};
 
 			/// Map of outstanding WAMP calls (request ID -> call).
@@ -179,7 +177,7 @@ namespace AK
 			/// Map of WAMP call ID -> call
 			calls_t m_calls;
 
-			CAkLock m_callsMutex;
+			std::mutex m_callsMutex;
 
 
 			//////////////////////////////////////////////////////////////////////////////////////
@@ -192,7 +190,7 @@ namespace AK
 				subscribe_request_t(subscribe_request_t&& s) : m_handler(std::move(s.m_handler)), m_res(std::move(s.m_res)) {}
 				subscribe_request_t(handler_t handler) : m_handler(handler){};
 				handler_t m_handler;
-				AK::AkPromise<subscription> m_res;
+				std::promise<subscription> m_res;
 			};
 
 			/// Map of outstanding WAMP subscribe requests (request ID -> subscribe request).
@@ -201,13 +199,13 @@ namespace AK
 			/// Map of WAMP subscribe request ID -> subscribe request
 			subscribe_requests_t m_subscribe_requests;
 
-			CAkLock m_subreqMutex;
+			std::mutex m_subreqMutex;
 
 			/// Map of subscribed handlers (subscription ID -> handler)
 			typedef std::map<uint64_t, handler_t> handlers_t;
 
 			/// Map of WAMP subscription ID -> handler
-			CAkLock m_handlersMutex;
+			std::mutex m_handlersMutex;
 			handlers_t m_handlers;
 
 			/// Disconnect handler.
@@ -223,7 +221,7 @@ namespace AK
 			{
 				unsubscribe_request_t(){};
 				unsubscribe_request_t(unsubscribe_request_t&& s) : m_res(std::move(s.m_res)) {}
-				AK::AkPromise<result_t> m_res;
+				std::promise<result_t> m_res;
 			};
 
 			/// Map of outstanding WAMP subscribe requests (request ID -> subscribe request).
@@ -232,7 +230,7 @@ namespace AK
 			/// Map of WAMP subscribe request ID -> subscribe request
 			unsubscribe_requests_t m_unsubscribe_requests;
 
-			CAkLock m_unsubreqMutex;
+			std::mutex m_unsubreqMutex;
 
 
 			//////////////////////////////////////////////////////////////////////////////////////
@@ -291,12 +289,12 @@ namespace AK
 			std::atomic<bool> m_wasDisconnected;
 
 			std::shared_ptr<WebSocketClient> m_websocket;
-			CAkLock m_websocketMutex;
+			std::recursive_mutex m_websocketMutex;
 
 			std::thread m_sendThread;
 
-			CAkLock m_sendQueueMutex;
-			AkEvent m_sendEvent;
+			std::mutex m_sendQueueMutex;
+			std::condition_variable m_sendEvent;
 			std::queue<std::shared_ptr<std::vector<char>>> m_sendQueue;
 
 			//Poco::JSON::Parser m_parser;
@@ -305,12 +303,12 @@ namespace AK
 			uint64_t m_session_id = 0;
 
 			/// Future to be fired when session was joined.
-			AK::AkPromise<uint64_t> m_session_join;
+			std::promise<uint64_t> m_session_join;
 
 			/// Future to be fired when the send thread has started waiting
-			AK::AkPromise<bool> m_send_thread_started;
+			std::promise<bool> m_send_thread_started;
 
-			CAkLock m_joinMutex;
+			std::mutex m_joinMutex;
 
 			/// Last request ID of outgoing WAMP requests.
 			uint64_t m_request_id = 0;

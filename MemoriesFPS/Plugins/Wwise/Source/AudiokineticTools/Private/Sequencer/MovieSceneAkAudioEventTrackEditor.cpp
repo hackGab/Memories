@@ -43,7 +43,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "TimeToPixel.h"
 
 #include "Textures/SlateTextureData.h"
-#include "Wwise/WwisePluginStyle.h"
 #include "Wwise/WwiseProjectDatabaseDelegates.h"
 
 #define LOCTEXT_NAMESPACE "MovieSceneAkAudioEventTrackEditor"
@@ -946,7 +945,7 @@ bool FMovieSceneAkAudioEventTrackEditor::HandleAssetAdded(UObject* Asset, const 
 
 const FSlateBrush* FMovieSceneAkAudioEventTrackEditor::GetIconBrush() const
 {
-	return FAkAudioStyle::GetBrush("Wwise.EventIcon");
+	return FAkAudioStyle::Get().GetBrush("Wwise.EventIcon");
 }
 
 void FMovieSceneAkAudioEventTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBuilder)
@@ -954,7 +953,7 @@ void FMovieSceneAkAudioEventTrackEditor::BuildAddTrackMenu(FMenuBuilder& MenuBui
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("AddAkAudioEventTrack", "AkAudioEvent"),
 		LOCTEXT("AddAkAudioEventMasterTrackTooltip", "Adds a master AkAudioEvent track."),
-		FSlateIcon(FWwisePluginStyle::GetWwisePluginStyleSetName(), "Wwise.EventIcon"),
+		FSlateIcon(FAkAudioStyle::GetStyleSetName(), "Wwise.EventIcon"),
 		FUIAction(FExecuteAction::CreateLambda([this]
 		{
 			auto FocusedMovieScene = GetFocusedMovieScene();
@@ -1054,7 +1053,7 @@ void FMovieSceneAkAudioEventTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilde
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("AddAkAudioEventTrack", "AkAudioEvent"),
 			LOCTEXT("AddAkAudioEventTrackTooltip", "Adds an AkAudioEvent track."),
-			FSlateIcon(FWwisePluginStyle::GetWwisePluginStyleSetName(), "Wwise.EventIcon"),
+			FSlateIcon(FAkAudioStyle::GetStyleSetName(), "Wwise.EventIcon"),
 			FUIAction(FExecuteAction::CreateLambda([this, ObjectBinding = MoveTemp(ObjectBinding)]
 			{
 				auto FocusedMovieScene = GetFocusedMovieScene();

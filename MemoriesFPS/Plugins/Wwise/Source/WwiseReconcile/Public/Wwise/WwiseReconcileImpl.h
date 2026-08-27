@@ -36,7 +36,7 @@ public:
 	virtual bool RenameExistingAssets(FScopedSlowTask& SlowTask) override;
 	virtual int32 MoveAssets(FScopedSlowTask& SlowTask) override;
 	virtual int GetNumberOfAssets() override;
-	virtual int32 DeleteAssets(FScopedSlowTask& SlowTask, bool bForceDelete = false) override;
+	virtual int32 DeleteAssets(FScopedSlowTask& SlowTask) override;
 	virtual UClass* GetUClassFromWwiseRefType(WwiseRefType RefType) override;
 	virtual void GetAssetChanges(TArray<FWwiseReconcileItem>& ReconcileItems, EWwiseReconcileOperationFlags OperationFlags = EWwiseReconcileOperationFlags::All) override;
 	virtual bool AddToDelete(FWwiseReconcileItem& Item) override;

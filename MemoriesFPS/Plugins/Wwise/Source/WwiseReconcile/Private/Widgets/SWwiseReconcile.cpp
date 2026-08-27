@@ -16,40 +16,26 @@ Copyright (c) 2025 Audiokinetic Inc.
 *******************************************************************************/
 
 #include "Widgets/SWwiseReconcile.h"
-
 #include "AkAudioStyle.h"
-#include "Widgets/ProjectedResultColumn.h"
-#include "Widgets/ReconcileOperationColumn.h"
-#include "Widgets/ReconcileUEAssetStatusColumn.h"
-#include "Widgets/SWwiseReconcileItemView.h"
-#include "Widgets/WwiseReconcileObjectColumn.h"
-#include "Wwise/WwiseReconcile.h"
 #include "WwiseUEFeatures.h"
-
-#include "Editor.h"
+#include "ProjectedResultColumn.h"
+#include "ReconcileOperationColumn.h"
+#include "ReconcileUEAssetStatusColumn.h"
+#include "WwiseReconcileObjectColumn.h"
+#include "SWwiseReconcileItemView.h"
 #include "Interfaces/IMainFrameModule.h"
-#include "ObjectTools.h"
-#include "Misc/EnumClassFlags.h"
-#include "Misc/MessageDialog.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
+#include "Wwise/WwiseReconcile.h"
 
 #define LOCTEXT_NAMESPACE "AkAudio"
 
 void SWwiseReconcile::Construct(const FArguments& InArgs, const TArray< FWwiseReconcileItem >& InReconcileItems, TSharedRef<SWindow>& ReconcileWindow)
 {
 	Window = ReconcileWindow;
-	
-	bOnlyReferencedAssets = true;
 	for(auto& Item : InReconcileItems)
 	{
-		TSharedPtr<FWwiseReconcileItem> ReconcileItem = MakeShared<FWwiseReconcileItem>(Item);
-		ReconcileItems.Add(ReconcileItem);
-
-		if (bOnlyReferencedAssets && !ReconcileItem->IsAssetReferenced())
-		{
-			bOnlyReferencedAssets = false;
-		}
+		ReconcileItems.Add(MakeShared<FWwiseReconcileItem>(Item));
 	}
 
 	HeaderRowWidget =
@@ -107,78 +93,27 @@ void SWwiseReconcile::Construct(const FArguments& InArgs, const TArray< FWwiseRe
 					.ClearSelectionOnClick(false)
 					.SelectionMode(ESelectionMode::None)
 					.HeaderRow(HeaderRowWidget)
-					.OnMouseButtonDoubleClick(this, &SWwiseReconcile::OnReconcileItemDoubleClicked)
-				]
-				+ SVerticalBox::Slot()
-				.Padding(0.f, 4.f, 0.f, 4.f)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				.AutoHeight()
-				[
-					SNew(STextBlock)
-					.Visibility(this, &SWwiseReconcile::GetManualActionWarningVisibility)
-					.Text(LOCTEXT("ManualActionWarning", "Manual actions are required. Please follow the instruction for each element."))
-					.ColorAndOpacity(FSlateColor(FColor::Yellow))
 				]
 				+SVerticalBox::Slot()
 				.AutoHeight()
 				.Padding(0.f, 4.f, 0.f, 4.f)
+				.HAlign(HAlign_Right)
 				.VAlign(VAlign_Center)
 				[
 					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Left)
-					.VAlign(VAlign_Center)
+					+SHorizontalBox::Slot()
 					.AutoWidth()
-					.FillWidth(1.0f)
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
-						.AutoWidth()
-						[
-							SAssignNew(ForceDeleteAssetsCheckbox, SCheckBox)
-							.OnCheckStateChanged(this, &SWwiseReconcile::OnForceDeleteCheckboxChanged)
-							.Content()
-							[
-								SNew(STextBlock)
-								.Text(FText::FromString(TEXT("Force delete referenced assets")))
-							]
-						]
+						SNew(SButton)
+						.Text(LOCTEXT("ReconcileButton", "Reconcile Unreal Assets"))
+						.OnClicked(this, &SWwiseReconcile::ReconcileAssets)
 					]
 					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Right)
-					.VAlign(VAlign_Center)
 					.AutoWidth()
 					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(0.0f, 0.0f, 20.0f, 0.0f)
-						.HAlign(HAlign_Right)
-						.VAlign(VAlign_Center)
-						[
-							SNew(STextBlock)
-							.Text(FText::FromString(TEXT("( DESTRUCTIVE ACTION )")))
-							.ColorAndOpacity(FSlateColor(FColor::Red))
-							.Visibility(this, &SWwiseReconcile::GetDestructiveActionWarningVisibility)
-						]
-						+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.HAlign(HAlign_Right)
-						[
-							SNew(SButton)
-							.Text(LOCTEXT("ReconcileButton", "Reconcile Unreal Assets"))
-							.IsEnabled(this, &SWwiseReconcile::CanReconcileItems)
-							.OnClicked(this, &SWwiseReconcile::ReconcileAssets)
-						]
-						+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.HAlign(HAlign_Right)
-						[
-							SNew(SButton)
-							.Text(LOCTEXT("CancelButton", "Cancel"))
-							.OnClicked(this, &SWwiseReconcile::CloseWindow)
-						]
+						SNew(SButton)
+						.Text(LOCTEXT("CancelButton", "Cancel"))
+						.OnClicked(this, &SWwiseReconcile::CloseWindow)
 					]
 				]
 			]
@@ -216,11 +151,6 @@ void SWwiseReconcile::SetupColumns(SHeaderRow& HeaderRow)
 	HeaderRowWidget->AddColumn(ProjectedResultsArgs);
 }
 
-bool SWwiseReconcile::CanReconcileItems() const
-{
-	return !bOnlyReferencedAssets || (ForceDeleteAssetsCheckbox.IsValid() && ForceDeleteAssetsCheckbox->IsChecked());
-}
-
 TSharedRef<ITableRow> SWwiseReconcile::GenerateRow(TSharedPtr<FWwiseReconcileItem> Item,
 	const TSharedRef<STableViewBase>& OwnerTable)
 {
@@ -232,50 +162,15 @@ TSharedRef<ITableRow> SWwiseReconcile::GenerateRow(TSharedPtr<FWwiseReconcileIte
 	return NewRow;
 }
 
-EVisibility SWwiseReconcile::GetDestructiveActionWarningVisibility() const
-{
-	return ForceDeleteAssetsCheckbox->IsChecked() ? EVisibility::Visible : EVisibility::Hidden;
-}
-
-EVisibility SWwiseReconcile::GetManualActionWarningVisibility() const
-{
-	return CanReconcileItems() ? EVisibility::Hidden : EVisibility::Visible;
-}
-
 FReply SWwiseReconcile::CloseWindow()
 {
 	Window.Pin()->RequestDestroyWindow();
 	return FReply::Handled();
 }
 
-void SWwiseReconcile::OnForceDeleteCheckboxChanged(ECheckBoxState newState)
-{
-	if (newState == ECheckBoxState::Checked)
-	{
-		EAppReturnType::Type out = FMessageDialog::Open(EAppMsgType::YesNo, LOCTEXT("ForceDeleteWarning", "THIS IS A DESTRUCTIVE ACTION.\nEnabling this feature will force delete all assets without taking care of missing references.\n\nAre you sure you want to enable the force delete option?"));
-		ForceDeleteAssetsCheckbox->SetIsChecked(out == EAppReturnType::Yes);
-	}
-	else
-	{
-		ForceDeleteAssetsCheckbox->SetIsChecked(false);
-	}
-}
-
-void SWwiseReconcile::OnReconcileItemDoubleClicked(TSharedPtr<FWwiseReconcileItem> item)
-{
-	CloseWindow();
-	GEditor->SyncBrowserToObject(item->Asset);
-}
-
 FReply SWwiseReconcile::ReconcileAssets()
 {
-	EWwiseReconcileOperationFlags flags = EWwiseReconcileOperationFlags::None;
-	if (ForceDeleteAssetsCheckbox->IsChecked())
-	{
-		flags |= EWwiseReconcileOperationFlags::ForceDelete;
-	}
-
 	CloseWindow();
-	IWwiseReconcile::Get()->ReconcileAssets(flags);
+	IWwiseReconcile::Get()->ReconcileAssets();
 	return FReply::Handled();
 }

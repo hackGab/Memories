@@ -58,17 +58,14 @@ void UAkInitBank::BeginCacheForCookedPlatformData(const ITargetPlatform* TargetP
 
 void UAkInitBank::Serialize(FArchive& Ar)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkInitBank::Serialize"));
-	if (Ar.IsSaving())
-	{
-		bAutoLoad = false;	
-	}
+	bAutoLoad = false;
+	Super::Serialize(Ar);
+
 	if (HasAnyFlags(RF_ClassDefaultObject))
 	{
 		return;
 	}
-	
-	Super::Serialize(Ar);
+
  #if !UE_SERVER
  #if WITH_EDITORONLY_DATA
  	if (Ar.IsCooking() && Ar.IsSaving() && !Ar.CookingTarget()->IsServerOnly())
@@ -90,7 +87,6 @@ void UAkInitBank::Serialize(FArchive& Ar)
 
 void UAkInitBank::UnloadInitBank(bool bAsync)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkInitBank::UnloadInitBank"));
 	auto PreviouslyLoadedInitBank = LoadedInitBank.exchange(nullptr);
 	if (PreviouslyLoadedInitBank)
 	{
@@ -116,27 +112,19 @@ void UAkInitBank::UnloadInitBank(bool bAsync)
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 UE_COOK_DEPENDENCY_FUNCTION(HashWwiseInitBankDependenciesForCook, UAkAudioType::HashDependenciesForCook);
 
-#if UE_5_6_OR_LATER
-void UAkInitBank::OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context)
+void UAkInitBank::PreSave(FObjectPreSaveContext SaveContext)
 {
 	ON_SCOPE_EXIT
 	{
-		Super::OnCookEvent(CookEvent, Context);
+		Super::PreSave(SaveContext);
 	};
-#else
-void UAkInitBank::PreSave(FObjectPreSaveContext Context)
-{
-	ON_SCOPE_EXIT
-	{
-		Super::PreSave(Context);
-	};
-#endif
-	if (!Context.IsCooking())
+
+	if (!SaveContext.IsCooking())
 	{
 		return;
 	}
 
-	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(Context.GetTargetPlatform());
+	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(SaveContext.GetTargetPlatform());
 	if (UNLIKELY(!ResourceCooker))
 	{
 		return;
@@ -148,10 +136,10 @@ void UAkInitBank::PreSave(FObjectPreSaveContext Context)
 
 	FCbWriter Writer;
 	Writer.BeginObject();
-	CookedDataToArchive.GetPlatformCookDependencies(Context, Writer);
+	CookedDataToArchive.PreSave(SaveContext, Writer);
 	Writer.EndObject();
 	
-	WwiseCookEventContext::AddLoadBuildDependency(Context,
+	SaveContext.AddCookBuildDependency(
 		UE::Cook::FCookDependency::Function(
 			UE_COOK_DEPENDENCY_FUNCTION_CALL(HashWwiseInitBankDependenciesForCook), Writer.Save()));
 }
@@ -201,7 +189,7 @@ void UAkInitBank::UnloadData(bool bAsync)
 
 void UAkInitBank::LoadInitBank()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkInitBank::LoadInitBank"));
+	SCOPED_AKAUDIO_EVENT_2(TEXT("LoadInitBank"));
 	FWwiseResourceLoaderPtr ResourceLoader = FWwiseResourceLoader::Get();
 	if (UNLIKELY(!ResourceLoader))
 	{

@@ -24,7 +24,7 @@ namespace AkComponentHelpers
 {
 	bool HasSimpleCollisionGeometry(const UBodySetup* bodySetup)
 	{
-		const FKAggregateGeom& geometry = bodySetup->AggGeom;
+		FKAggregateGeom geometry = bodySetup->AggGeom;
 		return geometry.BoxElems.Num() > 0 || geometry.ConvexElems.Num() > 0 || geometry.SphereElems.Num() > 0 || geometry.TaperedCapsuleElems.Num() > 0 || geometry.SphylElems.Num() > 0;
 	}
 

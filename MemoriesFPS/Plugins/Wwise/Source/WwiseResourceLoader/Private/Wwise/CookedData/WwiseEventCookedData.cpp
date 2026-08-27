@@ -30,9 +30,9 @@ FWwiseEventCookedData::FWwiseEventCookedData():
 	SoundBanks(),
 	Media(),
 	ExternalSources(),
-	AudioNodes(),
+	SwitchContainerLeaves(),
 	RequiredGroupValueSet(),
-	DestroyOptions(EWwiseAssetDestroyOptions::WaitForEventEnd)
+	DestroyOptions(EWwiseEventDestroyOptions::WaitForEventEnd)
 {}
 
 void FWwiseEventCookedData::Serialize(FArchive& Ar)
@@ -60,14 +60,14 @@ void FWwiseEventCookedData::SerializeBulkData(FArchive& Ar, const FWwisePackaged
 	{
 		MediaItem.SerializeBulkData(Ar, Options);
 	}
-	for (auto& AudioNode : AudioNodes)
+	for (auto& Leaf : SwitchContainerLeaves)
 	{
-		AudioNode.Value.SerializeBulkData(Ar, Options);
+		Leaf.SerializeBulkData(Ar, Options);
 	}
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseEventCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseEventCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "Event";
 	Writer.BeginObject();
@@ -78,7 +78,7 @@ void FWwiseEventCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& 
 	Writer.BeginArray();
 	for (auto& SoundBank : SoundBanks)
 	{
-		SoundBank.GetPlatformCookDependencies(Context, Writer);
+		SoundBank.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 
@@ -86,18 +86,15 @@ void FWwiseEventCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& 
 	Writer.BeginArray();
 	for (auto& MediaItem : Media)
 	{
-		MediaItem.GetPlatformCookDependencies(Context, Writer);
+		MediaItem.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 
-	Writer << "ANs";
+	Writer << "Ls";
 	Writer.BeginArray();
-	for (auto& AudioNode : AudioNodes)
+	for (auto& Leaf : SwitchContainerLeaves)
 	{
-		Writer.BeginObject();
-		AudioNode.Key.GetPlatformCookDependencies(Context, Writer);
-		AudioNode.Value.GetPlatformCookDependencies(Context, Writer);
-		Writer.EndObject();
+		Leaf.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 	Writer.EndObject();
@@ -147,7 +144,7 @@ FString FWwiseEventCookedData::GetDebugString() const
 		}
 		Result += FString::Printf(TEXT("%d ExternalSource%s"), ExternalSources.Num(), ExternalSources.Num() > 1 ? TEXT("s") : TEXT(""));
 	}
-	if (AudioNodes.Num() > 0)
+	if (SwitchContainerLeaves.Num() > 0)
 	{
 		if (bFirst)
 		{
@@ -158,7 +155,7 @@ FString FWwiseEventCookedData::GetDebugString() const
 		{
 			Result += TEXT(", ");
 		}
-		Result += FString::Printf(TEXT("%d AudioNode%s"), AudioNodes.Num(), AudioNodes.Num() > 1 ? TEXT("s") : TEXT(""));
+		Result += FString::Printf(TEXT("%d SwitchContainer Lea%s"), SwitchContainerLeaves.Num(), SwitchContainerLeaves.Num() > 1 ? TEXT("ves") : TEXT("f"));
 	}
 	if (RequiredGroupValueSet.Num() > 0)
 	{
@@ -174,6 +171,6 @@ FString FWwiseEventCookedData::GetDebugString() const
 		Result += FString::Printf(TEXT("%d GroupValue%s"), RequiredGroupValueSet.Num(), RequiredGroupValueSet.Num() > 1 ? TEXT("s") : TEXT(""));
 	}
 
-	Result += FString::Printf(TEXT(" (%s)"), DestroyOptions == EWwiseAssetDestroyOptions::StopEventOnDestroy ? TEXT("sod") : TEXT("wfe"));
+	Result += FString::Printf(TEXT(" (%s)"), DestroyOptions == EWwiseEventDestroyOptions::StopEventOnDestroy ? TEXT("sod") : TEXT("wfe"));
 	return Result;
 }

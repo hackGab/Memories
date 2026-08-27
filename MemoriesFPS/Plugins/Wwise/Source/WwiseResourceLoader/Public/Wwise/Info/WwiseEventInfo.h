@@ -38,12 +38,12 @@ struct WWISERESOURCELOADER_API FWwiseEventInfo: public FWwiseObjectInfo
 	EWwiseEventSwitchContainerLoading SwitchContainerLoading = EWwiseEventSwitchContainerLoading::AlwaysLoad;
 
 	UPROPERTY(EditAnywhere, Category = "Info")
-	EWwiseAssetDestroyOptions DestroyOptions = EWwiseAssetDestroyOptions::StopEventOnDestroy;
+	EWwiseEventDestroyOptions DestroyOptions = EWwiseEventDestroyOptions::StopEventOnDestroy;
 
 	FWwiseEventInfo() :
 		FWwiseObjectInfo(),
 		SwitchContainerLoading(EWwiseEventSwitchContainerLoading::AlwaysLoad),
-		DestroyOptions(EWwiseAssetDestroyOptions::StopEventOnDestroy)
+		DestroyOptions(EWwiseEventDestroyOptions::StopEventOnDestroy)
 	{}
 
 	FWwiseEventInfo(const FWwiseEventInfo& InEventInfo):
@@ -57,7 +57,7 @@ struct WWISERESOURCELOADER_API FWwiseEventInfo: public FWwiseObjectInfo
 		int32 InWwiseShortId,
 		const FString& InWwiseName,
 		EWwiseEventSwitchContainerLoading InSwitchContainerLoading = EWwiseEventSwitchContainerLoading::AlwaysLoad,
-		EWwiseAssetDestroyOptions InDestroyOptions = EWwiseAssetDestroyOptions::StopEventOnDestroy,
+		EWwiseEventDestroyOptions InDestroyOptions = EWwiseEventDestroyOptions::StopEventOnDestroy,
 		uint32 InHardCodedSoundBankShortId = 0) :
 		FWwiseObjectInfo(InWwiseGuid, InWwiseShortId, InWwiseName),
 		SwitchContainerLoading(InSwitchContainerLoading),
@@ -69,7 +69,7 @@ struct WWISERESOURCELOADER_API FWwiseEventInfo: public FWwiseObjectInfo
 		int32 InWwiseShortId,
 		const FName& InWwiseName,
 		EWwiseEventSwitchContainerLoading InSwitchContainerLoading = EWwiseEventSwitchContainerLoading::AlwaysLoad,
-		EWwiseAssetDestroyOptions InDestroyOptions = EWwiseAssetDestroyOptions::StopEventOnDestroy,
+		EWwiseEventDestroyOptions InDestroyOptions = EWwiseEventDestroyOptions::StopEventOnDestroy,
 		uint32 InHardCodedSoundBankShortId = 0) :
 		FWwiseObjectInfo(InWwiseGuid, InWwiseShortId, InWwiseName),
 		SwitchContainerLoading(InSwitchContainerLoading),
@@ -79,19 +79,19 @@ struct WWISERESOURCELOADER_API FWwiseEventInfo: public FWwiseObjectInfo
 	FWwiseEventInfo(uint32 InWwiseShortId, const FString& InWwiseName) :
 		FWwiseObjectInfo(InWwiseShortId, InWwiseName),
 		SwitchContainerLoading(EWwiseEventSwitchContainerLoading::AlwaysLoad),
-		DestroyOptions(EWwiseAssetDestroyOptions::StopEventOnDestroy)
+		DestroyOptions(EWwiseEventDestroyOptions::StopEventOnDestroy)
 	{}
 
 	FWwiseEventInfo(uint32 InWwiseShortId, const FName& InWwiseName) :
 		FWwiseObjectInfo(InWwiseShortId, InWwiseName),
 		SwitchContainerLoading(EWwiseEventSwitchContainerLoading::AlwaysLoad),
-		DestroyOptions(EWwiseAssetDestroyOptions::StopEventOnDestroy)
+		DestroyOptions(EWwiseEventDestroyOptions::StopEventOnDestroy)
 	{}
 
 	FWwiseEventInfo(uint32 InWwiseShortId) :
 		FWwiseObjectInfo(InWwiseShortId),
 		SwitchContainerLoading(EWwiseEventSwitchContainerLoading::AlwaysLoad),
-		DestroyOptions(EWwiseAssetDestroyOptions::StopEventOnDestroy)
+		DestroyOptions(EWwiseEventDestroyOptions::StopEventOnDestroy)
 	{}
 };
 

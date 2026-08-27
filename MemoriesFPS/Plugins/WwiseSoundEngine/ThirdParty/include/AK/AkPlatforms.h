@@ -175,17 +175,3 @@ the specific language governing permissions and limitations under the License.
 #define AK_DISABLE_OPTIMIZATIONS    __pragma(optimize("", off))
 #define AK_ENABLE_OPTIMIZATIONS     __pragma(optimize("", on))
 #endif
-
-/// Stack allocation helpers
-#if defined(__clang__) || defined(__GNUC__)
-#define AkAlloca( _size_ )          __builtin_alloca( _size_ )
-#define AkAllocaSIMD( _size_ )      __builtin_alloca_with_align( _size_, 128 )
-#elif defined(_MSC_VER)
-#define AkAlloca( _size_ )          _alloca( _size_ )
-#define AkAllocaSIMD( _size_ )      _alloca( _size_ )
-#else
-#error "Undefined compiler"
-#endif
-
-#define AkAllocaTypedArray(_type_, _count_) ( (_type_*)AkAlloca(sizeof(_type_) * _count_) )
-

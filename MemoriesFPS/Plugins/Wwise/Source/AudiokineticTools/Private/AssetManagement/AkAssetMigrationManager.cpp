@@ -318,16 +318,13 @@ AkAssetMigrationManager::MigrationResult AkAssetMigrationManager::PerformMigrati
 	Info.FadeOutDuration = 0.6f;
 	Info.ExpireDuration = 4.6f;
 	FSlateNotificationManager::Get().AddNotification(Info);
-	if (GEngine->UseSound() && GEditor->CanPlayEditorSound())
+	if (Result.bSuccess)
 	{
-		if (Result.bSuccess)
-		{
-			GEditor->PlayEditorSound(TEXT("/Engine/EditorSounds/Notifications/CompileSuccess_Cue.CompileSuccess_Cue"));
-		}
-		else
-		{
-			GEditor->PlayEditorSound(TEXT("/Engine/EditorSounds/Notifications/CompileFailed_Cue.CompileFailed_Cue"));
-		}
+		GEditor->PlayEditorSound(TEXT("/Engine/EditorSounds/Notifications/CompileSuccess_Cue.CompileSuccess_Cue"));
+	}
+	else
+	{
+		GEditor->PlayEditorSound(TEXT("/Engine/EditorSounds/Notifications/CompileFailed_Cue.CompileFailed_Cue"));
 	}
 
 	return Result;

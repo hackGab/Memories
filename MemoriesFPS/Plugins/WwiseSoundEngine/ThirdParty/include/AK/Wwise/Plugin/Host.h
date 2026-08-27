@@ -104,6 +104,7 @@ namespace AK::Wwise::Plugin
 			 * with Audiokinetic. You may use this ID as a key to identify a given 
 			 * project when implementing a custom licensing scheme.
 			 * 
+			 * \param[in] in_this Current instance of this interface.
 			 * \return An instance of LicenseID filled with the project license ID, or 
 			 * zeroed-out if the project has no license.
 			 */

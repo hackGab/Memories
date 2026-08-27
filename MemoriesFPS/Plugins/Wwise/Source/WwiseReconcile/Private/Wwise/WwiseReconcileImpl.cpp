@@ -22,7 +22,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkAudioEvent.h"
 #include "AkAudioType.h"
 #include "AkAuxBus.h"
-#include "AkDialogueEvent.h"
 #include "AkEffectShareSet.h"
 #include "AkInitBank.h"
 #include "AkRtpc.h"
@@ -111,8 +110,6 @@ UClass* FWwiseReconcileImpl::GetUClassFromWwiseRefType(WwiseRefType RefType)
 	{
 	case WwiseRefType::Event:
 		return UAkAudioEvent::StaticClass();
-	case WwiseRefType::DialogueEvent:
-		return UAkDialogueEvent::StaticClass();
 	case WwiseRefType::AuxBus:
 		return UAkAuxBus::StaticClass();
 	case WwiseRefType::AcousticTexture:
@@ -402,11 +399,6 @@ void FWwiseReconcileImpl::ConvertWwiseItemTypeToReconcileItem(const TArray<TShar
 		{
 			for(auto Asset : WwiseTreeItem->Assets)
 			{
-				//Do not reconcile AudioNode
-				if (Asset.AssetClassPath.GetAssetName() == "AkAudioNode")
-				{
-					continue;
-				}
 				FWwiseReconcileItem ReconcileItem;
 				ReconcileItem.ItemId = WwiseTreeItem->ItemId;
 				ReconcileItem.Asset = Asset;
@@ -508,7 +500,7 @@ int FWwiseReconcileImpl::GetNumberOfAssets()
 	return AssetsToDelete.Num() + AssetsToCreate.Num() + AssetsToRename.Num() + AssetsToUpdate.Num() + AssetsToMove.Num();
 }
 
-int32 FWwiseReconcileImpl::DeleteAssets(FScopedSlowTask& SlowTask, bool bForceDelete)
+int32 FWwiseReconcileImpl::DeleteAssets(FScopedSlowTask& SlowTask)
 {
 	check(IsInGameThread());
 
@@ -538,22 +530,9 @@ int32 FWwiseReconcileImpl::DeleteAssets(FScopedSlowTask& SlowTask, bool bForceDe
 		{
 			return 0;
 		}
-
-		if (bForceDelete || (!bReferenced && !bReferencedByUndo))
+		if (!bReferenced && !bReferencedByUndo)
 		{
-			if (!bForceDelete)
-			{
-				// Check if there is any reference on DISK
-				IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
-				TArray<FName> referencers;
-				AssetRegistry.GetReferencers(FName(AssetData.PackageName), referencers);
-
-				if (!referencers.IsEmpty())
-				{
-					continue;
-				}
-			}
-			ObjectsToDelete.Add(AssetData.GetAsset());
+			ObjectsToDelete.Add(AssetData.GetAsset());		
 		}
 		else
 		{

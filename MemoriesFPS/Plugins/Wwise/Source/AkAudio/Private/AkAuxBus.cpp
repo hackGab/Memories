@@ -34,7 +34,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 void UAkAuxBus::Serialize(FArchive& Ar)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAuxBus::Serialize"));
 	Super::Serialize(Ar);
 
 	if (HasAnyFlags(RF_ClassDefaultObject))
@@ -66,7 +65,7 @@ void UAkAuxBus::Serialize(FArchive& Ar)
 
 void UAkAuxBus::LoadAuxBus()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAuxBus::LoadAuxBus"));
+	SCOPED_AKAUDIO_EVENT_2(TEXT("LoadAuxBus"));
 	FWwiseResourceLoaderPtr ResourceLoader = FWwiseResourceLoader::Get();
 	if (UNLIKELY(!ResourceLoader))
 	{
@@ -119,7 +118,6 @@ void UAkAuxBus::LoadAuxBus()
 
 void UAkAuxBus::UnloadAuxBus(bool bAsync)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAuxBus::UnloadAuxBus"));
 	auto PreviouslyLoadedAuxBus = LoadedAuxBus.exchange(nullptr);
 	if (PreviouslyLoadedAuxBus)
 	{
@@ -207,27 +205,19 @@ bool UAkAuxBus::ObjectIsInSoundBanks()
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 UE_COOK_DEPENDENCY_FUNCTION(HashWwiseAuxBusDependenciesForCook, UAkAudioType::HashDependenciesForCook);
 
-#if UE_5_6_OR_LATER
-void UAkAuxBus::OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context)
+void UAkAuxBus::PreSave(FObjectPreSaveContext SaveContext)
 {
 	ON_SCOPE_EXIT
 	{
-		Super::OnCookEvent(CookEvent, Context);
+		Super::PreSave(SaveContext);
 	};
-#else
-void UAkAuxBus::PreSave(FObjectPreSaveContext Context)
-{
-	ON_SCOPE_EXIT
-	{
-		Super::PreSave(Context);
-	};
-#endif
-	if (!Context.IsCooking())
+
+	if (!SaveContext.IsCooking())
 	{
 		return;
 	}
 
-	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(Context.GetTargetPlatform());
+	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(SaveContext.GetTargetPlatform());
 	if (UNLIKELY(!ResourceCooker))
 	{
 		return;
@@ -239,12 +229,12 @@ void UAkAuxBus::PreSave(FObjectPreSaveContext Context)
 
 	FCbWriter Writer;
 	Writer.BeginObject();
-	CookedDataToArchive.GetPlatformCookDependencies(Context, Writer);
+	CookedDataToArchive.PreSave(SaveContext, Writer);
 	Writer
 		<< "Radius" << MaxAttenuationRadius;
 	Writer.EndObject();
 	
-	WwiseCookEventContext::AddLoadBuildDependency(Context,
+	SaveContext.AddCookBuildDependency(
 		UE::Cook::FCookDependency::Function(
 			UE_COOK_DEPENDENCY_FUNCTION_CALL(HashWwiseAuxBusDependenciesForCook), Writer.Save()));
 }
@@ -252,7 +242,6 @@ void UAkAuxBus::PreSave(FObjectPreSaveContext Context)
 
 void UAkAuxBus::FillInfo()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAuxBus::FillInfo"));
 	auto* ResourceCooker = IWwiseResourceCooker::GetDefault();
 	if (UNLIKELY(!ResourceCooker))
 	{

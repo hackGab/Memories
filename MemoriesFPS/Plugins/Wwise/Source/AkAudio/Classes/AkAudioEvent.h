@@ -191,41 +191,11 @@ public:
 	 * @return AKRESULT for the operation. AK_Success (0) if successful.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|Actor", meta=(AdvancedDisplay = "2"))
-	int32 ExecuteAction(const EAkActionOnEventType ActionType,
+	int32 ExecuteAction(const AkActionOnEventType ActionType,
 					    const AActor* Actor,
 					    const int32 PlayingID = 0,
 					    const int32 TransitionDuration = 0,
 					    const EAkCurveInterpolation FadeCurve = EAkCurveInterpolation::Linear);
-
-	/**
-	 * @brief Seeks on the event in the ak soundengine.
-	* @param Actor               The associated Actor. If this is nullptr, default object will be used.
-	* @param in_fPercent             Desired percent where playback should restart.
-	* @param in_bSeekToNearestMarker If true, the final seeking position will be made equal to the nearest marker.
-	*
-	* @return Success or failure.
-	*/
-	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|Actor", meta=(AdvancedDisplay = "2"))
-	int32 Seek(
-		AActor* Actor,
-		float Percent,
-		bool bSeekToNearestMarker,
-		int32 PlayingID);
-
-	
-	/**
-	 * @brief Seeks on the event in the ak soundengine.
-	* @param Component              The associated Component.
-	* @param in_fPercent             Desired percent where playback should restart.
-	* @param in_bSeekToNearestMarker If true, the final seeking position will be made equal to the nearest marker.
-	*
-	* @return Success or failure.
-	*/
-	AKRESULT Seek(
-	UAkComponent* Component,
-	AkReal32 Percent,
-	bool bSeekToNearestMarker /*= false*/,
-	AkPlayingID PlayingID      /*= AK_INVALID_PLAYING_ID*/);
 
 public:
 	/**
@@ -409,11 +379,7 @@ private:
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 public:
-#if UE_5_6_OR_LATER
-	virtual void OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context) override;
-#else
-	virtual void PreSave(FObjectPreSaveContext Context) override;
-#endif
+	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
 #endif
 
 #if WITH_EDITORONLY_DATA

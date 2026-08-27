@@ -111,7 +111,7 @@ void UAkPortalComponentVisualizer::DrawVisualization(const UActorComponent* Comp
 		PDI->DrawLine(T.TransformPosition(Back), T.TransformPosition(Front), OutlineColor, SDPG_Foreground, Thickness);
 
 		// draw a diagonal on left and right faces if the portal is closed
-		if (PortalComponent->InitialState == EAkAcousticPortalState::Closed)
+		if (PortalComponent->InitialState == AkAcousticPortalState::Closed)
 		{
 			PDI->DrawLine(DrawBounds.FRU(), DrawBounds.BRD(), FrontDrawColor, SDPG_Foreground, Thickness);
 			PDI->DrawLine(DrawBounds.FLD(), DrawBounds.BLU(), BackDrawColor, SDPG_Foreground, Thickness);

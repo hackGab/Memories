@@ -56,30 +56,6 @@ public:
 };
 
 UCLASS(hidecategories = Object)
-class AUDIOKINETICTOOLS_API UAkAudioNodeFactory : public UAkAssetFactory
-{
-	GENERATED_BODY()
-
-public:
-	UAkAudioNodeFactory(const class FObjectInitializer& ObjectInitializer);
-
-	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
-	virtual bool CanCreateNew() const override;
-};
-
-UCLASS(hidecategories = Object)
-class AUDIOKINETICTOOLS_API UAkDialogueEventFactory : public UAkAssetFactory
-{
-	GENERATED_BODY()
-
-public:
-	UAkDialogueEventFactory(const class FObjectInitializer& ObjectInitializer);
-
-	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
-	virtual bool CanCreateNew() const override;
-};
-
-UCLASS(hidecategories = Object)
 class AUDIOKINETICTOOLS_API UAkAuxBusFactory : public UAkAssetFactory
 {
 	GENERATED_BODY()

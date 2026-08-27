@@ -60,3 +60,7 @@ typedef AkUInt32			AkFourcc;			///< Riff chunk
 		( (AkFourcc)(AkUInt8)(ch2) << 16 ) | ( (AkFourcc)(AkUInt8)(ch3) << 24 ) )
 
 #define AK_OSCHAR_FMT "%s"
+
+#define AkMax(x1, x2)	(((x1) > (x2))? (x1): (x2))
+#define AkMin(x1, x2)	(((x1) < (x2))? (x1): (x2))
+#define AkClamp(x, min, max)  ((x) < (min)) ? (min) : (((x) > (max) ? (max) : (x)))

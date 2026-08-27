@@ -220,13 +220,6 @@ AKRESULT FWwiseSpatialAudioAPI_2023_1::UnsetGameObjectInRoom(
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SpatialAudio::UnsetGameObjectInRoom(in_gameObjectID);
 }
-AKRESULT FWwiseSpatialAudioAPI_2023_1::SetAdjacentRoomBleed(
-	AkReal32 in_fAdjacentRoomBleed
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
-}
 
 AKRESULT FWwiseSpatialAudioAPI_2023_1::SetReflectionsOrder(
 	AkUInt32 in_uReflectionsOrder,
@@ -244,23 +237,6 @@ AKRESULT FWwiseSpatialAudioAPI_2023_1::SetDiffractionOrder(
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SpatialAudio::SetDiffractionOrder(in_uDiffractionOrder, in_bUpdatePaths);
-}
-
-AKRESULT FWwiseSpatialAudioAPI_2023_1::SetMaxGlobalReflectionPaths(
-	AkUInt32 in_uMaxGlobalReflectionPaths
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSpatialAudioAPI_2023_1::SetMaxDiffractionPaths(
-	AkUInt32 in_uMaxDiffractionPaths,
-	AkGameObjectID in_gameObjectID
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
 }
 
 AKRESULT FWwiseSpatialAudioAPI_2023_1::SetMaxEmitterRoomAuxSends(
@@ -287,15 +263,6 @@ AKRESULT FWwiseSpatialAudioAPI_2023_1::SetLoadBalancingSpread(
 	return AK::SpatialAudio::SetLoadBalancingSpread(in_uNbFrames);
 }
 
-AKRESULT FWwiseSpatialAudioAPI_2023_1::SetSmoothingConstant(
-	AkReal32 in_fSmoothingConstantMs,
-	AkGameObjectID in_gameObjectID
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
-}
-
 AKRESULT FWwiseSpatialAudioAPI_2023_1::SetEarlyReflectionsAuxSend(
 	AkGameObjectID in_gameObjectID,
 	AkAuxBusID in_auxBusID
@@ -317,8 +284,7 @@ AKRESULT FWwiseSpatialAudioAPI_2023_1::SetEarlyReflectionsVolume(
 AKRESULT FWwiseSpatialAudioAPI_2023_1::SetPortalObstructionAndOcclusion(
 	AkPortalID in_PortalID,
 	AkReal32 in_fObstruction,
-	AkReal32 in_fOcclusion,
-	bool in_bTransition
+	AkReal32 in_fOcclusion
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
@@ -367,9 +333,12 @@ AKRESULT FWwiseSpatialAudioAPI_2023_1::QueryDiffractionPaths(
 	return AK::SpatialAudio::QueryDiffractionPaths(in_gameObjectID, in_positionIndex, out_listenerPos, out_emitterPos, out_aPaths, io_uArraySize);
 }
 
-AKRESULT FWwiseSpatialAudioAPI_2023_1::SetTransmissionOperation(
-	AkTransmissionOperation in_eOperation
-)
+AKRESULT FWwiseSpatialAudioAPI_2023_1::SetTransmissionOperation(AkTransmissionOperation in_operation)
+{
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_2023_1::SetSmoothingConstant(AkReal32 in_smoothingConstant, AkGameObjectID in_gameObject)
 {
 	return AK_NotImplemented;
 }
@@ -378,6 +347,18 @@ AKRESULT FWwiseSpatialAudioAPI_2023_1::ResetStochasticEngine()
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SpatialAudio::ResetStochasticEngine();
+}
+
+AKRESULT FWwiseSpatialAudioAPI_2023_1::SetMaxGlobalReflectionPaths(AkUInt32 in_maxNumberOfReflectionPaths)
+{
+	 SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	 return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_2023_1::SetMaxDiffractionPaths(AkUInt32 in_maxNumberOfDiffractionPaths, AkGameObjectID in_gameObject)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
 }
 
 float FWwiseSpatialAudioAPI_2023_1::FReverbEstimation::CalculateSlope(const AkAcousticTexture& texture)

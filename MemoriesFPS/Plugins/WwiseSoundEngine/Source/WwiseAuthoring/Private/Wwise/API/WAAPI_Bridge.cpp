@@ -88,26 +88,20 @@ std::string FWAAPI_Bridge::GetJsonString(const AK::WwiseAuthoringAPI::JsonProvid
 #if !defined(AK_OPTIMIZED)
 void FWAAPI_Bridge::SetupErrorTranslator(const FString& WaapiIP, AkUInt32 WaapiPort, AkUInt32 Timeout)
 {
-	WaapiErrorMessageTranslator = MakeUnique<AkWAAPIErrorMessageTranslator>();
-	if (WaapiErrorMessageTranslator.IsValid())
+	WaapiErrorMessageTranslator.SetConnectionIP(TCHAR_TO_ANSI(*WaapiIP), WaapiPort, Timeout);
+	IWwiseSoundEngineModule::ForceLoadModule();
+	if (IWwiseSoundEngineModule::Monitor)
 	{
-		WaapiErrorMessageTranslator->SetConnectionIP(TCHAR_TO_ANSI(*WaapiIP), WaapiPort, Timeout);
-		IWwiseSoundEngineModule::ForceLoadModule();
-		if (IWwiseSoundEngineModule::Monitor)
-		{
-			IWwiseSoundEngineModule::Monitor->AddTranslator(WaapiErrorMessageTranslator.Get());
-		}
+		IWwiseSoundEngineModule::Monitor->AddTranslator(&WaapiErrorMessageTranslator);
 	}
 }
 
 void FWAAPI_Bridge::TerminateErrorTranslator()
 {
-	if (WaapiErrorMessageTranslator.IsValid())
-	{
-		WaapiErrorMessageTranslator->Term();
-	}
-	WaapiErrorMessageTranslator = nullptr;
+	WaapiErrorMessageTranslator.Term();
 }
+
+AkWAAPIErrorMessageTranslator FWAAPI_Bridge::WaapiErrorMessageTranslator;
 
 #endif
 

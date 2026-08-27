@@ -62,12 +62,12 @@ void FWwiseMediaCookedData::SerializeBulkData(FArchive& Ar, const FWwisePackaged
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseMediaCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseMediaCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "M";
 	Writer.BeginObject();
 	Writer << "Media" << MediaId;
-	WwiseCookEventContext::AddLoadBuildDependency(Context,PackagedFile.GetCookDependency());
+	SaveContext.AddCookBuildDependency(PackagedFile.GetCookDependency());
 	PackagedFile.FillCbObject(Writer);
 	Writer.EndObject();
 }

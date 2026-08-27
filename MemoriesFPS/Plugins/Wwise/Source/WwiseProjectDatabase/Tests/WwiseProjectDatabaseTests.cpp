@@ -76,8 +76,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 	SECTION("Json Operations")
 	{
 		WwiseProjectDatabaseLoggingUtils::ResetErrors();
-		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field BadType");
-		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field NoField");
+		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field", 2);
 		WwiseDBString JsonFile = R"({
 			"String": "TestString",
 			"Bool": "false",
@@ -474,7 +473,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
       {
        "Id": "1008723532",
        "Name": "Rhythmic_Talk Define custom",
-       "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\Tremolo\\[Effect Slot [0]: (Tremolo)]\\Rhythmic_Talk Define custom",
+       "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\Tremolo\\[Effect Slot [0]: (Tremolo)]\\Rhythmic_Talk Define custom",
        "GUID": "{9AA194DD-6AC1-41FC-B2F2-49B8FFF0424B}",
        "LibName": "Wwise Tremolo",
        "LibId": "8585219"
@@ -529,13 +528,13 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
      {
       "Id": "805203703",
       "Name": "Master Secondary Bus",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Secondary Bus",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Secondary Bus",
       "GUID": "{D2E0BC7E-7B3F-4FFE-A670-FAE02761B631}"
      },
      {
       "Id": "3803692087",
       "Name": "Master Audio Bus",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus",
       "GUID": "{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}",
       "PluginRefs": {
        "ShareSets": [
@@ -550,7 +549,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
      {
       "Id": "187046019",
       "Name": "LargeRoom",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\LargeRoom",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\LargeRoom",
       "GUID": "{9BF4EB38-0C67-4347-8DB8-926791DD6ED3}",
       "PluginRefs": {
        "ShareSets": [
@@ -563,14 +562,14 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
      {
       "Id": "243379636",
       "Name": "Reflect",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\Reflect",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\Reflect",
       "GUID": "{708C66AF-E74A-4237-9D06-364F73EE9484}",
       "MaxAttenuation": "5000"
      },
      {
       "Id": "348963605",
       "Name": "Reverb",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\Reverb",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\Reverb",
       "GUID": "{6F049A6E-9C36-4EC1-8DE9-C51380CD6E46}",
       "PluginRefs": {
        "Custom": [
@@ -583,7 +582,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
      {
       "Id": "1591283508",
       "Name": "DefaultReverb",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\DefaultReverb",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\DefaultReverb",
       "GUID": "{DD509A41-F55B-4D8E-9D8B-F06ABD7AB4BD}",
       "PluginRefs": {
        "Custom": [
@@ -596,7 +595,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
      {
       "Id": "2933838247",
       "Name": "SmallRoom",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\SmallRoom",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\SmallRoom",
       "GUID": "{2E59DD93-305A-4768-B48F-D3193F7C6F1C}",
       "PluginRefs": {
        "ShareSets": [
@@ -609,7 +608,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 	 {
       "Id": "4056223263",
       "Name": "Tremolo",
-      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\Tremolo",
+      "ObjectPath": "\\Master-Mixer Hierarchy\\Default Work Unit\\Master Audio Bus\\Tremolo",
       "GUID": "{1BAB1064-9738-431C-9A25-293E0BC0888D}",
       "PluginRefs": {
        "Custom": [
@@ -803,7 +802,7 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 	SECTION("MetadataBasicReference Missing Mandatory Field")
 	{
 		WwiseProjectDatabaseLoggingUtils::ResetErrors();
-		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field GUID", 1);
+		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field", 1);
 		WwiseDBString JsonFile = R"({
 				        "Id": "123456789",
 				        "Name": "ObjectName",
@@ -1086,63 +1085,10 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 		WwiseProjectDatabaseLoggingUtils::ParseErrors();
 	}
 
-
-	SECTION("MetadataMediaWithPrefetch")
+	SECTION("MetadataMedia Loose without Path")
 	{
 		WwiseProjectDatabaseLoggingUtils::ResetErrors();
-#if WWISE_2025_1_OR_LATER
-		WwiseDBString JsonFile = R"({
-				        "Id": "123456789",
-						"Language": "SFX",
-						"Streaming": "false",
-						"Location": "Loose",
-				        "ShortName": "MediaName.wav",
-				        "Path": "\\A\\Path\\To\\Object",
-				        "CachePath": "SFX/Media.wem",
-						"PrefetchSize": "3945",
-						"ContainsPrefetch": "true"
-						})"_wwise_db;
-#else
-		WwiseDBString JsonFile = R"({
-				        "Id": "123456789",
-						"Language": "SFX",
-						"Streaming": "false",
-						"Location": "Loose",
-				        "ShortName": "MediaName.wav",
-				        "Path": "\\A\\Path\\To\\Object",
-				        "CachePath": "SFX/Media.wem",
-						"PrefetchSize": "3945"
-						})"_wwise_db;
-#endif
-		WwiseDBJsonObject RootJsonObject;
-		bool bFileParsed = false;
-		if (WwiseDBJsonObject::CreateJsonObject(JsonFile, RootJsonObject))
-		{
-			bFileParsed = true;
-			WwiseMetadataLoader MetadataLoader(RootJsonObject);
-			WwiseMetadataMedia Ref(MetadataLoader);
-
-			//Making sure values read are as expected
-			CHECK(Ref.Id == 123456789);
-			CHECK(Ref.Language ==  "SFX"_wwise_db);
-			CHECK(!Ref.bStreaming);
-			CHECK(Ref.Location == WwiseMetadataMediaLocation::Loose);
-			CHECK(Ref.ShortName ==  "MediaName.wav"_wwise_db);
-			CHECK(Ref.Path ==  "\\A\\Path\\To\\Object"_wwise_db);
-			CHECK(Ref.CachePath ==  "SFX/Media.wem"_wwise_db);
-			CHECK(Ref.PrefetchSize ==  3945);
-#if WWISE_2025_1_OR_LATER
-			CHECK(Ref.bContainsPrefetch);
-#endif
-		}
-		CHECK(bFileParsed);
-		WwiseProjectDatabaseLoggingUtils::ParseErrors();
-	}
-
-	SECTION("MetadataMedia Path & Location")
-	{
-		WwiseProjectDatabaseLoggingUtils::ResetErrors();
-		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field", 3);
+		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field", 1);
 		WwiseDBString JsonFile = R"({
 				        "Id": "123456789",
 						"Language": "SFX",
@@ -1164,8 +1110,14 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 			WwiseMetadataMedia Ref(MetadataLoader);
 		}
 		CHECK(bFileParsed);
+		WwiseProjectDatabaseLoggingUtils::ParseErrors();
+	}
 
-		JsonFile = R"({
+	SECTION("MetadataMedia in Memory and Streaming without Path")
+	{
+		WwiseProjectDatabaseLoggingUtils::ResetErrors();
+		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field", 1);
+		WwiseDBString JsonFile = R"({
 				        "Id": "123456789",
 						"Language": "SFX",
 						"Streaming": "true",
@@ -1175,8 +1127,8 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 				        "CachePath": "SFX/Media.wem"
 						})"_wwise_db;
 
-		bFileParsed = false;
-		
+		WwiseDBJsonObject RootJsonObject;
+		bool bFileParsed = false;
 		if (WwiseDBJsonObject::CreateJsonObject(JsonFile, RootJsonObject))
 		{
 			//Making sure values read are as expected
@@ -1185,8 +1137,14 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 			WwiseMetadataMedia Ref(MetadataLoader);
 		}
 		CHECK(bFileParsed);
+		WwiseProjectDatabaseLoggingUtils::ParseErrors();
+	}
 
-		JsonFile = R"({
+	SECTION("MetadataMedia in Memory, Streaming and with a Path")
+	{
+		WwiseProjectDatabaseLoggingUtils::ResetErrors();
+		WwiseProjectDatabaseLoggingUtils::AddExpectedError("Could not retrieve field", 1);
+		WwiseDBString JsonFile = R"({
 				        "Id": "123456789",
 						"Language": "SFX",
 						"Streaming": "false",
@@ -1195,8 +1153,9 @@ SCENARIO("Wwise::WwiseProjectDatabase::JSONReader")
 				        "Path": "\\A\\Path\\To\\Object",
 				        "CachePath": "SFX/Media.wem"
 						})"_wwise_db;
-		
-		bFileParsed = false;
+
+		WwiseDBJsonObject RootJsonObject;
+		bool bFileParsed = false;
 		if (WwiseDBJsonObject::CreateJsonObject(JsonFile, RootJsonObject))
 		{
 			//Making sure values read are as expected

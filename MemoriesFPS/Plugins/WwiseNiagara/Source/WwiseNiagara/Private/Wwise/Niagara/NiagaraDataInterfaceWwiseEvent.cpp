@@ -60,7 +60,7 @@ namespace NiagaraWwiseParticleHelpers
 		SCOPED_WWISENIAGARA_EVENT_2(TEXT("NiagaraWwiseParticleHelpers::SpawnAkComponentAtLocation"));
 		UAkComponent* AkComponent;
 
-		if (!AkEvent || !GEngine || !FAkAudioDevice::IsInitialized())
+		if (!AkEvent || !GEngine || !GEngine->UseSound())
 		{
 			return nullptr;
 		}
@@ -650,11 +650,11 @@ void UNiagaraDataInterfaceWwiseEvent::SetPausedState(FUnrealVectorVMContext& Con
 			}
 			if (IsPaused)
 			{
-				SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Pause, *PlayingID);
+				SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Pause, *PlayingID);
 			}
 			else
 			{
-				SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Resume, *PlayingID);
+				SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Resume, *PlayingID);
 			}
 		}
 	}
@@ -803,7 +803,7 @@ void UNiagaraDataInterfaceWwiseEvent::PostPersistentEvent(FUnrealVectorVMContext
 						uint32 PlayingId = Event->PostOnComponent(AkComponent, nullptr, nullptr, nullptr, (AkCallbackType)0, nullptr, true, AudioContext);
 						if (PlayingId == AK_INVALID_PLAYING_ID )
 						{
-							AkComponent->DestroyComponent();
+							AkComponent->ConditionalBeginDestroy();
 							return;
 						}
 

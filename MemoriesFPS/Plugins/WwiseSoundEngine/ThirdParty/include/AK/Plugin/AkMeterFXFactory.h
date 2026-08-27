@@ -33,4 +33,3 @@ the specific language governing permissions and limitations under the License.
 /// <br><b>Library file:</b> AkMeterFX.lib
 
 AK_STATIC_LINK_PLUGIN(AkMeterFX)
-AK_STATIC_LINK_PLUGIN(AkMultibandMeterFX)

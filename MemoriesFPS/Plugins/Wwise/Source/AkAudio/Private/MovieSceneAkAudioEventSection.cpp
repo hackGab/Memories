@@ -64,7 +64,6 @@ namespace AkAudioEventSectionHelper
 
 void UMovieSceneAkAudioEventSection::Initialize()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::Initialize"));
 #if WITH_EDITOR
 	if (Event && InitState != AkEventSectionState::EUnrecognized)
 	{
@@ -114,7 +113,6 @@ void UMovieSceneAkAudioEventSection::Initialize()
 
 void UMovieSceneAkAudioEventSection::BeginDestroy()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::BeginDestroy"));
 #if WITH_EDITOR
 	/* Wait for WAAPI callbacks to complete */
 	while (iCallbackCounter.GetValue() > 0) {}
@@ -150,7 +148,6 @@ void UMovieSceneAkAudioEventSection::PostEditChangeProperty(struct FPropertyChan
 /** Registers a call to update the audio source info when a child is added or removed from in_sParentID */
 void UMovieSceneAkAudioEventSection::SubscribeToChildAddedRemoved(FString in_sParentID, uint64& in_iAddedSubID, uint64& in_iRemovedSubID)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::SubscribeToChildAddedRemoved"));
 	FAkWaapiClient* pWaapiClient = FAkWaapiClient::Get();
 	if (pWaapiClient != nullptr)
 	{
@@ -164,7 +161,6 @@ void UMovieSceneAkAudioEventSection::SubscribeToChildAddedRemoved(FString in_sPa
 				iCallbackCounter.Increment();
 				AsyncTask(ENamedThreads::GameThread, [this, in_sParentID, in_UEJsonObject]()
 					{
-						SCOPED_AKAUDIO_EVENT_4(TEXT("UMovieSceneAkAudioEventSection::SubscribeToChildAddedRemoved UpdateAudioSourceInfo"));
 						auto parentIDString = in_UEJsonObject->GetObjectField(FAkWaapiClient::WAAPIStrings::PARENT)->GetStringField(FAkWaapiClient::WAAPIStrings::ID);
 						if (parentIDString.Equals(in_sParentID, ESearchCase::IgnoreCase))
 						{
@@ -196,7 +192,6 @@ void UMovieSceneAkAudioEventSection::SubscribeToChildAddedRemoved(FString in_sPa
 
 void UMovieSceneAkAudioEventSection::SubscribeToTrimChanges()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::SubscribeToTrimChanges"));
 	UnsubscribeWAAPICallback(iTrimBeginSubscriptionID);
 	UnsubscribeWAAPICallback(iTrimEndSubscriptionID);
 	//===========================================================
@@ -211,7 +206,6 @@ void UMovieSceneAkAudioEventSection::SubscribeToTrimChanges()
 				iCallbackCounter.Increment();
 				AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, id, in_UEJsonObject]()
 					{
-						SCOPED_AKAUDIO_EVENT_4(TEXT("UMovieSceneAkAudioEventSection::SubscribeToTrimChanges UpdateTrim"));
 						FScopeLock Lock(&WAAPISection);
 						UpdateTrimData();
 						CheckForWorkunitChanges(true);
@@ -249,7 +243,6 @@ void UMovieSceneAkAudioEventSection::SubscribeToTrimChanges()
 
 void UMovieSceneAkAudioEventSection::SubscribeToEventChildAddedRemoved()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::SubscribeToEventChildAddedRemoved"));
 	UnsubscribeWAAPICallback(iChildAddedSubscriptionID);
 	UnsubscribeWAAPICallback(iChildRemovedSubscriptionID);
 	auto sParentID = GetEventWwiseGUID().ToString(EGuidFormats::DigitsWithHyphensInBraces);
@@ -260,7 +253,6 @@ void UMovieSceneAkAudioEventSection::SubscribeToEventChildAddedRemoved()
 /** Subscribes to child added and child removed for each of the action targets in the Wwise event that this section triggers. */
 void UMovieSceneAkAudioEventSection::SubscribeToEventChildren()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::SubscribeToEventChildren"));
 	auto pWaapiClient = FAkWaapiClient::Get();
 	if (pWaapiClient != nullptr)
 	{
@@ -345,21 +337,19 @@ void UMovieSceneAkAudioEventSection::SubscribeToEventChildren()
 
 void UMovieSceneAkAudioEventSection::UnsubscribeWAAPICallback(uint64& in_iSubID)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UnsubscribeWAAPICallback"));
 	if (in_iSubID != 0)
 	{
 		FScopeLock Lock(&WAAPISection);
 		TSharedPtr<FJsonObject> unsubscribeResult = MakeShareable(new FJsonObject());
 		FAkWaapiClient* pWaapiClient = FAkWaapiClient::Get();
 		if (pWaapiClient != nullptr)
-			pWaapiClient->Unsubscribe(in_iSubID, unsubscribeResult, true);
+			pWaapiClient->Unsubscribe(in_iSubID, unsubscribeResult, 500, true);
 		in_iSubID = 0;
 	}
 }
 
 void UMovieSceneAkAudioEventSection::UnsubscribeAllWAAPICallbacks()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UnsubscribeAllWAAPICallbacks"));
 	UnsubscribeWAAPICallback(iChildAddedInitializeSubscriptionID);
 	UnsubscribeWAAPICallback(iTrimBeginSubscriptionID);
 	UnsubscribeWAAPICallback(iTrimEndSubscriptionID);
@@ -379,7 +369,6 @@ void UMovieSceneAkAudioEventSection::WAAPIGetPeaks(const char* in_uri,
 	TSharedRef<FJsonObject> in_getPeaksOptions,
 	TSharedPtr<FJsonObject> in_getPeaksResults)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::WAAPIGetPeaks"));
 	auto WaapiClient = FAkWaapiClient::Get();
 	if (WaapiClient != nullptr)
 	{
@@ -471,7 +460,6 @@ FFloatRange UMovieSceneAkAudioEventSection::GetEventDuration() const
 /** Associate a new AK audio event with this section. Also updates section time and audio source info. */
 bool UMovieSceneAkAudioEventSection::SetEvent(UAkAudioEvent* AudioEvent)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::SetEvent"));
 	bool dataLoaded = true;
 	// Update the event details.
 	if (AudioEvent != nullptr)
@@ -483,7 +471,6 @@ bool UMovieSceneAkAudioEventSection::SetEvent(UAkAudioEvent* AudioEvent)
 
 bool UMovieSceneAkAudioEventSection::UpdateAkEventInfo()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UpdateAkEventInfo"));
 	UpdateAudioSourceInfo();
 	if (Event && Event->MaximumDuration != FLT_MAX && Event->MinimumDuration != FLT_MAX)
 	{
@@ -511,7 +498,6 @@ void UMovieSceneAkAudioEventSection::MatchSectionLengthToEventLength()
  */
 void UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks(int in_iNumPeaks)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks"));
 	checkf(in_iNumPeaks > 0, TEXT("UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks: iNumPeaks (%d) <= 0"), in_iNumPeaks);
 	/* Construct the relevant WAAPI json fields */
 	TSharedRef<FJsonObject> getPeaksArgs = MakeShareable(new FJsonObject());
@@ -532,7 +518,6 @@ void UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks(int in_iNumPeaks)
 */
 void UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks(int in_iNumPeaks, double in_dTimeFrom, double in_dTimeTo)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks"));
 	checkf(in_iNumPeaks > 0, TEXT("UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks: iNumPeaks (%d) <= 0"), in_iNumPeaks);
 	/* Construct the relevant WAAPI json fields */
 	TSharedRef<FJsonObject> getPeaksArgs = MakeShareable(new FJsonObject());
@@ -551,7 +536,6 @@ void UMovieSceneAkAudioEventSection::UpdateAudioSourcePeaks(int in_iNumPeaks, do
 /** Update the trim data for the longest audio source used by the Wwise event that this section triggers. */
 void UMovieSceneAkAudioEventSection::UpdateTrimData()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UpdateTrimData"));
 	checkf(MaxDurationSourceID != "", TEXT("UMovieSceneAkAudioEventSection::UpdateTrimData: MaxDurationSourceID is empty."));
 
 	AkInt64 returnFlag = (AkInt64)FAkWaapiClient::WAAPIGetReturnOptionFlag::AUDIO_SOURCE_TRIM_VALUES;
@@ -576,7 +560,6 @@ void UMovieSceneAkAudioEventSection::UpdateTrimData()
 /** Use WAAPI to update the MaxDurationSourceID and MaxSourceDuration. */
 void UMovieSceneAkAudioEventSection::UpdateAudioSourceInfo()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneAkAudioEventSection::UpdateAudioSourceInfo"));
 	UE_LOG(LogAkAudio, Verbose,
 		TEXT("UMovieSceneAkAudioEventSection::UpdateAudioSourceInfo: Updating section %s source info (Event %s)"),
 		*GetName(),

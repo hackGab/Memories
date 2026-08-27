@@ -19,7 +19,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include <Wwise/Stats/AudiokineticTools.h>
 
-#include "AkAudioDevice.h"
 #include "AkUnrealAssetDataHelper.h"
 #include "AkWaapiUtils.h"
 #include "WaapiDataSource.h"
@@ -177,8 +176,6 @@ EWwiseItemType::Type FWwiseTypeFilter::GetExpectedType(EWwiseTypeFilter Filter) 
 		return EWwiseItemType::AcousticTexture;
 	case AudioDeviceShareSet:
 		return EWwiseItemType::AudioDeviceShareSet;
-	case DialogueEvents:
-		return EWwiseItemType::DialogueEvent;
 	case Effects:
 		return EWwiseItemType::EffectShareSet;
 	case Events:
@@ -431,34 +428,12 @@ int32 FWwiseBrowserDataSource::LoadChildren(FWwiseTreeItemPtr TreeItem, TArray<F
 
 void FWwiseBrowserDataSource::ClearEmptyChildren(FWwiseTreeItemPtr TreeItem)
 {
+
 	TArray<FWwiseTreeItemPtr> ChildrenToRemove;
 
 	for (auto Child : *TreeItem->GetChildrenMutable())
 	{
 		if (Child->IsOfType({EWwiseItemType::None}))
-		{
-			ChildrenToRemove.Add(Child);
-		}
-	}
-
-	TreeItem->RemoveChildren(ChildrenToRemove);
-}
-
-void FWwiseBrowserDataSource::ClearInvisibleChildren(FWwiseTreeItemPtr TreeItem)
-{
-	TArray<FWwiseTreeItemPtr> ChildrenToRemove;
-
-	for (auto Child : *TreeItem->GetChildrenMutable())
-	{
-		if (Child->IsVisible)
-		{
-			// If we have a work unit with no child, we hide it
-			if (Child->IsOfType({ EWwiseItemType::NestedWorkUnit, EWwiseItemType::StandaloneWorkUnit }) && Child->GetChildren().IsEmpty())
-			{
-				ChildrenToRemove.Add(Child);
-			}
-		}
-		else
 		{
 			ChildrenToRemove.Add(Child);
 		}
@@ -565,10 +540,10 @@ void FWwiseBrowserDataSource::MergeDataSources()
 		}
 	}
 
-	// Add the items only found in Unreal (Previously known as Orphan UAssets)
+	// Add the Orphan UAssets
 	{
 		FScopeLock AutoLock(&RootItemsLock);
-		FWwiseTreeItemPtr RootItem = MakeShared<FWwiseTreeItem>(FString("Found only in Unreal"), FString("\\Found only in Unreal"), nullptr, EWwiseItemType::Folder, FGuid());
+		FWwiseTreeItemPtr RootItem = MakeShared<FWwiseTreeItem>(FString("Orphaned UAssets"), FString("\\Orphaned UAssets"), nullptr, EWwiseItemType::Folder, FGuid());
 		TArray<UAssetDataSourceInformation> OrphanAssets;
 		UAssetDataSource->GetOrphanAssets(OrphanAssets);
 		for(auto& OrphanAsset : OrphanAssets)
@@ -682,35 +657,7 @@ void FWwiseBrowserDataSource::CreateWaapiExclusiveItem(const FWwiseTreeItemPtr& 
 		TArray<FAssetData> Assets;
 		FName AssetName;
 		EWwiseItemType::Type ItemType;
-
-		uint32 shortId = WaapiItem->ShortId;
-		if (shortId == AK_INVALID_UNIQUE_ID)
-		{
-			// We still generate the short id if not returned by waapi
-			shortId = FAkAudioDevice::GetShortIDFromString(WaapiItem->WaapiName);
-		}
-		CurrItem->ShortId = shortId;
-
-		uint32 groupId = WaapiItem->GroupId;
-		if (WaapiItem->IsInGroup() && groupId == AK_INVALID_UNIQUE_ID)
-		{
-			TArray<FString> SplitPath;
-
-#ifdef WIN32
-			WaapiItem->FolderPath.ParseIntoArray(SplitPath, TEXT("\\"), true);
-#else
-			WaapiItem->FolderPath.ParseIntoArray(SplitPath, TEXT("/"), true);
-#endif	
-			
-			if (SplitPath.Num() > 1)
-			{
-				// We still generate the group id if not returned by waapi
-				groupId = FAkAudioDevice::GetShortIDFromString(SplitPath[SplitPath.Num() - 2]);
-			}
-		}
-		CurrItem->GroupId = groupId;
-
-		UAssetDataSource->GetAssetsInfo(WaapiItem->ItemId, shortId, DefaultAssetName, groupId, ItemType, AssetName, Assets);
+		UAssetDataSource->GetAssetsInfo(WaapiItem->ItemId, WaapiItem->ShortId, DefaultAssetName, WaapiItem->GroupId, ItemType, AssetName, Assets);
 		CurrItem->UAssetName = AssetName;
 		CurrItem->Assets = Assets;
 		CurrItem->bIsInWrongLocation = IsMoved(CurrItem);

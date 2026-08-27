@@ -43,10 +43,6 @@ public:
 	void StartupModule() override;
 	void ShutdownModule() override;
 
-	virtual void RegisterTermCallback() override;
-	virtual void OnPostTerm() override;
-	virtual void RequestProcessBanks() override;
-	
 protected:
 	FRWLock Lock;
 	IWwiseExternalSourceManagerPtr ExternalSourceManager;
@@ -54,9 +50,4 @@ protected:
 	IWwiseSoundBankManagerPtr SoundBankManager;
 	TUniquePtr<FWwiseFileCache> FileCache;
 	TUniquePtr<FWwiseExecutionQueue> BankExecutionQueue;
-	TAtomic<bool> bRequireProcessBanks { false };
-
-	virtual void OnTerm();
-	virtual void DoTerm();
-	virtual void DoPostTerm();
 };

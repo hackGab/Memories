@@ -20,11 +20,10 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Async/TaskGraphInterfaces.h"
 #include "HAL/ThreadManager.h"
 #include "Stats/Stats.h"
-#include "Wwise/WwiseUnrealVersion.h"
 
 // Unreal Stat system assumes it runs on an Unreal thread. A lot of low-level I/O doesn't follow that assumption.
 
-#if STATS && !UE_5_6_OR_LATER
+#if STATS
 
 FORCEINLINE static void ASYNC_LAMBDA_STAT(TUniqueFunction<void()>&& Lambda)
 {

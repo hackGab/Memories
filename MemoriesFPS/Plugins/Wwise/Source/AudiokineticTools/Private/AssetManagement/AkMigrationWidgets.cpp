@@ -546,11 +546,24 @@ bool SBankTransferWidget::CheckWaapiConnection() const
 	bool bWaapiConnected = false;
 	if (auto UserSettings =  GetDefault<UAkSettingsPerUser>())
 	{
-		if (UserSettings->AutoConnectToWAAPI)
+		if (!UserSettings->bAutoConnectToWAAPI)
+		{
+			LOCTEXT("WaapiTransferMenuItemText","WAAPI (Auto Connect to WAAPI disabled in user settings)");
+		}
+		else
 		{
 			FAkWaapiClient* WaapiClient = FAkWaapiClient::Get();
 			bWaapiConnected = WaapiClient && WaapiClient->IsConnected();
+			if (!bWaapiConnected)
+			{
+				LOCTEXT("WaapiTransferMenuItemText","WAAPI (WAAPI connection not established)");
+			}
 		}
+	}
+
+	if (bWaapiConnected)
+	{
+		LOCTEXT("WaapiTransferMenuItemText","WAAPI");
 	}
 	return bWaapiConnected;
 }

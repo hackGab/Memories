@@ -27,224 +27,220 @@ the specific language governing permissions and limitations under the License.
 #ifndef _AK_SPEAKERCONFIG_H_
 #define _AK_SPEAKERCONFIG_H_
 
-#include <AK/SoundEngine/Common/AkNumeralTypes.h>
-#include <AK/SoundEngine/Common/AkTypedefs.h>
-#include <AK/SoundEngine/Common/AkEnums.h>
-#ifdef __cplusplus
+#include <AK/SoundEngine/Common/AkTypes.h>
 #include <AK/Tools/Common/AkBitFuncs.h>
-#endif
+#include <AK/Tools/Common/AkPlatformFuncs.h>
 
 /// Standard speakers (channel mask):
-#define AK_SPEAKER_FRONT_LEFT               0x1       ///< Front left speaker bit mask
-#define AK_SPEAKER_FRONT_RIGHT              0x2       ///< Front right speaker bit mask
-#define AK_SPEAKER_FRONT_CENTER             0x4       ///< Front center speaker bit mask
-#define AK_SPEAKER_LOW_FREQUENCY            0x8       ///< Low-frequency speaker bit mask
-#define AK_SPEAKER_BACK_LEFT                0x10      ///< Rear left speaker bit mask
-#define AK_SPEAKER_BACK_RIGHT               0x20      ///< Rear right speaker bit mask
-#define AK_SPEAKER_BACK_CENTER              0x100     ///< Rear center speaker ("surround speaker") bit mask
-#define AK_SPEAKER_SIDE_LEFT                0x200     ///< Side left speaker bit mask
-#define AK_SPEAKER_SIDE_RIGHT               0x400     ///< Side right speaker bit mask
+#define AK_SPEAKER_FRONT_LEFT				0x1		///< Front left speaker bit mask
+#define AK_SPEAKER_FRONT_RIGHT				0x2		///< Front right speaker bit mask
+#define AK_SPEAKER_FRONT_CENTER				0x4		///< Front center speaker bit mask
+#define AK_SPEAKER_LOW_FREQUENCY			0x8		///< Low-frequency speaker bit mask
+#define AK_SPEAKER_BACK_LEFT				0x10	///< Rear left speaker bit mask
+#define AK_SPEAKER_BACK_RIGHT				0x20	///< Rear right speaker bit mask
+#define AK_SPEAKER_BACK_CENTER				0x100	///< Rear center speaker ("surround speaker") bit mask
+#define AK_SPEAKER_SIDE_LEFT				0x200	///< Side left speaker bit mask
+#define AK_SPEAKER_SIDE_RIGHT				0x400	///< Side right speaker bit mask
 
 /// "Height" speakers.
-#define AK_SPEAKER_TOP                      0x800     ///< Top speaker bit mask
-#define AK_SPEAKER_HEIGHT_FRONT_LEFT        0x1000    ///< Top front left speaker bit mask
-#define AK_SPEAKER_HEIGHT_FRONT_CENTER      0x2000    ///< Top front center speaker bit mask
-#define AK_SPEAKER_HEIGHT_FRONT_RIGHT       0x4000    ///< Top front right speaker bit mask
-#define AK_SPEAKER_HEIGHT_BACK_LEFT         0x8000    ///< Top rear left speaker bit mask
-#define AK_SPEAKER_HEIGHT_BACK_CENTER       0x10000   ///< Top rear center speaker bit mask
-#define AK_SPEAKER_HEIGHT_BACK_RIGHT        0x20000   ///< Top rear right speaker bit mask
-#define AK_SPEAKER_HEIGHT_SIDE_LEFT         0x40000   ///< Top side left speaker bit mask
-#define AK_SPEAKER_HEIGHT_SIDE_RIGHT        0x80000   ///< Top side right speaker bit mask
+#define AK_SPEAKER_TOP						0x800 	///< Top speaker bit mask
+#define AK_SPEAKER_HEIGHT_FRONT_LEFT		0x1000	///< Top front left speaker bit mask
+#define AK_SPEAKER_HEIGHT_FRONT_CENTER		0x2000	///< Top front center speaker bit mask
+#define AK_SPEAKER_HEIGHT_FRONT_RIGHT		0x4000	///< Top front right speaker bit mask
+#define AK_SPEAKER_HEIGHT_BACK_LEFT			0x8000	///< Top rear left speaker bit mask
+#define AK_SPEAKER_HEIGHT_BACK_CENTER		0x10000	///< Top rear center speaker bit mask
+#define AK_SPEAKER_HEIGHT_BACK_RIGHT		0x20000	///< Top rear right speaker bit mask
+#define AK_SPEAKER_HEIGHT_SIDE_LEFT			0x40000	///< Top side left speaker bit mask
+#define AK_SPEAKER_HEIGHT_SIDE_RIGHT		0x80000	///< Top side right speaker bit mask
 
 //
 // Supported speaker setups. Those are the ones that can be used in the Wwise Sound Engine audio pipeline.
 //
 
-#define AK_SPEAKER_SETUP_MONO           AK_SPEAKER_FRONT_CENTER                                                    ///< 1.0 setup channel mask
-#define AK_SPEAKER_SETUP_0POINT1        AK_SPEAKER_LOW_FREQUENCY                                                   ///< 0.1 setup channel mask
-#define AK_SPEAKER_SETUP_1POINT1        (AK_SPEAKER_FRONT_CENTER  | AK_SPEAKER_LOW_FREQUENCY)                      ///< 1.1 setup channel mask
-#define AK_SPEAKER_SETUP_STEREO         (AK_SPEAKER_FRONT_LEFT    | AK_SPEAKER_FRONT_RIGHT)                        ///< 2.0 setup channel mask
-#define AK_SPEAKER_SETUP_2POINT1        (AK_SPEAKER_SETUP_STEREO  | AK_SPEAKER_LOW_FREQUENCY)                      ///< 2.1 setup channel mask
-#define AK_SPEAKER_SETUP_3STEREO        (AK_SPEAKER_SETUP_STEREO  | AK_SPEAKER_FRONT_CENTER)                       ///< 3.0 setup channel mask
-#define AK_SPEAKER_SETUP_3POINT1        (AK_SPEAKER_SETUP_3STEREO | AK_SPEAKER_LOW_FREQUENCY)                      ///< 3.1 setup channel mask
-#define AK_SPEAKER_SETUP_4              (AK_SPEAKER_SETUP_STEREO  | AK_SPEAKER_SIDE_LEFT | AK_SPEAKER_SIDE_RIGHT)  ///< 4.0 setup channel mask
-#define AK_SPEAKER_SETUP_4POINT1        (AK_SPEAKER_SETUP_4       | AK_SPEAKER_LOW_FREQUENCY)                      ///< 4.1 setup channel mask
-#define AK_SPEAKER_SETUP_5              (AK_SPEAKER_SETUP_4       | AK_SPEAKER_FRONT_CENTER)                       ///< 5.0 setup channel mask
-#define AK_SPEAKER_SETUP_5POINT1        (AK_SPEAKER_SETUP_5       | AK_SPEAKER_LOW_FREQUENCY)                      ///< 5.1 setup channel mask
-#define AK_SPEAKER_SETUP_6              (AK_SPEAKER_SETUP_4       | AK_SPEAKER_BACK_LEFT | AK_SPEAKER_BACK_RIGHT)  ///< 6.0 setup channel mask
-#define AK_SPEAKER_SETUP_6POINT1        (AK_SPEAKER_SETUP_6       | AK_SPEAKER_LOW_FREQUENCY)                      ///< 6.1 setup channel mask
-#define AK_SPEAKER_SETUP_7              (AK_SPEAKER_SETUP_6       | AK_SPEAKER_FRONT_CENTER)                       ///< 7.0 setup channel mask
-#define AK_SPEAKER_SETUP_7POINT1        (AK_SPEAKER_SETUP_7       | AK_SPEAKER_LOW_FREQUENCY)                      ///< 7.1 setup channel mask
-#define AK_SPEAKER_SETUP_SURROUND       (AK_SPEAKER_SETUP_STEREO  | AK_SPEAKER_BACK_CENTER)                        ///< Legacy surround setup channel mask
+#define AK_SPEAKER_SETUP_MONO			AK_SPEAKER_FRONT_CENTER		///< 1.0 setup channel mask
+#define AK_SPEAKER_SETUP_0POINT1		AK_SPEAKER_LOW_FREQUENCY	///< 0.1 setup channel mask
+#define AK_SPEAKER_SETUP_1POINT1		(AK_SPEAKER_FRONT_CENTER	| AK_SPEAKER_LOW_FREQUENCY)	///< 1.1 setup channel mask
+#define AK_SPEAKER_SETUP_STEREO			(AK_SPEAKER_FRONT_LEFT		| AK_SPEAKER_FRONT_RIGHT)	///< 2.0 setup channel mask
+#define AK_SPEAKER_SETUP_2POINT1		(AK_SPEAKER_SETUP_STEREO	| AK_SPEAKER_LOW_FREQUENCY)	///< 2.1 setup channel mask
+#define AK_SPEAKER_SETUP_3STEREO		(AK_SPEAKER_SETUP_STEREO	| AK_SPEAKER_FRONT_CENTER)	///< 3.0 setup channel mask
+#define AK_SPEAKER_SETUP_3POINT1		(AK_SPEAKER_SETUP_3STEREO	| AK_SPEAKER_LOW_FREQUENCY)	///< 3.1 setup channel mask
+#define AK_SPEAKER_SETUP_4				(AK_SPEAKER_SETUP_STEREO	| AK_SPEAKER_SIDE_LEFT | AK_SPEAKER_SIDE_RIGHT)	///< 4.0 setup channel mask
+#define AK_SPEAKER_SETUP_4POINT1		(AK_SPEAKER_SETUP_4			| AK_SPEAKER_LOW_FREQUENCY)	///< 4.1 setup channel mask
+#define AK_SPEAKER_SETUP_5				(AK_SPEAKER_SETUP_4			| AK_SPEAKER_FRONT_CENTER)	///< 5.0 setup channel mask
+#define AK_SPEAKER_SETUP_5POINT1		(AK_SPEAKER_SETUP_5			| AK_SPEAKER_LOW_FREQUENCY)	///< 5.1 setup channel mask
+#define AK_SPEAKER_SETUP_6				(AK_SPEAKER_SETUP_4			| AK_SPEAKER_BACK_LEFT | AK_SPEAKER_BACK_RIGHT)	///< 6.0 setup channel mask
+#define AK_SPEAKER_SETUP_6POINT1		(AK_SPEAKER_SETUP_6			| AK_SPEAKER_LOW_FREQUENCY)	///< 6.1 setup channel mask
+#define AK_SPEAKER_SETUP_7				(AK_SPEAKER_SETUP_6			| AK_SPEAKER_FRONT_CENTER)	///< 7.0 setup channel mask
+#define AK_SPEAKER_SETUP_7POINT1		(AK_SPEAKER_SETUP_7			| AK_SPEAKER_LOW_FREQUENCY)	///< 7.1 setup channel mask
+#define AK_SPEAKER_SETUP_SURROUND		(AK_SPEAKER_SETUP_STEREO	| AK_SPEAKER_BACK_CENTER)	///< Legacy surround setup channel mask
 
-#define AK_SPEAKER_SETUP_HEIGHT_2       (AK_SPEAKER_HEIGHT_FRONT_LEFT | AK_SPEAKER_HEIGHT_FRONT_RIGHT)                                ///< 2 speaker height layer.
-#define AK_SPEAKER_SETUP_HEIGHT_4       (AK_SPEAKER_SETUP_HEIGHT_2    | AK_SPEAKER_HEIGHT_BACK_LEFT | AK_SPEAKER_HEIGHT_BACK_RIGHT)   ///< 4 speaker height layer.
-#define AK_SPEAKER_SETUP_HEIGHT_5       (AK_SPEAKER_SETUP_HEIGHT_4    | AK_SPEAKER_HEIGHT_FRONT_CENTER)                               ///< 5 speaker height layer.
-#define AK_SPEAKER_SETUP_HEIGHT_ALL     (AK_SPEAKER_SETUP_HEIGHT_5    | AK_SPEAKER_HEIGHT_BACK_CENTER)                                ///< All height speaker layer.
-#define AK_SPEAKER_SETUP_HEIGHT_4_TOP   (AK_SPEAKER_SETUP_HEIGHT_4    | AK_SPEAKER_TOP)                                               ///< 4 speaker height layer + top.
-#define AK_SPEAKER_SETUP_HEIGHT_5_TOP   (AK_SPEAKER_SETUP_HEIGHT_5    | AK_SPEAKER_TOP)                                               ///< 5 speaker height layer + top.
+#define AK_SPEAKER_SETUP_HEIGHT_2		(AK_SPEAKER_HEIGHT_FRONT_LEFT | AK_SPEAKER_HEIGHT_FRONT_RIGHT)                              ///< 2 speaker height layer.
+#define AK_SPEAKER_SETUP_HEIGHT_4		(AK_SPEAKER_SETUP_HEIGHT_2	| AK_SPEAKER_HEIGHT_BACK_LEFT | AK_SPEAKER_HEIGHT_BACK_RIGHT)   ///< 4 speaker height layer.
+#define AK_SPEAKER_SETUP_HEIGHT_5		(AK_SPEAKER_SETUP_HEIGHT_4 | AK_SPEAKER_HEIGHT_FRONT_CENTER)                                ///< 5 speaker height layer.
+#define AK_SPEAKER_SETUP_HEIGHT_ALL		(AK_SPEAKER_SETUP_HEIGHT_5 | AK_SPEAKER_HEIGHT_BACK_CENTER)                                 ///< All height speaker layer.
+#define AK_SPEAKER_SETUP_HEIGHT_4_TOP	(AK_SPEAKER_SETUP_HEIGHT_4 | AK_SPEAKER_TOP)                                                ///< 4 speaker height layer + top.
+#define AK_SPEAKER_SETUP_HEIGHT_5_TOP	(AK_SPEAKER_SETUP_HEIGHT_5 | AK_SPEAKER_TOP)                                                ///< 5 speaker height layer + top.
 
 // Auro speaker setups
-#define AK_SPEAKER_SETUP_AURO_222           (AK_SPEAKER_SETUP_4            | AK_SPEAKER_HEIGHT_FRONT_LEFT | AK_SPEAKER_HEIGHT_FRONT_RIGHT)  ///< Auro-222 setup channel mask (4.0.2)
-#define AK_SPEAKER_SETUP_AURO_8             (AK_SPEAKER_SETUP_AURO_222     | AK_SPEAKER_HEIGHT_BACK_LEFT  | AK_SPEAKER_HEIGHT_BACK_RIGHT)   ///< Auro-8 setup channel mask (4.0.4)
-#define AK_SPEAKER_SETUP_AURO_9             (AK_SPEAKER_SETUP_AURO_8       | AK_SPEAKER_FRONT_CENTER)                                       ///< Auro-9.0 setup channel mask (5.0.4)
-#define AK_SPEAKER_SETUP_AURO_9POINT1       (AK_SPEAKER_SETUP_AURO_9       | AK_SPEAKER_LOW_FREQUENCY)                                      ///< Auro-9.1 setup channel mask (5.1.4)
-#define AK_SPEAKER_SETUP_AURO_10            (AK_SPEAKER_SETUP_AURO_9       | AK_SPEAKER_TOP)                                                ///< Auro-10.0 setup channel mask (5.0.4+top)
-#define AK_SPEAKER_SETUP_AURO_10POINT1      (AK_SPEAKER_SETUP_AURO_10      | AK_SPEAKER_LOW_FREQUENCY)                                      ///< Auro-10.1 setup channel mask (5.1.4+top)
-#define AK_SPEAKER_SETUP_AURO_11            (AK_SPEAKER_SETUP_AURO_10      | AK_SPEAKER_HEIGHT_FRONT_CENTER)                                ///< Auro-11.0 setup channel mask (5.0.5+top)
-#define AK_SPEAKER_SETUP_AURO_11POINT1      (AK_SPEAKER_SETUP_AURO_11      | AK_SPEAKER_LOW_FREQUENCY)                                      ///< Auro-11.1 setup channel mask (5.1.5+top)
-#define AK_SPEAKER_SETUP_AURO_11_740        (AK_SPEAKER_SETUP_7            | AK_SPEAKER_SETUP_HEIGHT_4)                                     ///< Auro-11.0 (7+4) setup channel mask (7.0.4)
-#define AK_SPEAKER_SETUP_AURO_11POINT1_740  (AK_SPEAKER_SETUP_AURO_11_740  | AK_SPEAKER_LOW_FREQUENCY)                                      ///< Auro-11.1 (7+4) setup channel mask (7.1.4)
-#define AK_SPEAKER_SETUP_AURO_13_751        (AK_SPEAKER_SETUP_7            | AK_SPEAKER_SETUP_HEIGHT_5 | AK_SPEAKER_TOP)                    ///< Auro-13.0 setup channel mask (7.0.5+top)
-#define AK_SPEAKER_SETUP_AURO_13POINT1_751  (AK_SPEAKER_SETUP_AURO_13_751  | AK_SPEAKER_LOW_FREQUENCY)                                      ///< Auro-13.1 setup channel mask (7.1.5+top)
+#define AK_SPEAKER_SETUP_AURO_222			(AK_SPEAKER_SETUP_4			| AK_SPEAKER_HEIGHT_FRONT_LEFT	| AK_SPEAKER_HEIGHT_FRONT_RIGHT)	///< Auro-222 setup channel mask (4.0.2)
+#define AK_SPEAKER_SETUP_AURO_8				(AK_SPEAKER_SETUP_AURO_222	| AK_SPEAKER_HEIGHT_BACK_LEFT	| AK_SPEAKER_HEIGHT_BACK_RIGHT)		///< Auro-8 setup channel mask (4.0.4)
+#define AK_SPEAKER_SETUP_AURO_9				(AK_SPEAKER_SETUP_AURO_8	| AK_SPEAKER_FRONT_CENTER)											///< Auro-9.0 setup channel mask (5.0.4)
+#define AK_SPEAKER_SETUP_AURO_9POINT1		(AK_SPEAKER_SETUP_AURO_9	| AK_SPEAKER_LOW_FREQUENCY)											///< Auro-9.1 setup channel mask (5.1.4)
+#define AK_SPEAKER_SETUP_AURO_10			(AK_SPEAKER_SETUP_AURO_9	| AK_SPEAKER_TOP)													///< Auro-10.0 setup channel mask (5.0.4+top)
+#define AK_SPEAKER_SETUP_AURO_10POINT1		(AK_SPEAKER_SETUP_AURO_10	| AK_SPEAKER_LOW_FREQUENCY)											///< Auro-10.1 setup channel mask (5.1.4+top)
+#define AK_SPEAKER_SETUP_AURO_11			(AK_SPEAKER_SETUP_AURO_10	| AK_SPEAKER_HEIGHT_FRONT_CENTER)									///< Auro-11.0 setup channel mask (5.0.5+top)
+#define AK_SPEAKER_SETUP_AURO_11POINT1		(AK_SPEAKER_SETUP_AURO_11	| AK_SPEAKER_LOW_FREQUENCY)											///< Auro-11.1 setup channel mask (5.1.5+top)
+#define AK_SPEAKER_SETUP_AURO_11_740		(AK_SPEAKER_SETUP_7			| AK_SPEAKER_SETUP_HEIGHT_4)										///< Auro-11.0 (7+4) setup channel mask (7.0.4)
+#define AK_SPEAKER_SETUP_AURO_11POINT1_740	(AK_SPEAKER_SETUP_AURO_11_740	| AK_SPEAKER_LOW_FREQUENCY)										///< Auro-11.1 (7+4) setup channel mask (7.1.4)
+#define AK_SPEAKER_SETUP_AURO_13_751		(AK_SPEAKER_SETUP_7			| AK_SPEAKER_SETUP_HEIGHT_5 | AK_SPEAKER_TOP)						///< Auro-13.0 setup channel mask (7.0.5+top)
+#define AK_SPEAKER_SETUP_AURO_13POINT1_751	(AK_SPEAKER_SETUP_AURO_13_751	| AK_SPEAKER_LOW_FREQUENCY)										///< Auro-13.1 setup channel mask (7.1.5+top)
 
 // Dolby speaker setups: in Dolby nomenclature, [#plane].[lfe].[#height]
-#define AK_SPEAKER_SETUP_DOLBY_5_0_2        (AK_SPEAKER_SETUP_5            | AK_SPEAKER_HEIGHT_FRONT_LEFT | AK_SPEAKER_HEIGHT_FRONT_RIGHT )   ///< Dolby 5.0.2 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_5_1_2        (AK_SPEAKER_SETUP_DOLBY_5_0_2  | AK_SPEAKER_LOW_FREQUENCY )                                       ///< Dolby 5.1.2 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_5_0_4        (AK_SPEAKER_SETUP_DOLBY_5_0_2  | AK_SPEAKER_HEIGHT_BACK_LEFT  | AK_SPEAKER_HEIGHT_BACK_RIGHT )    ///< Dolby 5.0.4 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_5_1_4        (AK_SPEAKER_SETUP_DOLBY_5_0_4  | AK_SPEAKER_LOW_FREQUENCY )                                       ///< Dolby 5.1.4 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_6_0_2        (AK_SPEAKER_SETUP_6            | AK_SPEAKER_HEIGHT_FRONT_LEFT | AK_SPEAKER_HEIGHT_FRONT_RIGHT )   ///< Dolby 6.0.2 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_6_1_2        (AK_SPEAKER_SETUP_DOLBY_6_0_2  | AK_SPEAKER_LOW_FREQUENCY )                                       ///< Dolby 6.1.2 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_6_0_4        (AK_SPEAKER_SETUP_DOLBY_6_0_2  | AK_SPEAKER_HEIGHT_BACK_LEFT  | AK_SPEAKER_HEIGHT_BACK_RIGHT )    ///< Dolby 6.0.4 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_6_1_4        (AK_SPEAKER_SETUP_DOLBY_6_0_4  | AK_SPEAKER_LOW_FREQUENCY )                                       ///< Dolby 6.1.4 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_7_0_2        (AK_SPEAKER_SETUP_7            | AK_SPEAKER_HEIGHT_FRONT_LEFT | AK_SPEAKER_HEIGHT_FRONT_RIGHT )   ///< Dolby 7.0.2 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_7_1_2        (AK_SPEAKER_SETUP_DOLBY_7_0_2  | AK_SPEAKER_LOW_FREQUENCY )                                       ///< Dolby 7.1.2 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_7_0_4        (AK_SPEAKER_SETUP_DOLBY_7_0_2  | AK_SPEAKER_HEIGHT_BACK_LEFT  | AK_SPEAKER_HEIGHT_BACK_RIGHT )    ///< Dolby 7.0.4 setup channel mask
-#define AK_SPEAKER_SETUP_DOLBY_7_1_4        (AK_SPEAKER_SETUP_DOLBY_7_0_4  | AK_SPEAKER_LOW_FREQUENCY )                                       ///< Dolby 7.1.4 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_5_0_2		(AK_SPEAKER_SETUP_5			| AK_SPEAKER_HEIGHT_FRONT_LEFT	| AK_SPEAKER_HEIGHT_FRONT_RIGHT )	///< Dolby 5.0.2 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_5_1_2		(AK_SPEAKER_SETUP_DOLBY_5_0_2	| AK_SPEAKER_LOW_FREQUENCY )									///< Dolby 5.1.2 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_5_0_4		(AK_SPEAKER_SETUP_DOLBY_5_0_2	| AK_SPEAKER_HEIGHT_BACK_LEFT | AK_SPEAKER_HEIGHT_BACK_RIGHT )	///< Dolby 5.0.4 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_5_1_4		(AK_SPEAKER_SETUP_DOLBY_5_0_4	| AK_SPEAKER_LOW_FREQUENCY )									///< Dolby 5.1.4 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_6_0_2		(AK_SPEAKER_SETUP_6			| AK_SPEAKER_HEIGHT_FRONT_LEFT	| AK_SPEAKER_HEIGHT_FRONT_RIGHT )	///< Dolby 6.0.2 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_6_1_2		(AK_SPEAKER_SETUP_DOLBY_6_0_2	| AK_SPEAKER_LOW_FREQUENCY )									///< Dolby 6.1.2 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_6_0_4		(AK_SPEAKER_SETUP_DOLBY_6_0_2	| AK_SPEAKER_HEIGHT_BACK_LEFT | AK_SPEAKER_HEIGHT_BACK_RIGHT )	///< Dolby 6.0.4 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_6_1_4		(AK_SPEAKER_SETUP_DOLBY_6_0_4	| AK_SPEAKER_LOW_FREQUENCY )									///< Dolby 6.1.4 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_7_0_2		(AK_SPEAKER_SETUP_7			| AK_SPEAKER_HEIGHT_FRONT_LEFT	| AK_SPEAKER_HEIGHT_FRONT_RIGHT )	///< Dolby 7.0.2 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_7_1_2		(AK_SPEAKER_SETUP_DOLBY_7_0_2	| AK_SPEAKER_LOW_FREQUENCY )									///< Dolby 7.1.2 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_7_0_4		(AK_SPEAKER_SETUP_DOLBY_7_0_2	| AK_SPEAKER_HEIGHT_BACK_LEFT | AK_SPEAKER_HEIGHT_BACK_RIGHT )	///< Dolby 7.0.4 setup channel mask
+#define AK_SPEAKER_SETUP_DOLBY_7_1_4		(AK_SPEAKER_SETUP_DOLBY_7_0_4	| AK_SPEAKER_LOW_FREQUENCY )									///< Dolby 7.1.4 setup channel mask
 
-#define AK_SPEAKER_SETUP_ALL_SPEAKERS       (AK_SPEAKER_SETUP_7POINT1 | AK_SPEAKER_BACK_CENTER | AK_SPEAKER_SETUP_HEIGHT_ALL | AK_SPEAKER_TOP)  ///< All speakers.
+#define AK_SPEAKER_SETUP_ALL_SPEAKERS		(AK_SPEAKER_SETUP_7POINT1 | AK_SPEAKER_BACK_CENTER | AK_SPEAKER_SETUP_HEIGHT_ALL | AK_SPEAKER_TOP)	///< All speakers.
 
 // Channel indices.
 // ------------------------------------------------
 
 // Channel indices for standard setups on the plane.
-#define AK_IDX_SETUP_FRONT_LEFT             (0)    ///< Index of front-left channel in all configurations.
-#define AK_IDX_SETUP_FRONT_RIGHT            (1)    ///< Index of front-right channel in all configurations.
-#define AK_IDX_SETUP_CENTER                 (2)    ///< Index of front-center channel in all configurations.
+#define AK_IDX_SETUP_FRONT_LEFT				(0)	///< Index of front-left channel in all configurations.
+#define AK_IDX_SETUP_FRONT_RIGHT			(1)	///< Index of front-right channel in all configurations.
+#define AK_IDX_SETUP_CENTER					(2)	///< Index of front-center channel in all configurations.
 
-#define AK_IDX_SETUP_NOCENTER_BACK_LEFT     (2)    ///< Index of back-left channel in configurations with no front-center channel.
-#define AK_IDX_SETUP_NOCENTER_BACK_RIGHT    (3)    ///< Index of back-right channel in configurations with no front-center channel.
-#define AK_IDX_SETUP_NOCENTER_SIDE_LEFT     (4)    ///< Index of side-left channel in configurations with no front-center channel.
-#define AK_IDX_SETUP_NOCENTER_SIDE_RIGHT    (5)    ///< Index of side-right channel in configurations with no front-center channel.
+#define AK_IDX_SETUP_NOCENTER_BACK_LEFT		(2)	///< Index of back-left channel in configurations with no front-center channel.
+#define AK_IDX_SETUP_NOCENTER_BACK_RIGHT	(3)	///< Index of back-right channel in configurations with no front-center channel.
+#define AK_IDX_SETUP_NOCENTER_SIDE_LEFT		(4)	///< Index of side-left channel in configurations with no front-center channel.
+#define AK_IDX_SETUP_NOCENTER_SIDE_RIGHT	(5)	///< Index of side-right channel in configurations with no front-center channel.
 
-#define AK_IDX_SETUP_WITHCENTER_BACK_LEFT   (3)    ///< Index of back-left channel in configurations with a front-center channel.
-#define AK_IDX_SETUP_WITHCENTER_BACK_RIGHT  (4)    ///< Index of back-right channel in configurations with a front-center channel.
-#define AK_IDX_SETUP_WITHCENTER_SIDE_LEFT   (5)    ///< Index of side-left channel in configurations with a front-center channel.
-#define AK_IDX_SETUP_WITHCENTER_SIDE_RIGHT  (6)    ///< Index of side-right channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_BACK_LEFT	(3)	///< Index of back-left channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_BACK_RIGHT	(4)	///< Index of back-right channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_SIDE_LEFT	(5)	///< Index of side-left channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_SIDE_RIGHT	(6)	///< Index of side-right channel in configurations with a front-center channel.
 
-#define AK_IDX_SETUP_WITHCENTER_HEIGHT_FRONT_LEFT    (7)  ///< Index of height-front-left channel in configurations with a front-center channel.
-#define AK_IDX_SETUP_WITHCENTER_HEIGHT_FRONT_RIGHT   (8)  ///< Index of height-front-right channel in configurations with a front-center channel.
-#define AK_IDX_SETUP_WITHCENTER_HEIGHT_BACK_LEFT     (9)  ///< Index of height-back-left channel in configurations with a front-center channel.
-#define AK_IDX_SETUP_WITHCENTER_HEIGHT_BACK_RIGHT    (10) ///< Index of height-back-right channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_HEIGHT_FRONT_LEFT	 (7) ///< Index of height-front-left channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_HEIGHT_FRONT_RIGHT	 (8) ///< Index of height-front-right channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_HEIGHT_BACK_LEFT	 (9) ///< Index of height-back-left channel in configurations with a front-center channel.
+#define AK_IDX_SETUP_WITHCENTER_HEIGHT_BACK_RIGHT	(10) ///< Index of height-back-right channel in configurations with a front-center channel.
 
 // Channel indices for specific setups.
-#define AK_IDX_SETUP_0_LFE          (0)    ///< Index of low-frequency channel in 0.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_0_LFE			(0)	///< Index of low-frequency channel in 0.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_1_CENTER       (0)    ///< Index of center channel in 1.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_1_LFE          (1)    ///< Index of low-frequency channel in 1.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_1_CENTER		(0)	///< Index of center channel in 1.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_1_LFE			(1)	///< Index of low-frequency channel in 1.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_2_LEFT         (0)    ///< Index of left channel in 2.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_2_RIGHT        (1)    ///< Index of right channel in 2.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_2_LFE          (2)    ///< Index of low-frequency channel in 2.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_2_LEFT			(0)	///< Index of left channel in 2.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_2_RIGHT		(1)	///< Index of right channel in 2.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_2_LFE			(2) ///< Index of low-frequency channel in 2.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_3_LEFT         (0)    ///< Index of left channel in 3.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_3_RIGHT        (1)    ///< Index of right channel in 3.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_3_CENTER       (2)    ///< Index of center channel in 3.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_3_LFE          (3)    ///< Index of low-frequency channel in 3.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_3_LEFT			(0)	///< Index of left channel in 3.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_3_RIGHT		(1)	///< Index of right channel in 3.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_3_CENTER		(2)	///< Index of center channel in 3.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_3_LFE			(3)	///< Index of low-frequency channel in 3.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_4_FRONTLEFT    (0)    ///< Index of front left channel in 4.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_4_FRONTRIGHT   (1)    ///< Index of front right channel in 4.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_4_REARLEFT     (2)    ///< Index of rear left channel in 4.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_4_REARRIGHT    (3)    ///< Index of rear right channel in 4.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_4_LFE          (4)    ///< Index of low-frequency channel in 4.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_4_FRONTLEFT	(0)	///< Index of front left channel in 4.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_4_FRONTRIGHT	(1)	///< Index of front right channel in 4.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_4_REARLEFT		(2)	///< Index of rear left channel in 4.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_4_REARRIGHT	(3)	///< Index of rear right channel in 4.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_4_LFE			(4)	///< Index of low-frequency channel in 4.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_5_FRONTLEFT    (0)    ///< Index of front left channel in 5.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_5_FRONTRIGHT   (1)    ///< Index of front right channel in 5.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_5_CENTER       (2)    ///< Index of center channel in 5.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_5_REARLEFT     (3)    ///< Index of rear left channel in 5.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_5_REARRIGHT    (4)    ///< Index of rear right channel in 5.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_5_LFE          (5)    ///< Index of low-frequency channel in 5.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_5_FRONTLEFT	(0)	///< Index of front left channel in 5.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_5_FRONTRIGHT	(1)	///< Index of front right channel in 5.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_5_CENTER		(2)	///< Index of center channel in 5.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_5_REARLEFT		(3)	///< Index of rear left channel in 5.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_5_REARRIGHT	(4)	///< Index of rear right channel in 5.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_5_LFE			(5)	///< Index of low-frequency channel in 5.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_6_FRONTLEFT    (0)    ///< Index of front left channel in 6.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_6_FRONTRIGHT   (1)    ///< Index of front right channel in 6x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_6_REARLEFT     (2)    ///< Index of rear left channel in 6.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_6_REARRIGHT    (3)    ///< Index of rear right channel in 6.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_6_SIDELEFT     (4)    ///< Index of side left channel in 6.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_6_SIDERIGHT    (5)    ///< Index of side right channel in 6.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_6_LFE          (6)    ///< Index of low-frequency channel in 6.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_FRONTLEFT	(0)	///< Index of front left channel in 6.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_FRONTRIGHT	(1)	///< Index of front right channel in 6x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_REARLEFT		(2)	///< Index of rear left channel in 6.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_REARRIGHT	(3)	///< Index of rear right channel in 6.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_SIDELEFT		(4)	///< Index of side left channel in 6.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_SIDERIGHT	(5)	///< Index of side right channel in 6.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_6_LFE			(6)	///< Index of low-frequency channel in 6.1 setup (use with AkAudioBuffer::GetChannel())
 
-#define AK_IDX_SETUP_7_FRONTLEFT    (0)    ///< Index of front left channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_FRONTRIGHT   (1)    ///< Index of front right channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_CENTER       (2)    ///< Index of center channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_REARLEFT     (3)    ///< Index of rear left channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_REARRIGHT    (4)    ///< Index of rear right channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_SIDELEFT     (5)    ///< Index of side left channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_SIDERIGHT    (6)    ///< Index of side right channel in 7.x setups (use with AkAudioBuffer::GetChannel())
-#define AK_IDX_SETUP_7_LFE          (7)    ///< Index of low-frequency channel in 7.1 setup (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_FRONTLEFT	(0)	///< Index of front left channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_FRONTRIGHT	(1)	///< Index of front right channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_CENTER		(2)	///< Index of center channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_REARLEFT		(3)	///< Index of rear left channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_REARRIGHT	(4)	///< Index of rear right channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_SIDELEFT		(5)	///< Index of side left channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_SIDERIGHT	(6)	///< Index of side right channel in 7.x setups (use with AkAudioBuffer::GetChannel())
+#define AK_IDX_SETUP_7_LFE			(7)	///< Index of low-frequency channel in 7.1 setup (use with AkAudioBuffer::GetChannel())
 
 //
 // Extra speaker setups. This is a more exhaustive list of speaker setups, which might not all be supported
 // by the Wwise Sound Engine audio pipeline.
 //
 
-#define AK_SPEAKER_SETUP_0_1        ( AK_SPEAKER_LOW_FREQUENCY )  //0.1
+#define AK_SPEAKER_SETUP_0_1		( AK_SPEAKER_LOW_FREQUENCY )							//0.1
 
-#define AK_SPEAKER_SETUP_1_0_CENTER ( AK_SPEAKER_FRONT_CENTER )                               //1.0 (C)
-#define AK_SPEAKER_SETUP_1_1_CENTER ( AK_SPEAKER_FRONT_CENTER | AK_SPEAKER_LOW_FREQUENCY )    //1.1 (C)
+#define AK_SPEAKER_SETUP_1_0_CENTER	( AK_SPEAKER_FRONT_CENTER )							//1.0 (C)
+#define AK_SPEAKER_SETUP_1_1_CENTER ( AK_SPEAKER_FRONT_CENTER	| AK_SPEAKER_LOW_FREQUENCY )	//1.1 (C)
 
-#define AK_SPEAKER_SETUP_2_0        ( AK_SPEAKER_FRONT_LEFT | AK_SPEAKER_FRONT_RIGHT )                            //2.0
-#define AK_SPEAKER_SETUP_2_1        ( AK_SPEAKER_FRONT_LEFT | AK_SPEAKER_FRONT_RIGHT | AK_SPEAKER_LOW_FREQUENCY ) //2.1
+#define AK_SPEAKER_SETUP_2_0		( AK_SPEAKER_FRONT_LEFT	| AK_SPEAKER_FRONT_RIGHT )							//2.0
+#define AK_SPEAKER_SETUP_2_1		( AK_SPEAKER_FRONT_LEFT	| AK_SPEAKER_FRONT_RIGHT | AK_SPEAKER_LOW_FREQUENCY )	//2.1
 
-#define AK_SPEAKER_SETUP_3_0        ( AK_SPEAKER_FRONT_LEFT | AK_SPEAKER_FRONT_RIGHT | AK_SPEAKER_FRONT_CENTER )  //3.0
-#define AK_SPEAKER_SETUP_3_1        ( AK_SPEAKER_SETUP_3_0  | AK_SPEAKER_LOW_FREQUENCY )                          //3.1
+#define AK_SPEAKER_SETUP_3_0		( AK_SPEAKER_FRONT_LEFT	| AK_SPEAKER_FRONT_RIGHT | AK_SPEAKER_FRONT_CENTER )	//3.0
+#define AK_SPEAKER_SETUP_3_1		( AK_SPEAKER_SETUP_3_0	| AK_SPEAKER_LOW_FREQUENCY )	//3.1
 
-#define AK_SPEAKER_SETUP_FRONT      ( AK_SPEAKER_SETUP_3_0 )
+#define AK_SPEAKER_SETUP_FRONT		( AK_SPEAKER_SETUP_3_0 )
 
-#define AK_SPEAKER_SETUP_4_0        ( AK_SPEAKER_SETUP_4 )
-#define AK_SPEAKER_SETUP_4_1        ( AK_SPEAKER_SETUP_4POINT1 )
-#define AK_SPEAKER_SETUP_5_0        ( AK_SPEAKER_SETUP_5 )
-#define AK_SPEAKER_SETUP_5_1        ( AK_SPEAKER_SETUP_5POINT1 )
+#define AK_SPEAKER_SETUP_4_0		( AK_SPEAKER_SETUP_4 )
+#define AK_SPEAKER_SETUP_4_1		( AK_SPEAKER_SETUP_4POINT1 )
+#define AK_SPEAKER_SETUP_5_0		( AK_SPEAKER_SETUP_5 )
+#define AK_SPEAKER_SETUP_5_1		( AK_SPEAKER_SETUP_5POINT1 )
 
-#define AK_SPEAKER_SETUP_6_0        ( AK_SPEAKER_SETUP_6 )
-#define AK_SPEAKER_SETUP_6_1        ( AK_SPEAKER_SETUP_6POINT1 )
-#define AK_SPEAKER_SETUP_7_0        ( AK_SPEAKER_SETUP_7 )
-#define AK_SPEAKER_SETUP_7_1        ( AK_SPEAKER_SETUP_7POINT1 )
+#define AK_SPEAKER_SETUP_6_0		( AK_SPEAKER_SETUP_6 )
+#define AK_SPEAKER_SETUP_6_1		( AK_SPEAKER_SETUP_6POINT1 )
+#define AK_SPEAKER_SETUP_7_0		( AK_SPEAKER_SETUP_7 )
+#define AK_SPEAKER_SETUP_7_1		( AK_SPEAKER_SETUP_7POINT1 )
 
 // Standard/largest setup definitions.
-#define AK_SPEAKER_SETUP_DEFAULT_PLANE          (AK_SPEAKER_SETUP_7POINT1)         ///< All speakers on the plane, supported on this platform.
-#define AK_SUPPORTED_STANDARD_CHANNEL_MASK      (AK_SPEAKER_SETUP_ALL_SPEAKERS)    ///< Platform supports all standard channels.
-#define AK_STANDARD_MAX_NUM_CHANNELS            (8)                                ///< Legacy: Platform supports at least 7.1
+#define AK_SPEAKER_SETUP_DEFAULT_PLANE			(AK_SPEAKER_SETUP_7POINT1)	///< All speakers on the plane, supported on this platform.
+#define AK_SUPPORTED_STANDARD_CHANNEL_MASK		(AK_SPEAKER_SETUP_ALL_SPEAKERS)	///< Platform supports all standard channels.
+#define AK_STANDARD_MAX_NUM_CHANNELS			(8)							///< Legacy: Platform supports at least 7.1
 
-#define AK_MAX_AMBISONICS_ORDER    (5)
+#define AK_MAX_AMBISONICS_ORDER	(5)
 
-#define AK_DEFAULT_HEIGHT_ANGLE (30.0f)
+#define AK_DEFAULT_HEIGHT_ANGLE 30.f
 
-#ifdef __cplusplus
 // Helpers.
-inline void AK_SPEAKER_SETUP_FIX_LEFT_TO_CENTER(AkUInt32& io_uChannelMask)
+inline void AK_SPEAKER_SETUP_FIX_LEFT_TO_CENTER( AkUInt32 &io_uChannelMask )
 {
-	if (!(io_uChannelMask & AK_SPEAKER_FRONT_CENTER)
+	if( !(io_uChannelMask & AK_SPEAKER_FRONT_CENTER) 
 		&& !(io_uChannelMask & AK_SPEAKER_FRONT_RIGHT)
-		&& (io_uChannelMask & AK_SPEAKER_FRONT_LEFT))
+		&& (io_uChannelMask & AK_SPEAKER_FRONT_LEFT) )
 	{
 		io_uChannelMask &= ~AK_SPEAKER_FRONT_LEFT;		// remove left
 		io_uChannelMask |= AK_SPEAKER_FRONT_CENTER;	// add center
 	}
 }
 
-inline void AK_SPEAKER_SETUP_FIX_REAR_TO_SIDE(AkUInt32& io_uChannelMask)
+inline void AK_SPEAKER_SETUP_FIX_REAR_TO_SIDE( AkUInt32 &io_uChannelMask )
 {
-	if (io_uChannelMask & (AK_SPEAKER_BACK_LEFT) && !(io_uChannelMask & AK_SPEAKER_SIDE_LEFT))
+	if( io_uChannelMask & ( AK_SPEAKER_BACK_LEFT ) && !( io_uChannelMask & AK_SPEAKER_SIDE_LEFT ) )
 	{
-		io_uChannelMask &= ~(AK_SPEAKER_BACK_LEFT | AK_SPEAKER_BACK_RIGHT);	// remove rears
-		io_uChannelMask |= (AK_SPEAKER_SIDE_LEFT | AK_SPEAKER_SIDE_RIGHT);	// add sides
+		io_uChannelMask &= ~( AK_SPEAKER_BACK_LEFT | AK_SPEAKER_BACK_RIGHT );	// remove rears
+		io_uChannelMask |= ( AK_SPEAKER_SIDE_LEFT | AK_SPEAKER_SIDE_RIGHT );	// add sides
 	}
 }
 
-inline void AK_SPEAKER_SETUP_CONVERT_TO_SUPPORTED(AkUInt32& io_uChannelMask)
+inline void AK_SPEAKER_SETUP_CONVERT_TO_SUPPORTED( AkUInt32 &io_uChannelMask )
 {
-	AK_SPEAKER_SETUP_FIX_LEFT_TO_CENTER(io_uChannelMask);
-	AK_SPEAKER_SETUP_FIX_REAR_TO_SIDE(io_uChannelMask);
+	AK_SPEAKER_SETUP_FIX_LEFT_TO_CENTER( io_uChannelMask );
+	AK_SPEAKER_SETUP_FIX_REAR_TO_SIDE( io_uChannelMask );
 }
 
 /// Ambisonics configurations (corresponding to AkChannelConfig::eConfigType == AK_ChannelConfigType_Ambisonic).
@@ -261,6 +257,7 @@ inline void AK_SPEAKER_SETUP_CONVERT_TO_SUPPORTED(AkUInt32& io_uChannelMask)
 /// <tr><td align="right">9 &nbsp;&nbsp;&nbsp;</td> <td align="right">2 &nbsp;&nbsp;&nbsp;</td><td align="right">2 &nbsp;&nbsp;&nbsp;</td> <td>&nbsp;&nbsp;second-order full sphere</td><td>&nbsp;&nbsp;WYZXVTRSU</td></tr>
 /// <tr><td align="right">16 &nbsp;&nbsp;&nbsp;</td> <td align="right">3 &nbsp;&nbsp;&nbsp;</td><td align="right">3 &nbsp;&nbsp;&nbsp;</td> <td>&nbsp;&nbsp;third-order full sphere</td><td>&nbsp;&nbsp;WYZXVTRSUQOMKLNP</td></tr>
 /// </table>
+
 namespace AK
 {
 
@@ -411,7 +408,18 @@ AkForceInline AkChannelMask BackToSideChannels( AkChannelMask in_uChannelMask )
 
 } // namespace AK
 
-#endif // __cplusplus
+/// Channel configuration type. 
+enum AkChannelConfigType
+{
+	AK_ChannelConfigType_Anonymous = 0x0,	///< Channel mask == 0 and channels are anonymous.
+	AK_ChannelConfigType_Standard = 0x1,	///< Channels must be identified with standard defines in AkSpeakerConfigs.	
+	AK_ChannelConfigType_Ambisonic = 0x2,	///< Ambisonics. Channel mask == 0 and channels follow standard ambisonic order.
+	AK_ChannelConfigType_Objects = 0x3,		///< Object-based configurations.
+	AK_ChannelConfigType_Last,				///< End of enum, invalid value.
+
+	AK_ChannelConfigType_UseDeviceMain = 0xE,			///< Special setting for bus objects to use the audio device main configuration.
+	AK_ChannelConfigType_UseDevicePassthrough = 0xF		///< Special setting for bus objects to use the audio device passthrough configuration.
+};
 
 /// Defines a channel configuration.
 /// Examples:
@@ -434,20 +442,13 @@ AkForceInline AkChannelMask BackToSideChannels( AkChannelMask in_uChannelMask )
 /// \endcode
 struct AkChannelConfig
 {
-	union {
-		// Channel config: 
-		// - uChannelMask is a bit field, whose channel identifiers depend on AkChannelConfigType (up to 20). Channel bits are defined in AkSpeakerConfig.h.
-		// - eConfigType is a code that completes the identification of channels by uChannelMask.
-		// - uNumChannels is the number of channels, identified (deduced from channel mask) or anonymous (set directly). 
-		struct
-		{
-			AkUInt32 uNumChannels : 8;  ///< Number of channels.
-			AkUInt32 eConfigType : 4;   ///< Channel config type (AkChannelConfigType).
-			AkUInt32 uChannelMask : 20; ///< Channel mask (configuration). 
-		};
-		AkUInt32 uFullCfg;
-	};
-#ifdef __cplusplus
+	// Channel config: 
+	// - uChannelMask is a bit field, whose channel identifiers depend on AkChannelConfigType (up to 20). Channel bits are defined in AkSpeakerConfig.h.
+	// - eConfigType is a code that completes the identification of channels by uChannelMask.
+	// - uNumChannels is the number of channels, identified (deduced from channel mask) or anonymous (set directly). 
+	AkUInt32	uNumChannels : 8;	///< Number of channels.
+	AkUInt32	eConfigType : 4;	///< Channel config type (AkChannelConfigType).
+	AkUInt32	uChannelMask : 20;///< Channel mask (configuration). 
 
 	/// Construct standard channel config from channel mask
 	static AkForceInline AkChannelConfig Standard(AkUInt32 in_uChannelMask)
@@ -479,13 +480,10 @@ struct AkChannelConfig
 
 	/// Constructor. Clears / sets the channel config in "invalid" state (IsValid() returns false).
 	AkForceInline AkChannelConfig()
+		: uNumChannels(0)
+		, eConfigType(0)
+		, uChannelMask(0)
 	{
-		uFullCfg = 0;
-	}
-
-	AkForceInline AkChannelConfig(const AkChannelConfig& rCopy)
-	{
-		uFullCfg = rCopy.uFullCfg;
 	}
 
 	/// Constructor. Sets number of channels, and config type according to whether channel mask is defined or not. If defined, it must be consistent with the number of channels.
@@ -504,7 +502,9 @@ struct AkChannelConfig
 	/// Clear the channel config. Becomes "invalid" (IsValid() returns false).
 	AkForceInline void Clear()
 	{
-		uFullCfg = 0;
+		uNumChannels = 0;
+		eConfigType = 0;
+		uChannelMask = 0;
 	}
 
 	/// Set channel config as a standard configuration specified with given channel mask.
@@ -575,13 +575,15 @@ struct AkChannelConfig
 	/// Serialize channel config into a 32-bit word.
 	AkForceInline AkUInt32 Serialize() const
 	{
-		return uFullCfg;
+		return uNumChannels | (eConfigType << 8) | (uChannelMask << 12);
 	}
 
 	/// Deserialize channel config from a 32-bit word.
 	AkForceInline void Deserialize(AkUInt32 in_uChannelConfig)
 	{
-		uFullCfg = in_uChannelConfig;
+		uNumChannels = in_uChannelConfig & 0x000000ff;
+		eConfigType = (in_uChannelConfig >> 8) & 0x0000000f;
+		uChannelMask = (in_uChannelConfig >> 12) & 0x000fffff;
 	}
 
 	/// Returns a new config based on 'this' with no LFE.
@@ -615,13 +617,17 @@ struct AkChannelConfig
 	/// Operator ==
 	AkForceInline bool operator==(const AkChannelConfig & in_other) const
 	{
-		return uFullCfg == in_other.uFullCfg;
+		return uNumChannels == in_other.uNumChannels
+			&& eConfigType == in_other.eConfigType
+			&& uChannelMask == in_other.uChannelMask;
 	}
 
 	/// Operator !=
 	AkForceInline bool operator!=(const AkChannelConfig & in_other) const
 	{
-		return uFullCfg != in_other.uFullCfg;
+		return uNumChannels != in_other.uNumChannels
+			|| eConfigType != in_other.eConfigType
+			|| uChannelMask != in_other.uChannelMask;
 	}
 
 	/// Query if LFE channel is present.
@@ -639,7 +645,6 @@ struct AkChannelConfig
 	{
 		return AK::HasCenter(uChannelMask);
 	}
-#endif
 };
 
 #endif //_AK_SPEAKERCONFIG_H_

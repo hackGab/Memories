@@ -26,9 +26,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 DECLARE_STATS_GROUP(TEXT("Resource Loader"), STATGROUP_WwiseResourceLoader, STATCAT_Wwise);
 
 DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced Asset Libraries"), STAT_WwiseResourceLoaderAssetLibraries, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
-DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced Audio Nodes"), STAT_WwiseResourceLoaderAudioNodes, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
 DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced Aux Busses"), STAT_WwiseResourceLoaderAuxBusses, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
-DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced Dialogue Events"), STAT_WwiseResourceLoaderDialogueEvents, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
 DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced Events"), STAT_WwiseResourceLoaderEvents, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
 DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced External Sources"), STAT_WwiseResourceLoaderExternalSources, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
 DECLARE_DWORD_ACCUMULATOR_STAT_EXTERN(TEXT("Referenced Group Values"), STAT_WwiseResourceLoaderGroupValues, STATGROUP_WwiseResourceLoader, WWISERESOURCELOADER_API);
@@ -53,9 +51,7 @@ WWISERESOURCELOADER_API DECLARE_LOG_CATEGORY_EXTERN(LogWwiseResourceLoader, Log,
 
 #define WWISERESOURCELOADER_ASYNC_NAME(Text) TEXT("WwiseResourceLoader ") TEXT(Text)
 
-LLM_DECLARE_TAG_API(Audio_Wwise_ResourceLoader_AudioNodes, WWISERESOURCELOADER_API);
 LLM_DECLARE_TAG_API(Audio_Wwise_ResourceLoader_AuxBusses, WWISERESOURCELOADER_API);
-LLM_DECLARE_TAG_API(Audio_Wwise_ResourceLoader_DialogueEvents, WWISERESOURCELOADER_API);
 LLM_DECLARE_TAG_API(Audio_Wwise_ResourceLoader_Events, WWISERESOURCELOADER_API);
 LLM_DECLARE_TAG_API(Audio_Wwise_ResourceLoader_ExternalSources, WWISERESOURCELOADER_API);
 LLM_DECLARE_TAG_API(Audio_Wwise_ResourceLoader_GroupValues, WWISERESOURCELOADER_API);

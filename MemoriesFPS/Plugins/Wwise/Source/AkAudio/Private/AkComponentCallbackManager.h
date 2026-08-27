@@ -42,11 +42,7 @@ public:
 
 	virtual ~IAkUserEventCallbackPackage() {}
 
-#if WWISE_2025_1_OR_LATER
-	virtual void HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo) = 0;
-#else
 	virtual void HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo) = 0;
-#endif
 	virtual void CancelCallback() {};
 };
 
@@ -61,11 +57,7 @@ public:
 	{
 	}
 
-#if WWISE_2025_1_OR_LATER
-	virtual void HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo) override;
-#else
 	virtual void HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo) override;
-#endif
 	virtual void CancelCallback() override;
 
 private:
@@ -90,11 +82,7 @@ public:
 		, BlueprintCallback(PostEventCallback)
 	{}
 
-#if WWISE_2025_1_OR_LATER
-	virtual void HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo) override;
-#else
 	virtual void HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo) override;
-#endif
 	virtual void CancelCallback() override;
 
 private:
@@ -112,11 +100,7 @@ public:
 		EndOfEventLatentAction->ValidityToken = LatentActionValidityToken;
 	}
 
-#if WWISE_2025_1_OR_LATER
-	virtual void HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo) override;
-#else
 	virtual void HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo) override;
-#endif
 
 private:
 	TSharedPtr<FPendingLatentActionValidityToken, ESPMode::ThreadSafe> LatentActionValidityToken;
@@ -131,11 +115,7 @@ public:
 	static FAkComponentCallbackManager* Instance;
 
 	/** Our own event callback */
-#if WWISE_2025_1_OR_LATER
-	static void AkComponentCallback(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void * in_pCallbackInfo, void* in_pCookie);
-#else
 	static void AkComponentCallback(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo);
-#endif
 
 	FAkComponentCallbackManager();
 	~FAkComponentCallbackManager();

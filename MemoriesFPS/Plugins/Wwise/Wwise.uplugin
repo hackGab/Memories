@@ -1,8 +1,8 @@
 {
 	"FileVersion": 1,
 	"FriendlyName": "Wwise Unreal Engine Integration",
-	"Version": 202514131,
-	"VersionName": "2025.1.4.9062.4131",
+	"Version": 202413676,
+	"VersionName": "2024.1.5.8803.3676",
 	"CreatedBy": "Audiokinetic, Inc.",
 	"CreatedByURL": "http://audiokinetic.com",
 	"Description": "Wwise integration for Unreal Engine",
@@ -16,6 +16,11 @@
 		},
 		{
 			"Name": "AkAudio",
+			"Type": "Runtime",
+			"LoadingPhase": "None"
+		},
+		{
+			"Name": "AkAudioMixer",
 			"Type": "Runtime",
 			"LoadingPhase": "None"
 		},

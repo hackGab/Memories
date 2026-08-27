@@ -63,8 +63,9 @@ typedef AkRingBufferAllocatorNoAlign<AkMemID_Object> AkRingBufferAllocatorDefaul
 typedef AkRingBufferAllocatorNoAlign<AkMemID_Processing> AkRingBufferAllocatorLEngine;
 typedef AkRingBufferAllocatorAligned<AkMemID_Processing> AkRingBufferAllocatorLEngineAligned;
 
-//Single producer, single consumer pattern implementation.
 template <class T, class TAlloc = AkRingBufferAllocatorDefault>
+
+//Single producer, single consumer pattern implementation.
 class AkRingBuffer
 {
 public:
@@ -134,29 +135,6 @@ public:
         AkAtomicAdd32(&m_nbReadableItems, nbItems);
     }
 
-	void WriteDataToRing(T* in_pDest, AkUInt32 in_nbItems)
-	{
-		AKASSERT(GetNbWritableItems() >= in_nbItems);
-		AKASSERT(in_nbItems <= m_nbItems);
-
-		// no wrapping
-		if (m_writeIndex + in_nbItems < m_nbItems)
-		{
-			AKPLATFORM::AkMemCpy(m_data + m_writeIndex, in_pDest, in_nbItems * sizeof(T));
-		}
-		else // wrapping past end (split memcpy)
-		{
-			AkUInt32 uItemsBeforeWrap = m_nbItems - m_writeIndex;
-			AkUInt32 uItemsAfterWrap = in_nbItems - uItemsBeforeWrap;
-			AKPLATFORM::AkMemCpy(m_data + m_writeIndex, in_pDest, uItemsBeforeWrap * sizeof(T));
-			AKPLATFORM::AkMemCpy(m_data, in_pDest + uItemsBeforeWrap, uItemsAfterWrap * sizeof(T));
-
-		}
-		m_writeIndex = (m_writeIndex + in_nbItems);
-		m_writeIndex -= m_writeIndex >= m_nbItems ? m_nbItems : 0;
-
-		AkAtomicAdd32(&m_nbReadableItems, in_nbItems);
-	}
     // ---- Consumer ----
 
     AkUInt32 GetReadIndex() const
@@ -201,29 +179,6 @@ public:
         return m_nbItems;
     }
 
-
-	void ReadDataFromRing(T* in_pSrc, AkUInt32 in_nbItems)
-	{
-		AKASSERT(GetNbReadableItems() >= in_nbItems);
-		AKASSERT(in_nbItems < m_nbItems);
-
-		// no wrapping
-		if (m_readIndex + in_nbItems < m_nbItems)
-		{
-			AKPLATFORM::AkMemCpy(in_pSrc, m_data + m_readIndex, in_nbItems);
-		}
-		else // wrapping past end (split memcpy)
-		{
-			AkUInt32 uItemsBeforeWrap = m_nbItems - m_readIndex;
-			AkUInt32 uItemsAfterWrap = in_nbItems - uItemsBeforeWrap;
-			AKPLATFORM::AkMemCpy(in_pSrc, m_data + m_readIndex, uItemsBeforeWrap * sizeof(T));
-			AKPLATFORM::AkMemCpy(in_pSrc + uItemsBeforeWrap, m_data, uItemsAfterWrap * sizeof(T));
-		}
-		m_readIndex = (m_readIndex + in_nbItems);
-		m_readIndex -= m_readIndex >= m_nbItems? m_nbItems: 0;
-
-		AkAtomicSub32(&m_nbReadableItems, in_nbItems);
-	}
     // Warning: requires external locking to prevent concurrent Grow+Read in a multi-threaded scenario. 
     // Like the rest of the class, assumes a single writing thread.
     bool Grow(AkUInt32 in_uGrowBy)

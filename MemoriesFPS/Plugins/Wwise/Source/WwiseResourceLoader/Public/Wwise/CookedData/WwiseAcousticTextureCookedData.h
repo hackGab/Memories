@@ -17,7 +17,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
-#include "WwiseCookEventContext.h"
 #include "Wwise/WwiseUnrealVersion.h"
 
 #include "WwiseAcousticTextureCookedData.generated.h"
@@ -56,7 +55,7 @@ struct WWISERESOURCELOADER_API FWwiseAcousticTextureCookedData
 
 	void Serialize(FArchive& Ar);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
+	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
 #endif
 
 	FString GetDebugString() const;

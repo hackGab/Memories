@@ -66,7 +66,7 @@ struct AkAudioObject
 
 	AkPositioningData positioning;	///< Positioning data for deferred 3D rendering.
 	AkRamp cumulativeGain;			///< Cumulative ramping gain to apply when mixing down to speaker bed or final endpoint
-	AkPipelineID instigatorID;		///< Profiling ID of the node from which the object stems (typically the voice, instance of a Property Container).
+	AkPipelineID instigatorID;		///< Profiling ID of the node from which the object stems (typically the voice, instance of an actor-mixer).
 	AkPriority priority;			///< Audio object playback priority. Object with a higher priority will be rendered using the hardware's object functionality on platforms that supports it, whereas objects with a lower priority will be downmixed to a lower resolution 3D bed. Audio object priorities should be retrieved, or set through IAkPluginServiceAudioObjectPriority to retain compatibility with future Wwise releases.
 
 	/// Custom object metadata.
@@ -160,7 +160,6 @@ struct AkAudioObject
 	/// Reset object state in preparation for next frame.
 	void ResetState()
 	{
-		cumulativeGain = AkRamp(1.f, 1.f);
 		arCustomMetadata.Term(); // Reset custom metadata in preparation for next frame.
 		objectName.ClearReference(); // Clear reference to string in preparation for next frame.
 	}

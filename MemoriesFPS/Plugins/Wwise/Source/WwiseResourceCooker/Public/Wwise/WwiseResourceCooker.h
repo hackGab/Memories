@@ -23,48 +23,30 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/CookedData/WwiseGroupValueCookedData.h"
 #include "Wwise/Info/WwiseObjectInfo.h"
 
-class FWwiseCookingCache;
-class FWwiseProjectDatabase;
-class FWwiseResourceLoader;
-
-struct FWwiseAcousticTextureCookedData;
-
 class UWwiseAssetLibrary;
 struct FWwiseAssetLibraryCookedData;
 struct FWwiseAssetLibraryInfo;
-
-struct FWwiseAudioNodeCookedData;
-
-struct FWwiseAuxBusCookedData;
-struct FWwiseLocalizedAuxBusCookedData;
-
-struct FWwiseDialogueEventCookedData;
-struct FWwiseDialogueEventInfo;
-struct FWwiseLocalizedDialogueEventCookedData;
-
-struct FWwiseEventCookedData;
-struct FWwiseEventInfo;
-struct FWwiseLocalizedEventCookedData;
-
-struct FWwiseExternalSourceCookedData;
-
-struct FWwiseGameParameterCookedData;
-
-struct FWwiseGroupValueInfo;
-
-struct FWwiseInitBankCookedData;
-
-struct WwiseMetadataMedia;
-struct FWwiseMediaCookedData;
-
-struct FWwiseShareSetCookedData;
-struct FWwiseLocalizedShareSetCookedData;
-
-struct FWwiseSoundBankCookedData;
 struct WwiseMetadataSoundBank;
+struct WwiseMetadataMedia;
+struct FWwiseShareSetCookedData;
+struct FWwiseEventCookedData;
+struct FWwiseAuxBusCookedData;
+class FWwiseResourceLoader;
+class FWwiseProjectDatabase;
+struct FWwiseGroupValueInfo;
 struct FWwiseLocalizedSoundBankCookedData;
-
+struct FWwiseLocalizedShareSetCookedData;
+struct FWwiseMediaCookedData;
+struct FWwiseInitBankCookedData;
+struct FWwiseExternalSourceCookedData;
+struct FWwiseLocalizedEventCookedData;
+struct FWwiseLocalizedAuxBusCookedData;
+struct FWwiseEventInfo;
+struct FWwiseSoundBankCookedData;
+struct FWwiseGameParameterCookedData;
 struct FWwiseTriggerCookedData;
+struct FWwiseAcousticTextureCookedData;
+class FWwiseCookingCache;
 
 typedef TSharedPtr<FWwiseResourceLoader> FWwiseResourceLoaderPtr;
 
@@ -141,9 +123,7 @@ public:
 	IWwiseResourceCooker() {}
 	virtual ~IWwiseResourceCooker() {}
 
-	virtual void CookAudioNode(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookAuxBus(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
-	virtual void CookDialogueEvent(const FWwiseDialogueEventInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookEvent(const FWwiseEventInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookExternalSource(uint32 InCookie, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookInitBank(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
@@ -156,9 +136,7 @@ public:
 	
 	virtual bool PrepareCookedData(FWwiseAcousticTextureCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) = 0;
 	virtual bool PrepareCookedData(FWwiseAudioDeviceShareSetCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) = 0;
-	virtual bool PrepareCookedData(FWwiseAudioNodeCookedData& OutCookedData, const UObject* Owner, const FWwiseObjectInfo& InInfo) = 0;
 	virtual bool PrepareCookedData(FWwiseLocalizedAuxBusCookedData& OutCookedData, const UObject* Owner, const FWwiseObjectInfo& InInfo) = 0;
-	virtual bool PrepareCookedData(FWwiseLocalizedDialogueEventCookedData& OutCookedData, const UObject* Owner, const FWwiseDialogueEventInfo& InInfo) = 0;
 	virtual bool PrepareCookedData(FWwiseLocalizedEventCookedData& OutCookedData, const UObject* Owner, const FWwiseEventInfo& InInfo) = 0;
 	virtual bool PrepareCookedData(FWwiseExternalSourceCookedData& OutCookedData, uint32 InCookie) = 0;
 	virtual bool PrepareCookedData(FWwiseGameParameterCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) = 0;
@@ -191,13 +169,10 @@ public:
 
 	virtual void CookLocalizedAuxBusToSandbox(const FWwiseLocalizedAuxBusCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookLocalizedSoundBankToSandbox(const FWwiseLocalizedSoundBankCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
-	virtual void CookLocalizedDialogueEventToSandbox(const FWwiseLocalizedDialogueEventCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookLocalizedEventToSandbox(const FWwiseLocalizedEventCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookLocalizedShareSetToSandbox(const FWwiseLocalizedShareSetCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 
-	virtual void CookAudioNodeToSandbox(const FWwiseAudioNodeCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookAuxBusToSandbox(const FWwiseAuxBusCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
-	virtual void CookDialogueEventToSandbox(const FWwiseDialogueEventCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookEventToSandbox(const FWwiseEventCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookExternalSourceToSandbox(const FWwiseExternalSourceCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
 	virtual void CookInitBankToSandbox(const FWwiseInitBankCookedData& InCookedData, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) = 0;
@@ -209,9 +184,7 @@ public:
 
 	virtual bool GetAcousticTextureCookedData(FWwiseAcousticTextureCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) const = 0;
 	virtual bool GetAudioDeviceShareSetCookedData(FWwiseAudioDeviceShareSetCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) const = 0;
-	virtual bool GetAudioNodeCookedData(FWwiseAudioNodeCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseObjectInfo& InInfo) const = 0;
 	virtual bool GetAuxBusCookedData(FWwiseLocalizedAuxBusCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseObjectInfo& InInfo) const = 0;
-	virtual bool GetDialogueEventCookedData(FWwiseLocalizedDialogueEventCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseDialogueEventInfo& InInfo) const = 0;
 	virtual bool GetEventCookedData(FWwiseLocalizedEventCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseEventInfo& InInfo) const = 0;
 	virtual bool GetExternalSourceCookedData(FWwiseExternalSourceCookedData& OutCookedData, uint32 InCookie) const = 0;
 	virtual bool GetGameParameterCookedData(FWwiseGameParameterCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) const = 0;

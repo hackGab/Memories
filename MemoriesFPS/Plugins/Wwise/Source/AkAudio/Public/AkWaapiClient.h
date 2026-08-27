@@ -60,7 +60,7 @@ struct KeyValueArgs
 class FAkWaapiClientConnectionHandler : public FRunnable
 {
 public:
-    FAkWaapiClientConnectionHandler();
+    FAkWaapiClientConnectionHandler(FAkWaapiClient& in_Client);
     ~FAkWaapiClientConnectionHandler();
     // FRunnable interface.
     virtual bool   Init() override;
@@ -79,6 +79,7 @@ private:
     int m_iMaxReconnectDelay = 32;
     FEvent* WaitEvent;
     FCriticalSection AkSettingsSection;
+    FAkWaapiClient& m_Client;
     bool hadConnection = false;
     bool AttemptReconnect();
     FDelegateHandle AutoConnectChangedHandle;
@@ -148,9 +149,9 @@ public:
     * @return					 A boolean to ensure that the subscription was successfully done.
     */
     bool Subscribe(const char* in_uri, const FString& in_options, WampEventCallback in_callback,
-        uint64& out_subscriptionId, FString& out_result);
+        uint64& out_subscriptionId, FString& out_result, int in_iTimeoutMs = 500);
     bool Subscribe(const char* in_uri, const TSharedRef<FJsonObject>& in_options, WampEventCallback in_callback,
-        uint64& out_subscriptionId, TSharedPtr<FJsonObject>& out_result);
+        uint64& out_subscriptionId, TSharedPtr<FJsonObject>& out_result, int in_iTimeoutMs = 500);
 
     /**
     * Unsubscribe to notifications
@@ -159,8 +160,8 @@ public:
     * @param out_result		A JSON object that contains useful information about the unsubscription process from a specific event, gets an error infos in case the unsubscription failed.
     * @return					A boolean to ensure that the unsubscription was successfully done.
     */
-    bool Unsubscribe(const uint64_t& in_subscriptionId, FString& out_result, bool in_bSilenceLog = false);
-    bool Unsubscribe(const uint64_t& in_subscriptionId, TSharedPtr<FJsonObject>& out_result, bool in_bSilenceLog = false);
+    bool Unsubscribe(const uint64_t& in_subscriptionId, FString& out_result, int in_iTimeoutMs = 500, bool in_bSilenceLog = false);
+    bool Unsubscribe(const uint64_t& in_subscriptionId, TSharedPtr<FJsonObject>& out_result, int in_iTimeoutMs = 500, bool in_bSilenceLog = false);
 
 	/**
 	 * Remove manually the WampEventCallback, used by the WAAPI picker when the connection is lost

@@ -107,10 +107,6 @@ public:
 
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
-	virtual FReply OnKeyUp(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
-
-	bool IsTransportValid() const;
-
 	EVisibility IsItemPlaying(FGuid ItemId) const;
 
 	void ExpandItem(FWwiseTreeItemPtr TreeItem, bool bShouldExpand);
@@ -142,9 +138,6 @@ private:
 
 	/** True when (re)loading the Browser */
 	bool bIsRefreshing;
-
-	/** True when the user released F5 and the browser is ready for another refresh */
-	bool bCanRefresh = true;
 
 	FSoundBankStatusFilter SoundBankStatusFilter;
 
@@ -185,10 +178,6 @@ private:
 	FReply OnSettingsClicked();
 
 	void OnTreeItemDoubleClicked(FWwiseTreeItemPtr TreeItem);
-
-	/** Generate all the soundbanks or the soundbanks for the current platform */
-	void GenerateAllSoundbanks();
-	void GenerateCurrentSoundbanks();
 
 	/** Populates the browser window only (does not parse the Wwise project) */
 	void ConstructTree();
@@ -245,13 +234,6 @@ private:
 	/** Callback to execute the stop command from the context menu. Only available with a WAAPI connection. */
 	void HandleStopWwiseItemCommandExecute();
 
-	/** Callback to execute the expand all command from the context menu. */
-	void HandleExpandAllSelectedCommandExecute();
-	bool HandleExpandOrCollapseAllSelectedCommandCanExecute();
-
-	/** Callback to execute the collapse all command from the context menu. */
-	void HandleCollapseAllSelectedCommandExecute();
-
 	/** Callback to execute the stop all command from the context menu. Only available with a WAAPI connection. */
 	void HandleStopAllWwiseItemCommandExecute();
 
@@ -286,11 +268,7 @@ private:
 
 	void CreateReconcileTab() const;
 
-	FReply CollapseAll() const;
-	FReply ExpandAll() const;
-	void SetItemAndChildrenExpansion(FWwiseTreeItemPtr Item, bool bExpanded) const;
 private:
-
 	/** Map of columns that are shown on the Browser. */
 	TMap<FName, TSharedPtr<IWwiseBrowserColumn>> Columns;
 

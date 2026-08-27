@@ -70,9 +70,6 @@ the specific language governing permissions and limitations under the License.
 #define AKSIMD_SET_V4F32( __scalar__ ) vdupq_n_f32( __scalar__ )
 
 /// Populates the full vector with the 4 floating point elements provided
-#if defined AK_CPU_ARM_64 && defined(__clang__)
-#define AKSIMD_SETV_V4F32( _d, _c, _b, _a ) float32x4_t{float32_t(_a), float32_t(_b), float32_t(_c), float32_t(_d )}
-#else
 static AkForceInline float32x4_t AKSIMD_SETV_V4F32(float32_t d, float32_t c, float32_t b, float32_t a) {
 	float32x4_t ret = vdupq_n_f32(0);
 	ret = vsetq_lane_f32(d, ret, 3);
@@ -81,7 +78,6 @@ static AkForceInline float32x4_t AKSIMD_SETV_V4F32(float32_t d, float32_t c, flo
 	ret = vsetq_lane_f32(a, ret, 0);
 	return ret;
 }
-#endif
 
 /// Sets the four integer values to __scalar__
 #define AKSIMD_SET_V4I32( __scalar__ ) vdupq_n_s32( __scalar__ )
@@ -89,9 +85,6 @@ static AkForceInline float32x4_t AKSIMD_SETV_V4F32(float32_t d, float32_t c, flo
 /// Sets the sixteen 8-bit ints to __scalar__
 #define AKSIMD_SET_V16I8( __scalar__ ) vdupq_n_s8( __scalar__ )
 
-#if defined AK_CPU_ARM_64 && defined(__clang__)
-#define AKSIMD_SETV_V4I32( _d, _c, _b, _a ) int32x4_t{int32_t(_a), int32_t(_b), int32_t(_c), int32_t(_d )}
-#else
 static AkForceInline int32x4_t AKSIMD_SETV_V4I32(int32_t d, int32_t c, int32_t b, int32_t a) {
 	int32x4_t ret = vdupq_n_s32(0);
 	ret = vsetq_lane_s32(d, ret, 3);
@@ -100,32 +93,37 @@ static AkForceInline int32x4_t AKSIMD_SETV_V4I32(int32_t d, int32_t c, int32_t b
 	ret = vsetq_lane_s32(a, ret, 0);
 	return ret;
 }
-#endif
 
-// On 32b ARM, dealing with an int64_t could invoke loading in memory directly,
-// e.g. dereferencing a 64b ptr as one of the inputs
-// ultimately resulting in a potentially unaligned 64b load.
-// By reinterpreting and using the 64b inputs as 32b inputs, even a load from
-// a pointer will not have any alignment requirements
-// ARM64 can handle dereferencing ptrs to 64b values directly safely, though
-#if defined AK_CPU_ARM_64 && defined(__clang__)
-#define AKSIMD_SETV_V2I64( _b, _a ) vreinterpretq_s32_s64(int64x2_t{int64_t(_a), int64_t(_b)})
-#else
 static AkForceInline int32x4_t AKSIMD_SETV_V2I64(int64_t b, int64_t a) {
+	// On 32b ARM, dealing with an int64_t could invoke loading in memory directly,
+	// e.g. dereferencing a 64b ptr as one of the inputs
+	// ultimately resulting in a potentially unaligned 64b load.
+	// By reinterpreting and using the 64b inputs as 32b inputs, even a load from
+	// a pointer will not have any alignment requirements
+	// ARM64 can handle dereferencing ptrs to 64b values directly safely, though
+#if defined AK_CPU_ARM_64
+	int64x2_t ret = vdupq_n_s64(0);
+	ret = vsetq_lane_s64(b, ret, 1);
+	ret = vsetq_lane_s64(a, ret, 0);
+	return vreinterpretq_s32_s64(ret);
+#else
 	int32x4_t ret = vdupq_n_s32(0);
 	ret = vsetq_lane_s32(int32_t((b >> 32) & 0xFFFFFFFF), ret, 3);
 	ret = vsetq_lane_s32(int32_t((b >>  0) & 0xFFFFFFFF), ret, 2);
 	ret = vsetq_lane_s32(int32_t((a >> 32) & 0xFFFFFFFF), ret, 1);
 	ret = vsetq_lane_s32(int32_t((a >>  0) & 0xFFFFFFFF), ret, 0);
 	return ret;
-}
 #endif
+}
 
-#if defined AK_CPU_ARM_64 && defined(__clang__)
-#define AKSIMD_SETV_V2F64( _b, _a ) vreinterpretq_f32_f64(float64x2_t{float64_t(_a), float64_t(_b)})
-#else
 static AkForceInline float32x4_t AKSIMD_SETV_V2F64(AkReal64 b, AkReal64 a)
 {
+#if defined AK_CPU_ARM_64
+	float64x2_t ret = (float64x2_t)vdupq_n_s64(0);
+	ret = vsetq_lane_f64(b, ret, 1);
+	ret = vsetq_lane_f64(a, ret, 0);
+	return (float32x4_t)(ret);
+#else
 	int64_t a64 = *(int64_t*)&a;
 	int64_t b64 = *(int64_t*)&b;
 	int32x4_t ret = vdupq_n_s32(0);
@@ -134,8 +132,8 @@ static AkForceInline float32x4_t AKSIMD_SETV_V2F64(AkReal64 b, AkReal64 a)
 	ret = vsetq_lane_s32(int32_t((a64 >> 32) & 0xFFFFFFFF), ret, 1);
 	ret = vsetq_lane_s32(int32_t((a64 >> 0) & 0xFFFFFFFF), ret, 0);
 	return vreinterpretq_f32_s32(ret);
-}
 #endif
+}
 
 /// Sets the four single-precision, floating-point values to zero (see
 /// _mm_setzero_ps)
@@ -669,8 +667,6 @@ AkForceInline AKSIMD_V4F32 AKSIMD_DIV_V4F32( AKSIMD_V4F32 a, AKSIMD_V4F32 b )
 #define AKSIMD_MSUB_V4F32( __a__, __b__, __c__ ) AKSIMD_SUB_V4F32( AKSIMD_MUL_V4F32( (__a__), (__b__) ), (__c__) )
 #define AKSIMD_MSUB_V2F32( __a__, __b__, __c__ ) AKSIMD_SUB_V2F32( AKSIMD_MUL_V2F32( (__a__), (__b__) ), (__c__) )
 
-#define AKSIMD_LERP_V4F32( _alpha_, __a__, __b__ ) AKSIMD_MADD_V4F32(_alpha_, AKSIMD_SUB_V4F32(__b__, __a__), __a__)
-
 /// Vector multiply-add operation.
 AkForceInline AKSIMD_V4F32 AKSIMD_MADD_SS_V4F32( const AKSIMD_V4F32& __a__, const AKSIMD_V4F32& __b__, const AKSIMD_V4F32& __c__ )
 {
@@ -700,22 +696,8 @@ AkForceInline AKSIMD_V4F32 AKSIMD_MADD_SS_V4F32( const AKSIMD_V4F32& __a__, cons
 #define AKSIMD_NEG_V2F32( __a__ ) vneg_f32( (__a__) )
 #define AKSIMD_NEG_V4F32( __a__ ) vnegq_f32( (__a__) )
 
-/// Square root (4 floats) (max relative error of ~1e-5)
-AkForceInline AKSIMD_V4F32 AKSIMD_SQRT_V4F32(AKSIMD_V4F32 x)
-{
-	// run recip sqrt approx with one fixup-step;
-	// then multiply by x to go from x^(-.5) to x^.5
-	float32x4_t rsqrt = vrsqrteq_f32(x);
-	float32x4_t sqrte = vmulq_f32(x, rsqrt);
-	float32x4_t rsqrtstep = vrsqrtsq_f32(sqrte, rsqrt);
-	// multiply the post-rsqrtsq fixup and x together in one op
-	float32x4_t sqrte_fin = vmulq_f32(rsqrtstep, sqrte);
-
-	// check what values in the input are equal to zero and mask them out.
-	// the vrsqrteq_f32 of zero creates infs which creates nans
-	uint32x4_t zeroesMask = vceqq_u32(vreinterpretq_u32_f32(x), vdupq_n_u32(0));
-	return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(sqrte_fin), zeroesMask));
-}
+/// Square root (4 floats)
+#define AKSIMD_SQRT_V4F32( __vec__ ) vrecpeq_f32( vrsqrteq_f32( __vec__ ) )
 
 /// Vector reciprocal square root approximation 1/sqrt(a), or equivalently, sqrt(1/a)
 #define AKSIMD_RSQRT_V4F32( __a__ ) vrsqrteq_f32( (__a__) )
@@ -984,17 +966,6 @@ static AkForceInline AKSIMD_V4COND AKSIMD_SETMASK_V4COND( AkUInt32 x )
     return AKSIMD_EQ_V4I32(temp, xand);
 }
 
-//@}
-////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////
-/// @name AKSIMD int16 helpers
-//@{
-// AKSIMD helpers for loading int16 data
-
-// Loads 64 bits (4 int16 values) into the low half of an "integer 128-bit" NEON vector (reinterpret as needed)
-// Supports unaligned memory
-#define AKSIMD_LOAD_V1I64_LO(addr) vmovl_s16(vld1_s16((const int16_t*)(addr)))
 
 //@}
 ////////////////////////////////////////////////////////////////////////

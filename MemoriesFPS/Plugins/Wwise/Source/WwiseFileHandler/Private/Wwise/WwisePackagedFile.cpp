@@ -184,25 +184,8 @@ void FWwisePackagedFile::SerializeBulkData(FArchive& Ar, const FWwisePackagedFil
 				EventRef->Trigger();
 			};
 			
-			// Package full file or Prefetch Size as inline data
-			bool bPackageFullFileOrPrefetch = (PackagingStrategy == EWwisePackagingStrategy::BulkData && !bStreaming) || PrefetchSize > 0;
-			
-			// Package Streaming data
-			bool bPackageStreaming = PackagingStrategy == EWwisePackagingStrategy::BulkData && bStreaming;
 			if (UNLIKELY(!bResult))
 			{
-				UE_LOG(LogWwiseFileHandler, Warning, TEXT("FWwisePackagedFile::SerializeBulkData %s could not be opened."), *SourcePathName);
-				if (bPackageFullFileOrPrefetch)
-				{
-					FByteBulkData BulkData;
-					BulkData.Serialize(Ar, Options.Owner);
-				}
-				if (bPackageStreaming)
-				{
-					FByteBulkData BulkData;
-					BulkData.Serialize(Ar, Options.Owner);
-				}
-
 				return;
 			}
 
@@ -213,7 +196,8 @@ void FWwisePackagedFile::SerializeBulkData(FArchive& Ar, const FWwisePackagedFil
 				return;
 			}
 
-			if (bPackageFullFileOrPrefetch)
+			// Package full file or Prefetch Size as inline data
+			if ((PackagingStrategy == EWwisePackagingStrategy::BulkData && !bStreaming) || PrefetchSize > 0)
 			{
 				FByteBulkData BulkData;
 				const auto* DataPtr = Ptr;
@@ -255,7 +239,8 @@ void FWwisePackagedFile::SerializeBulkData(FArchive& Ar, const FWwisePackagedFil
 				BulkData.Serialize(Ar, Options.Owner);
 			}
 
-			if (bPackageStreaming)
+			// Package Streaming data
+			if (PackagingStrategy == EWwisePackagingStrategy::BulkData && bStreaming)
 			{
 				FByteBulkData BulkData;
 				const auto* DataPtr = (const int8*)(Ptr);

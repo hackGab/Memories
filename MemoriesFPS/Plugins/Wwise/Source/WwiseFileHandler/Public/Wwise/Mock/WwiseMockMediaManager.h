@@ -56,9 +56,6 @@ public:
 	}
 	void SetGranularity(uint32 InStreamingGranularity) override {}
 
-	void DoTerm() override {}
-	void DoPostTerm() override {}
-
 	IWwiseStreamingManagerHooks& GetStreamingHooks() override final { return *this; }
 
 	bool IsMediaLoaded(int32 mediaId)
@@ -81,7 +78,7 @@ public:
 protected:
 	virtual FWwiseFileStateSharedPtr CreateOp(const FWwiseMediaCookedData& InMediaCookedData)
 	{
-		auto* FileState = new FWwiseMockFileState(InMediaCookedData.MediaId, FWwiseMockFileState::EFileType::Media);
+		auto* FileState = new FWwiseMockFileState(InMediaCookedData.MediaId);
 		if (InMediaCookedData.PackagedFile.bStreaming)
 		{
 			FileState->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;

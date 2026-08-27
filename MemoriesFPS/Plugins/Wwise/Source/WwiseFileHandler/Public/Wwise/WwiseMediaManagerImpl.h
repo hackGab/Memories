@@ -24,21 +24,18 @@ class WWISEFILEHANDLER_API FWwiseMediaManagerImpl : public IWwiseMediaManager, p
 {
 public:
 	FWwiseMediaManagerImpl();
-	virtual ~FWwiseMediaManagerImpl() override;
+	~FWwiseMediaManagerImpl() override;
 
-	virtual const TCHAR* GetManagingTypeName() const override { return TEXT("Media"); }
+	const TCHAR* GetManagingTypeName() const override { return TEXT("Media"); }
 
-	virtual void LoadMedia(const FWwiseMediaCookedData& InMediaCookedData, FLoadMediaCallback&& InCallback) override;
-	virtual void UnloadMedia(const FWwiseMediaCookedData& InMediaCookedData, FUnloadMediaCallback&& InCallback) override;
-	virtual void SetGranularity(AkUInt32 InStreamingGranularity) override;
+	void LoadMedia(const FWwiseMediaCookedData& InMediaCookedData, FLoadMediaCallback&& InCallback) override;
+	void UnloadMedia(const FWwiseMediaCookedData& InMediaCookedData, FUnloadMediaCallback&& InCallback) override;
+	void SetGranularity(AkUInt32 InStreamingGranularity) override;
 	
 	virtual void SetMedia(AkSourceSettings& InSource, FLoadMediaCallback&& InCallback) override;
 	virtual void UnsetMedia(AkSourceSettings& InSource, FLoadMediaCallback&& InCallback) override;
 
-	virtual void DoTerm() override;
-	virtual void DoPostTerm() override;
-
-	virtual IWwiseStreamingManagerHooks& GetStreamingHooks() override final { return *this; }
+	IWwiseStreamingManagerHooks& GetStreamingHooks() final { return *this; }
 
 protected:
 	uint32 StreamingGranularity;
@@ -52,12 +49,9 @@ protected:
 	TArray<AkSourceSettings> UnsetMediaOps;
 	TArray<FLoadMediaCallback> UnsetMediaCallbacks;
 
-	bool bProcessTerm{ false };
-
 	virtual FWwiseFileStateSharedPtr CreateOp(const FWwiseMediaCookedData& InMediaCookedData);
 	
 	static FWwiseExecutionQueue* GetBankExecutionQueue();
-	virtual void AddUnsetMediaOp(AkSourceSettings& InSource, FLoadMediaCallback&& InCallback);
 	virtual void DoSetMedia();
 	virtual void DoUnsetMedia();
 };

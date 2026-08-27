@@ -22,14 +22,10 @@ Copyright (c) 2025 Audiokinetic Inc.
 #pragma once
 
 #include "AkAudioDevice.h"
-#include "AkDynamicSequence.h"
 #include "AkGameplayTypes.h"
 #include "Components/SceneComponent.h"
 #include "AkGameObject.generated.h"
 
-
-class UAkDialogueEvent;
-class UAkDynamicSequence;
 
 UCLASS(ClassGroup=Audiokinetic, BlueprintType, Blueprintable, hidecategories=(Transform,Rendering,Mobility,LOD,Component,Activation), AutoExpandCategories=AkComponent, meta=(BlueprintSpawnableComponent))
 class AKAUDIO_API UAkGameObject: public USceneComponent
@@ -53,10 +49,6 @@ public:
 	/** Associated Wwise Event to be posted on this game object */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AkEvent")
 	TObjectPtr<UAkAudioEvent> AkAudioEvent = nullptr;
-
-	/** Associated dynamic sequence, as generated through OpenDynamicSequence */
-	UPROPERTY(Transient)
-	TObjectPtr<UAkDynamicSequence> AkDynamicSequence = nullptr;
 
 	/**
 	 * Posts this game object's AkAudioEvent to Wwise, using this as the game object source
@@ -90,21 +82,6 @@ public:
 
 	virtual AkPlayingID PostAkEvent(UAkAudioEvent* AkEvent, AkUInt32 Flags = 0, AkCallbackFunc UserCallback = nullptr, void* UserCookie = nullptr);
 
-	/**
-	 * Post a Dialogue Event to the associated dynamic sequence.
-	 * @param AkDialogueEvent		The Dialogue Event to post
-	 * @param Arguments				The arguments to use on the Dialogue Event
-	 * @param bOrderedPath		Whether the arguments are ordered or not. See UAkDialogueEvent::ResolveOrderedArguments.
-	 * @param bPlayImmediately		Issues a Play command to the Dynamic Sequence.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|AkGameObject")
-	virtual void PostAkDialogueEvent(
-		UAkDialogueEvent* AkDialogueEvent,
-		const TArray<UAkGroupValue*>& Arguments,
-		bool bOrderedPath = false,
-		bool bPlayImmediately = true
-	);
-	
 	/**
 	 * Posts an event to Wwise, using this as the game object source
 	 *
@@ -150,34 +127,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|AkGameObject", meta = (AdvancedDisplay = "RTPC"))
 	void GetRTPCValue(class UAkRtpc const* RTPCValue, ERTPCValueType InputValueType, float& Value, ERTPCValueType& OutputValueType, FString RTPC, int32 PlayingID = 0) const;
 
-	/**
-	 * Opens a dynamic sequence to Wwise, using this as the game object source.
-	 *
-	 * By default, the game object contains an associated dynamic sequence, and any new dialogue event will be added to this
-	 * associated dynamic sequence. By asking for a new dynamic sequence instance, you are responsible for its lifetime.
-	 *
-	 * If the dynamic sequence was already created, the provided callback and sample accurate is ignored.
-	 *
-	 * @param CallbackMask		Mask of desired callbacks
-	 * @param OpenSequenceCallback	Blueprint Event to execute on callback
-	 * @param DefaultTransition	The Transition Parameters when Pausing, Playing, Stopping the Dynamic Sequence. 
-	 * @param bSampleAccurate	Sample accurate Dynamic Sequence. Disallows playlist editing in specific cases.
-	 * @param bNewInstance		Request a new instance, separated from the associated dynamic sequence.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|AkGameObject", meta = (AdvancedDisplay = "1", AutoCreateRefTerm = "OpenSequenceCallback"))
-	virtual UAkDynamicSequence* OpenDynamicSequence(
-		UPARAM(meta = (Bitmask, BitmaskEnum = "/Script/AkAudio.EAkCallbackType")) int32 CallbackMask,
-		const FOnAkPostEventCallback& OpenSequenceCallback,
-		const FAkDynamicSequenceTransition DefaultTransition = FAkDynamicSequenceTransition(),
-		bool bSampleAccurate = false,
-		bool bNewInstance = false
-	);
-
-	/**
-	* Detaches the currently assigned dynamic sequence, resetting it.
-*/
-	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|AkGameObject")
-	virtual UAkDynamicSequence* DetachDynamicSequence();
 
 #if WITH_EDITOR
 	virtual void PreEditChange(FProperty* PropertyAboutToChange) override;

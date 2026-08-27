@@ -19,7 +19,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/WwiseReconcile.h"
 #include "AkAudioEvent.h"
 #include "AkAuxBus.h"
-#include "AkDialogueEvent.h"
 #include "AkEffectShareSet.h"
 #include "AkGroupValue.h"
 #include "AkSettings.h"
@@ -47,9 +46,6 @@ namespace AkUnrealAssetDataHelper
 		{
 		case EWwiseItemType::Event:
 			Class = UAkAudioEvent::StaticClass();
-			break;
-		case EWwiseItemType::DialogueEvent:
-			Class = UAkDialogueEvent::StaticClass();
 			break;
 		case EWwiseItemType::AuxBus:
 			Class = UAkAuxBus::StaticClass();
@@ -158,7 +154,6 @@ namespace AkUnrealAssetDataHelper
 		case WwiseRefType::GameParameter:
 		case WwiseRefType::PluginShareSet:
 		case WwiseRefType::Trigger:
-		case WwiseRefType::DialogueEvent:
 			return WwiseName;
 
 		case WwiseRefType::Switch:

@@ -31,7 +31,6 @@ using WwisePluginLibNamesMap = WwiseDBMap<WwiseDBString, WwiseRefPluginLib>;
 using WwisePluginLibIdsMap = WwiseDBMap<WwiseDBShortId, WwiseRefPluginLib>;
 using WwiseSoundBankIdsMap = WwiseDBMap<WwiseDBShortId, WwiseRefSoundBank>;
 using WwiseDialogueEventIdsMap = WwiseDBMap<WwiseDBShortId, WwiseRefDialogueEvent>;
-using WwiseDialogueArgumentArray = WwiseDBArray<WwiseRefDialogueArgument>;
 using WwiseDialogueArgumentIdsMap = WwiseDBMap<WwiseDBShortId, WwiseRefDialogueArgument>;
 using WwiseBusIdsMap = WwiseDBMap<WwiseDBShortId, WwiseRefBus>;
 using WwiseAuxBusIdsMap = WwiseDBMap<WwiseDBShortId, WwiseRefAuxBus>;

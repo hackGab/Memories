@@ -89,11 +89,6 @@ void FAkRoomComponentDetailsCustomization::CustomizeDetails(IDetailLayoutBuilder
 			InDetailBuilder.HideCategory("AkEvent");
 			InDetailBuilder.HideCategory("ReverbZone");
 		}
-
-		if (RoomBeingCustomized->bAutoParent)
-		{
-			InDetailBuilder.HideProperty("ParentRoomActor");
-		}
 	}
 }
 

@@ -37,7 +37,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedEventInfo
 		TArray<const FWwiseSoundBankCookedData*> LoadedSoundBanks;
 		TArray<const FWwiseExternalSourceCookedData*> LoadedExternalSources;
 		TArray<const FWwiseMediaCookedData*> LoadedMedia;
-		std::atomic<int> IsProcessing{0};
+		int IsProcessing{0};
 
 		FWwiseLoadedGroupValueList LoadedRequiredGroupValues;
 		bool bLoadedSwitchContainerLeaves = false;

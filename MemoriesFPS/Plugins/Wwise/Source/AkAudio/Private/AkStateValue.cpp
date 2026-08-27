@@ -28,7 +28,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 void UAkStateValue::LoadGroupValue()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkStateValue::LoadGroupValue"));
+	SCOPED_AKAUDIO_EVENT_2(TEXT("UAkStateValue::LoadGroupValue"));
 	FWwiseResourceLoaderPtr ResourceLoader = FWwiseResourceLoader::Get();
 	if (UNLIKELY(!ResourceLoader))
 	{
@@ -78,7 +78,6 @@ void UAkStateValue::LoadGroupValue()
 
 void UAkStateValue::Serialize(FArchive& Ar)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkStateValue::Serialize"));
 	Super::Serialize(Ar);
 
 	if (HasAnyFlags(RF_ClassDefaultObject))
@@ -105,7 +104,6 @@ void UAkStateValue::Serialize(FArchive& Ar)
 #if WITH_EDITORONLY_DATA
 void UAkStateValue::FillInfo()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkStateValue::FillInfo"));
 	auto* ResourceCooker = IWwiseResourceCooker::GetDefault();
 	if (UNLIKELY(!ResourceCooker))
 	{

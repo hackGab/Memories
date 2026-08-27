@@ -47,12 +47,6 @@ UAkTVOSInitializationSettings::UAkTVOSInitializationSettings(const FObjectInitia
 
 void UAkTVOSInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
 {
-#if defined(WWISE_TVOS_PLATFORM_FOLDER)
-	InitializationStructure.SetPluginDllPath(WWISE_TVOS_PLATFORM_FOLDER);
-#else
-	InitializationStructure.SetPluginDllPath("tvOS_Xcode1500");
-#endif
-	
 	CommonSettings.FillInitializationStructure(InitializationStructure);
 	AudioSession.FillInitializationStructure(InitializationStructure);
 	CommunicationSettings.FillInitializationStructure(InitializationStructure);

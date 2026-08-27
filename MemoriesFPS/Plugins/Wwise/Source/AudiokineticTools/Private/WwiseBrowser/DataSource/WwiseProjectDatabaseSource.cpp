@@ -101,7 +101,6 @@ bool FWwiseProjectDatabaseDataSource::ConstructTree(bool bShouldRefresh)
 			return false;
 		}
 		const WwiseEventGlobalIdsMap& Events = DataStructure.GetEvents();
-		const WwiseDialogueEventGlobalIdsMap& DialogueEvents = DataStructure.GetDialogueEvents();
 		const WwiseBusGlobalIdsMap& Busses = DataStructure.GetBusses();
 		const WwiseAuxBusGlobalIdsMap& AuxBusses = DataStructure.GetAuxBusses();
 		const WwiseAcousticTextureGlobalIdsMap& AcousticTextures = DataStructure.GetAcousticTextures();
@@ -117,16 +116,15 @@ bool FWwiseProjectDatabaseDataSource::ConstructTree(bool bShouldRefresh)
 		BuildEvents(Events);
 		BuildBusses(Busses);
 		BuildAuxBusses(AuxBusses);
-		BuildSwitchGroups(SwitchGroups);
-		BuildSwitches(Switches);
-		BuildStateGroups(StateGroups);
-		BuildStates(States);
-		BuildGameParameters(GameParameters);
-		BuildDialogueEvents(DialogueEvents);
-		BuildEffectShareSets(EffectShareSets);
-		BuildTriggers(Triggers);
 		BuildAcousticTextures(AcousticTextures);
 		BuildAudioDevices(AudioDevices);
+		BuildStateGroups(StateGroups);
+		BuildStates(States);
+		BuildSwitchGroups(SwitchGroups);
+		BuildSwitches(Switches);
+		BuildGameParameters(GameParameters);
+		BuildTriggers(Triggers);
+		BuildEffectShareSets(EffectShareSets);
 	}
 
 	if(bShouldRefresh)
@@ -302,34 +300,7 @@ void FWwiseProjectDatabaseDataSource::BuildEvents(const WwiseEventGlobalIdsMap& 
 	}
 
 	FolderItem->ChildCountInWwise = FolderItem->GetChildren().Num();
-}
 
-void FWwiseProjectDatabaseDataSource::BuildDialogueEvents(const WwiseDialogueEventGlobalIdsMap& DialogueEvents)
-{
-	SCOPED_AUDIOKINETICTOOLS_EVENT_3(TEXT("FWwiseProjectDatabaseDataSource::BuildDialogueEvents"))
-
-	const auto& FolderItem = MakeShared<FWwiseTreeItem>(EWwiseItemType::DialogueEventsBrowserName, TEXT("\\") + EWwiseItemType::FolderNames[EWwiseItemType::DialogueEvent], nullptr, EWwiseItemType::Folder, FGuid());
-	NodesByPath.Add(FolderItem->FolderPath, FolderItem);
-
-	{
-		FScopeLock AutoLock(&RootItemsLock);
-		RootItems[EWwiseItemType::DialogueEvent] = FolderItem;
-	}
-
-	for (const auto& DialogueEvent : DialogueEvents)
-	{
-		WwiseDBPair<const WwiseDatabaseLocalizableIdKey, WwiseRefDialogueEvent> EventPair(DialogueEvent);
-		const auto& WwiseItem = EventPair.GetSecond().GetDialogueEvent();
-		UE_LOG(LogAudiokineticTools, VeryVerbose, TEXT("DialogueEvent Name: %s"), *FWwiseStringConverter::ToFString(WwiseItem->Name));
-
-		WwiseMetadataBasicReference DialogueEventRef = WwiseMetadataBasicReference(WwiseItem->Id, WwiseItem->Name, WwiseItem->ObjectPath, WwiseItem->GUID);
-		if (!BuildFolderHierarchy(DialogueEventRef, EWwiseItemType::DialogueEvent, FolderItem))
-		{
-			UE_LOG(LogAudiokineticTools, Error, TEXT("Failed to place %s in the Wwise Browser"), *FWwiseStringConverter::ToFString(WwiseItem->ObjectPath));
-		}
-	}
-
-	FolderItem->ChildCountInWwise = FolderItem->GetChildren().Num();
 }
 
 void FWwiseProjectDatabaseDataSource::BuildBusses(const WwiseBusGlobalIdsMap& Busses)

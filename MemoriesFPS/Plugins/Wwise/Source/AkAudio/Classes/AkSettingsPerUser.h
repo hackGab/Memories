@@ -51,27 +51,27 @@ public:
 	FDirectoryPath GeneratedSoundBanksFolderOverride_DEPRECATED;
 
 	// IP Address used to connect to WAAPI. Changing this requires Editor restart
-	UPROPERTY(Config, EditAnywhere, Meta = (DisplayName = "WAAPI IP Address", Category = "WAAPI", EditCondition = "AutoConnectToWAAPI"))
+	UPROPERTY(Config, EditAnywhere, Category = "WAAPI")
 	FString WaapiIPAddress = WAAPI_LOCAL_HOST_IP_STRING;
 
 	// Network Port used to connect to WAAPI. Changing this requires Editor restart
-	UPROPERTY(Config, EditAnywhere, Meta = (DisplayName = "WAAPI Port", Category = "WAAPI", EditCondition = "AutoConnectToWAAPI"))
+	UPROPERTY(Config, EditAnywhere, Category = "WAAPI")
 	uint32 WaapiPort = WAAPI_PORT;
 
 	// Whether to connect to WAAPI or not
 	UPROPERTY(Config, EditAnywhere, Category = "WAAPI")
-	bool AutoConnectToWAAPI = true;
+	bool bAutoConnectToWAAPI = true;
 
-	// Whether to synchronize the selection between the Wwise Browser and the Wwise Project Explorer
-	UPROPERTY(Config, EditAnywhere, Meta = (Category = "WAAPI", EditCondition = "AutoConnectToWAAPI"))
+	// Whether to synchronize the selection between the WAAPI picker and the Wwise Project Explorer
+	UPROPERTY(Config, EditAnywhere, Category = "WAAPI")
 	bool AutoSyncSelection = true;
 
-	// Time out value for WAAPI calls (in ms). If set to -1, WAAPI calls will never time out
-	UPROPERTY(Config, EditAnywhere, Meta = (DisplayName = "WAAPI Calls Timeout", Category = "WAAPI", EditCondition = "AutoConnectToWAAPI", ClampMin = -1))
+	// Time out value for Waapi calls (in ms). If set to -1, Waapi calls will never time out
+	UPROPERTY(Config, EditAnywhere, Category = "WAAPI", meta=(ClampMin=-1))
 	int32 WaapiCallsTimeout = 500;
 	
-	// Time out value for the WAAPI error message translator to translate an error message (in ms). If set to 0, disable the translator entirely
-	UPROPERTY(Config, EditAnywhere, DisplayName = "WAAPI Translator Timeout", Category = "Error Message Translator")
+	// Time out value for the waapi error message translator to translate an error message (in ms). If set to 0, disable the translator entirely
+	UPROPERTY(Config, EditAnywhere, Category = "Error Message Translator")
 	uint32 WaapiTranslatorTimeout = 0;
 
 	UPROPERTY(Config)

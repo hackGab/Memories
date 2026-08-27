@@ -29,7 +29,6 @@ UAkAudioInputComponent::UAkAudioInputComponent(const class FObjectInitializer& O
 
 int32 UAkAudioInputComponent::PostAssociatedAudioInputEvent()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAudioInputComponent::PostAssociatedAudioInputEvent"));
 	AudioInputDelegate = FAkGlobalAudioInputDelegate::CreateLambda(
 		[this](uint32 NumChannels, uint32 NumSamples, float** BufferToFill) -> bool
 		{
@@ -54,7 +53,6 @@ int32 UAkAudioInputComponent::PostAssociatedAudioInputEvent()
 
 void UAkAudioInputComponent::PostUnregisterGameObject()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAudioInputComponent::PostUnregisterGameObject"));
 	if (AudioInputDelegate.IsBound())
 	{
 		AudioInputDelegate.Unbind();
@@ -79,7 +77,6 @@ void UAkAudioInputComponent::PostUnregisterGameObject()
 
 void UAkAudioInputComponent::Stop()
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("UAkAudioInputComponent::Stop"));
 	Super::Stop();
 	for(auto& CurrentlyPlayingID : CurrentlyPlayingIDs)
 	{

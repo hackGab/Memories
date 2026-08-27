@@ -32,7 +32,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 void UAkEffectShareSet::Serialize(FArchive& Ar)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkEffectShareSet::Serialize"));
 	Super::Serialize(Ar);
 
 	if (HasAnyFlags(RF_ClassDefaultObject))
@@ -58,7 +57,7 @@ void UAkEffectShareSet::Serialize(FArchive& Ar)
 
 void UAkEffectShareSet::LoadEffectShareSet()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkEffectShareSet::LoadEffectShareSet"));
+	SCOPED_AKAUDIO_EVENT_2(TEXT("LoadEffectShareSet"));
 	FWwiseResourceLoaderPtr ResourceLoader = FWwiseResourceLoader::Get();
 	if (UNLIKELY(!ResourceLoader))
 	{
@@ -109,7 +108,6 @@ void UAkEffectShareSet::LoadEffectShareSet()
 
 void UAkEffectShareSet::UnloadEffectShareSet(bool bAsync)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkEffectShareSet::UnloadEffectShareSet"));
 	auto PreviouslyLoadedShareSet = LoadedShareSet.exchange(nullptr);
 	if (PreviouslyLoadedShareSet)
 	{
@@ -174,7 +172,6 @@ void UAkEffectShareSet::CookAdditionalFilesOverride(const TCHAR* PackageFilename
 
 void UAkEffectShareSet::FillInfo()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkEffectShareSet::FillInfo"));
 	auto* ResourceCooker = IWwiseResourceCooker::GetDefault();
 	if (UNLIKELY(!ResourceCooker))
 	{
@@ -211,26 +208,19 @@ void UAkEffectShareSet::FillInfo()
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 UE_COOK_DEPENDENCY_FUNCTION(HashWwiseEffectShareSetDependenciesForCook, UAkAudioType::HashDependenciesForCook);
 
-#if UE_5_6_OR_LATER
-void UAkEffectShareSet::OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context)
+void UAkEffectShareSet::PreSave(FObjectPreSaveContext SaveContext)
 {
 	ON_SCOPE_EXIT
 	{
-		Super::OnCookEvent(CookEvent, Context);
+		Super::PreSave(SaveContext);
 	};
-#else
-void UAkEffectShareSet::PreSave(FObjectPreSaveContext Context)
-{
-	ON_SCOPE_EXIT
-	{
-		Super::PreSave(Context);
-	};
-#endif
-	if (!Context.IsCooking())
+
+	if (!SaveContext.IsCooking())
 	{
 		return;
 	}
-	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(Context.GetTargetPlatform());
+
+	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(SaveContext.GetTargetPlatform());
 	if (UNLIKELY(!ResourceCooker))
 	{
 		return;
@@ -242,10 +232,10 @@ void UAkEffectShareSet::PreSave(FObjectPreSaveContext Context)
 
 	FCbWriter Writer;
 	Writer.BeginObject();
-	CookedDataToArchive.GetPlatformCookDependencies(Context, Writer);
+	CookedDataToArchive.PreSave(SaveContext, Writer);
 	Writer.EndObject();
 	
-	WwiseCookEventContext::AddLoadBuildDependency(Context,
+	SaveContext.AddCookBuildDependency(
 		UE::Cook::FCookDependency::Function(
 			UE_COOK_DEPENDENCY_FUNCTION_CALL(HashWwiseEffectShareSetDependenciesForCook), Writer.Save()));
 }

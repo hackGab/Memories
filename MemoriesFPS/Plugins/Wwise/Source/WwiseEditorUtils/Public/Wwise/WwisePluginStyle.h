@@ -30,23 +30,17 @@ public:
 	static TSharedPtr< FWwisePluginStyle > Get();
 	static void InitializeWwisePluginStyle();
 	static void ShutdownWwisePluginStyle();
-	static FName GetWwisePluginStyleSetName();
 
 	static const FName AcousticTextureIconName;
 	static const FName ActorMixerIconName;
 	static const FName AssetLibraryIconName;
 	static const FName AssetLibraryFilterIconName;
 	static const FName AudioDeviceIconName;
-	static const FName AudioNodeIconName;
 	static const FName AuxBusIconName;
 	static const FName BlendContainerIconName;
 	static const FName BusIconName;
-	static const FName CollapseAll;
-	static const FName DialogueEventIconName;
-	static const FName DynamicSequenceIconName;
 	static const FName EffectShareSetIconName;
 	static const FName EventIconName;
-	static const FName ExpandAll;
 	static const FName ExternalSourceIconName;
 	static const FName FolderIconName;
 	static const FName GameParameterIconName;

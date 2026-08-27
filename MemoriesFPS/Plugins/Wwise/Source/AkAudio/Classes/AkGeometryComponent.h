@@ -31,7 +31,7 @@ class UMaterialInterface;
 DECLARE_DELEGATE(FOnRefreshDetails);
 
 UENUM()
-enum class EAkMeshType : uint8
+enum class AkMeshType : uint8
 {
 	StaticMesh,
 	CollisionMesh UMETA(DisplayName = "Simple Collision")
@@ -105,7 +105,7 @@ public:
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Geometry")
-	EAkMeshType MeshType = EAkMeshType::CollisionMesh;
+	AkMeshType MeshType = AkMeshType::CollisionMesh;
 
 	/** The Static Mesh's LOD to use */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Geometry", meta = (ClampMin = "0.0"))

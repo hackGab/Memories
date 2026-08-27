@@ -26,8 +26,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/AkInclude_2024_1.h"
 #elif defined(AK_WWISE_SOUNDENGINE_2025_1)
 #include "Wwise/AkInclude_2025_1.h"
-#elif defined(AK_WWISE_SOUNDENGINE_2026_1)
-#include "Wwise/AkInclude_2026_1.h"
 #else
 #error "This file should be updated so SN-DBS can support this version"
 #endif

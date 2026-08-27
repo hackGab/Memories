@@ -70,8 +70,6 @@ class AkErrorMessageTranslator;
 #endif
 #endif
 
-#include "Compat_2024_1/Compat.h"
-
 #include "Wwise/PostSoundEngineInclude.h"
 
 #if defined(PLATFORM_MICROSOFT) && PLATFORM_MICROSOFT

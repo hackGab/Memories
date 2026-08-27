@@ -26,8 +26,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkTrigger.h"
 #include "WwiseUnrealHelper.h"
 #include "AkAudioDevice.h"
-#include "AkAudioNode.h"
-#include "AkDialogueEvent.h"
 #include "AkSettingsPerUser.h"
 #include "IAudiokineticTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -213,8 +211,6 @@ bool AkAssetDatabase::IsAkAudioType(const FAssetData& AssetData)
 	static const TArray<FTopLevelAssetPath> AkAudioClassPaths = {
 		UAkAcousticTexture::StaticClass()->GetClassPathName(),
 		UAkAudioEvent::StaticClass()->GetClassPathName(),
-		UAkAudioNode::StaticClass()->GetClassPathName(),
-		UAkDialogueEvent::StaticClass()->GetClassPathName(),
 		UAkAuxBus::StaticClass()->GetClassPathName(),
 		UAkRtpc::StaticClass()->GetClassPathName(),
 		UAkStateValue::StaticClass()->GetClassPathName(),

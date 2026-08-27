@@ -76,7 +76,6 @@ namespace FAkAudioInputHelpers
 			return;
 		}
 
-		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioInputHelpers::GetAudioSamples"));
 		BufferToFill->eState = AK_NoMoreData;
 
 		AkUInt32 NumChannels = BufferToFill->NumChannels();
@@ -195,7 +194,6 @@ namespace FAkAudioInputHelpers
 							        FAkGlobalAudioInputDelegate AudioSamplesDelegate,
 							        FAkGlobalAudioFormatDelegate AudioFormatDelegate)
 	{
-		SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputHelpers::PostAudioInputEvent"));
 		TryInitialize();
 		AkPlayingID PlayingID = AK_INVALID_PLAYING_ID;
 		FAkAudioDevice* AkDevice = FAkAudioDevice::Get();
@@ -210,17 +208,11 @@ namespace FAkAudioInputHelpers
 		return PlayingID;
 	}
 
-#if WWISE_2025_1_OR_LATER
-    static void EventCallback(AkCallbackType CallbackType, AkEventCallbackInfo* EventInfo, void* CallbackInfo, void* UserCookie)
+    static void EventCallback(AkCallbackType CallbackType, AkCallbackInfo *CallbackInfo)
 	{
-#else
-	static void EventCallback(AkCallbackType CallbackType, AkCallbackInfo* CallbackInfo)
-	{
-		AkEventCallbackInfo* EventInfo = (AkEventCallbackInfo*)CallbackInfo;
-#endif
 		if (CallbackType == AkCallbackType::AK_EndOfEvent)
 		{
-			SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputHelpers::EventCallback"));
+			AkEventCallbackInfo* EventInfo = (AkEventCallbackInfo*)CallbackInfo;
 			if (EventInfo != nullptr)
 			{
 				uint32 PlayingID = (uint32)EventInfo->playingID;
@@ -246,7 +238,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(
 	EAkAudioContext AudioContext
 )
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputManager::PostAudioInputEvent"));
 	if (!IsValid(Event))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("FAkAudioInputManager::PostAudioInputEvent: Invalid AkEvent."))
@@ -260,7 +251,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(
 
 	return FAkAudioInputHelpers::PostAudioInputEvent([Event, Actor, AudioContext](FAkAudioDevice* AkDevice)
 	{
-		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioInputManager::PostAudioInputEvent Callback"));
 		const auto Result = Event->PostOnActor(
 			Actor,
 			nullptr,
@@ -285,7 +275,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(
 	FAkGlobalAudioFormatDelegate AudioFormatDelegate,
 	EAkAudioContext AudioContext)
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputManager::PostAudioInputEvent"));
 	if (!IsValid(Event))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("FAkAudioInputManager::PostAudioInputEvent: Invalid AkEvent."))
@@ -299,7 +288,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(
 
 	return FAkAudioInputHelpers::PostAudioInputEvent([Event, Component, AudioContext](FAkAudioDevice* AkDevice)
 	{
-		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioInputManager::PostAudioInputEvent Callback"));
 		const auto Result = Event->PostOnComponent(
 			Component,
 			nullptr,
@@ -324,7 +312,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(
 	FAkGlobalAudioFormatDelegate AudioFormatDelegate,
 	EAkAudioContext AudioContext)
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputManager::PostAudioInputEvent"));
 	if (!IsValid(Event))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("FAkAudioInputManager::PostAudioInputEvent: Invalid AkEvent."))
@@ -337,7 +324,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(
 	}
 	return FAkAudioInputHelpers::PostAudioInputEvent([Event, GameObject, AudioContext](FAkAudioDevice* AkDevice)
 	{
-		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioInputManager::PostAudioInputEvent Callback"));
 		const auto Result = Event->PostOnGameObjectID(
 			GameObject,
 			nullptr,
@@ -358,7 +344,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(UAkAudioEvent* Event,
 	FAkGlobalAudioInputDelegate AudioSamplesDelegate, FAkGlobalAudioFormatDelegate AudioFormatDelegate,
 	EAkAudioContext AudioContext)
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputManager::PostAudioInputEvent"));
 	if (!IsValid(Event))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("FAkAudioInputManager::PostAudioInputEvent: Invalid AkEvent."))
@@ -366,7 +351,6 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(UAkAudioEvent* Event,
 	}
 	return FAkAudioInputHelpers::PostAudioInputEvent([Event, AudioContext](FAkAudioDevice* AkDevice)
 	{
-		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioInputManager::PostAudioInputEvent Callback"));
 		const auto Result = Event->PostAmbient(
 			nullptr,
 			&FAkAudioInputHelpers::EventCallback,
@@ -384,6 +368,5 @@ AkPlayingID FAkAudioInputManager::PostAudioInputEvent(UAkAudioEvent* Event,
 
 void FAkAudioInputManager::Stop(uint32 PlayingId)
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioInputManager::Stop"));
 	FAkAudioInputHelpers::AudioInputDelegates.Remove(PlayingId);
 }

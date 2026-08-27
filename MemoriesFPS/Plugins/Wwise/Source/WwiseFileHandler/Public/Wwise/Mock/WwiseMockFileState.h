@@ -22,29 +22,11 @@ Copyright (c) 2025 Audiokinetic Inc.
 class FWwiseMockFileState : public FWwiseFileState
 {
 public:
-	enum class EFileType
-	{
-		Media,
-		SoundBank,
-		ExternalSource,
-		Undefined
-	};
-	
-	const TCHAR* GetManagingTypeName() const override final
-	{
-		switch (FileType)
-		{
-			case EFileType::Media: return TEXT("Test Media");
-			case EFileType::SoundBank: return TEXT("Test SoundBank");
-			case EFileType::ExternalSource: return TEXT("Test ExternalSource");
-			default: return TEXT("Test");
-		}
-	}
+	const TCHAR* GetManagingTypeName() const override final { return TEXT("Test"); }
 	uint32 GetShortId() const override final { return ShortId; }
 
-	FWwiseMockFileState(uint32 ShortId, EFileType FileType = EFileType::Undefined) :
-		ShortId(ShortId),
-		FileType(FileType)
+	FWwiseMockFileState(uint32 ShortId) :
+		ShortId(ShortId)
 	{}
 	~FWwiseMockFileState() override { Term(); }
 
@@ -108,15 +90,17 @@ public:
 
 	void RegisterRecurringCallback() override
 	{
-		FFunctionGraphTask::CreateAndDispatchWhenReady([This = AsShared()]() mutable
+		if (!bRecurringCallbackRegistered.exchange(true))
 		{
-			auto* MockThis = static_cast<FWwiseMockFileState*>(&This.Get());
-			MockThis->AsyncOp(TEXT("FWwiseFileState::RegisterRecurringCallback"), [This]() mutable
+			FFunctionGraphTask::CreateAndDispatchWhenReady([this]() mutable
 			{
-				auto* MockThis = static_cast<FWwiseMockFileState*>(&This.Get());
-				MockThis->ProcessLaterOpQueue();
+				AsyncOp(TEXT("FWwiseFileState::RegisterRecurringCallback"), [this]() mutable
+				{
+					ProcessLaterOpQueue();
+					bRecurringCallbackRegistered.store(false);
+				});
 			});
-		});
+		}
 	}
 
 	enum class OptionalBool
@@ -134,8 +118,7 @@ public:
 	bool IsStreamedState() const override { return bIsStreamedState == OptionalBool::Default ? FWwiseFileState::IsStreamedState() : bIsStreamedState == OptionalBool::False ? false : true; }
 	
 	uint32 ShortId;
-
-	EFileType FileType;
+	
 	int OpenFileSuccessCount{ INT_MAX };
 	int LoadInSoundEngineSuccessCount{ INT_MAX };
 	int UnloadFromSoundEngineDeferCount{ 0 };

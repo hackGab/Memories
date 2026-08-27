@@ -50,11 +50,12 @@ enum EAkCollisionChannel
 UENUM()
 enum class EAkUnrealAudioRouting
 {
-	EnableWwiseOnly UMETA(DisplayName = "Enable Wwise SoundEngine only", ToolTip = "Only use Wwise SoundEngine, and disable Unreal audio"),
+	Custom UMETA(DisplayName = "Default", ToolTip = "Custom Unreal audio settings set up by the developer"),
 	Separate UMETA(DisplayName = "Both Wwise and Unreal audio", ToolTip = "Use default Unreal audio at the same time than Wwise SoundEngine (might be incompatible with some platforms)"),
 	AudioLink UMETA(DisplayName = "Route through AudioLink", ToolTip = "Use WwiseAudioLink to route all Unreal audio sources to Wwise SoundEngine Inputs"),
-	EnableUnrealOnly UMETA(DisplayName = "Enable Unreal Audio only", ToolTip = "Only use Unreal audio, and disable Wwise SoundEngine"),
-	Custom UMETA(DisplayName = "Custom", ToolTip = "Custom Unreal audio settings set up by the developer in config files"),
+	AudioMixer UMETA(DisplayName = "Route through AkAudioMixer", ToolTip = "(DEPRECATED) Use AkAudioMixer to route Unreal submixes to a Wwise SoundEngine Input"),
+	EnableWwiseOnly UMETA(DisplayName = "Enable Wwise SoundEngine only", ToolTip = "Only use Wwise SoundEngine, and disable Unreal audio"),
+	EnableUnrealOnly UMETA(DisplayName = "Enable Unreal Audio only", ToolTip = "Only use Unreal audio, and disable Wwise SoundEngine")
 };
 
 USTRUCT()
@@ -186,7 +187,7 @@ public:
 	uint8 MaxSimultaneousReverbVolumes = AK_MAX_AUX_PER_OBJ;
 
 	// Wwise Project Path
-	UPROPERTY(Config, EditAnywhere, Category="Installation", meta=(FilePathFilter="wproj", AbsolutePath))
+	UPROPERTY(Config, EditAnywhere, Category="Installation", meta=(FilePathFilter="wproj", AbsolutePath))	
 	FFilePath WwiseProjectPath;
 
 	// Where the Sound Data will be generated in the Content Folder
@@ -199,7 +200,7 @@ public:
 
 	UPROPERTY(Config)
 	FDirectoryPath GeneratedSoundBanksFolder_DEPRECATED;
-
+	
 	//Where wwise .bnk and .wem files will be copied to when staging files during cooking
 	UPROPERTY(Config, EditAnywhere, Category = "Cooking", meta=(RelativeToGameContentDir))
 	FDirectoryPath WwiseStagingDirectory = {TEXT("WwiseAudio")};
@@ -222,7 +223,7 @@ public:
 	// Default value for the Collision Channel when creating a new Ak Component.
 	UPROPERTY(Config, EditAnywhere, Category = "Obstruction Occlusion", meta = (DisplayName = "DefaultCollisionChannel"))
 	TEnumAsByte<ECollisionChannel> DefaultOcclusionCollisionChannel = ECollisionChannel::ECC_Visibility;
-
+	
 	// Default value for Collision Channel when fitting Ak Acoustic Portals and Ak Spatial Audio Volumes to surrounding geometry.
 	UPROPERTY(Config, EditAnywhere, Category = "Fit To Geometry")
 	TEnumAsByte<ECollisionChannel> DefaultFitToGeometryCollisionChannel = ECollisionChannel::ECC_WorldStatic;
@@ -259,7 +260,7 @@ public:
 	// This Auxiliary Bus must have a reverb effect.
 	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment")
 	TSoftObjectPtr<class UAkAuxBus> DefaultReverbAuxBus = nullptr;
-
+	
 	// RoomDecay to AuxBus Map.
 	// @deprecated Use ReverbAssignmentTable instead.
 	UPROPERTY(Config)
@@ -274,23 +275,27 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment")
 	TSoftObjectPtr<UDataTable> ReverbAssignmentTable;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|Game Parameters")
+	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|RTPCs")
 	FString HFDampingName = "";
 
-	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|Game Parameters")
+	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|RTPCs")
 	FString DecayEstimateName = "";
 
-	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|Game Parameters")
+	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|RTPCs")
 	FString TimeToFirstReflectionName = "";
 
-	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|Game Parameters", DisplayName="HF Damping Game Parameter")
+	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|RTPCs")
 	TSoftObjectPtr<UAkRtpc> HFDampingRTPC = nullptr;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|Game Parameters", DisplayName="Decay Estimate Game Parameter")
+	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|RTPCs")
 	TSoftObjectPtr<UAkRtpc> DecayEstimateRTPC = nullptr;
 
-	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|Game Parameters", DisplayName="Time To First Reflection Game Parameter")
+	UPROPERTY(Config, EditAnywhere, Category = "Reverb Assignment|RTPCs")
 	TSoftObjectPtr<UAkRtpc> TimeToFirstReflectionRTPC = nullptr;
+
+	// Input event associated with the Wwise Audio Input
+	UPROPERTY(Config, EditAnywhere, Category = "Initialization")
+	TSoftObjectPtr<class UAkAudioEvent> AudioInputEvent = nullptr;
 
 	UPROPERTY(Config, meta = (Deprecated, DeprecationMessage = "AcousticTextureParamsMap is now an internal map."))
 	TMap<FGuid, FAkAcousticTextureParams> AcousticTextureParamsMap_DEPRECATED;
@@ -313,7 +318,7 @@ public:
 	// Commit message that GenerateSoundBanksCommandlet will use
 	UPROPERTY()
 	FString CommandletCommitMessage = TEXT("Unreal Wwise Sound Data auto-generation");
-
+	
 	UPROPERTY(Config, EditAnywhere, Category = "Localization")
 	TMap<FString, FString> UnrealCultureToWwiseCulture;
 
@@ -327,23 +332,20 @@ public:
 
 	// Routing Audio from Unreal Audio to Wwise Sound Engine
 	UPROPERTY(Config, EditAnywhere, Category = "Initialization", DisplayName = "Unreal Audio Routing", meta=(ConfigRestartRequired=true))
-	EAkUnrealAudioRouting AudioRouting = EAkUnrealAudioRouting::EnableWwiseOnly;
+	EAkUnrealAudioRouting AudioRouting = EAkUnrealAudioRouting::Custom;
 
-	UPROPERTY(Config, VisibleAnywhere, Category = "Initialization", meta=(ConfigRestartRequired=true))
+	UPROPERTY(Config, EditAnywhere, Category = "Initialization", meta=(ConfigRestartRequired=true, EditCondition="AudioRouting == EAkUnrealAudioRouting::Custom"))
 	bool bWwiseSoundEngineEnabled = true;
 
-	UPROPERTY(Config, VisibleAnywhere, Category = "Initialization", meta=(ConfigRestartRequired=true))
+	UPROPERTY(Config, EditAnywhere, Category = "Initialization", meta=(ConfigRestartRequired=true, EditCondition="AudioRouting == EAkUnrealAudioRouting::Custom"))
 	bool bWwiseAudioLinkEnabled = false;
+
+	UPROPERTY(Config, EditAnywhere, Category = "Initialization", meta=(ConfigRestartRequired=true, EditCondition="AudioRouting == EAkUnrealAudioRouting::Custom"))
+	bool bAkAudioMixerEnabled = false;
 
 	// The default value of the Scaling Factor when a Default Listener is created.
 	UPROPERTY(Config, EditAnywhere, Category = "Initialization", meta = (ClampMin = "0.0"))
 	float DefaultListenerScalingFactor = 1.0f;
-		
-	UPROPERTY(Config, EditAnywhere, Category = "Initialization", meta = (ToolTip = "Suspend the audio thread during focus loss"))
-	bool SuspendAudioDuringFocusLoss = false;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Initialization", meta = (ToolTip = "Only used when \"Suspend Audio During Focus Loss\" is enabled. Should the render happen during Audio suspension."))
-	bool RenderDuringFocusLoss = false;
 
 	UPROPERTY(Config)
 	bool AskedToUseNewAssetManagement_DEPRECATED = false;
@@ -423,9 +425,8 @@ private:
 	void FillGeometrySurfacePropertiesTable();
 
 	void SanitizeProjectPath(FString& Path, const FString& PreviousPath, const FText& DialogMessage);
-
-	void UpdateAudioRouting();
-
+	void OnAudioRoutingUpdate();
+	
 	bool bGeometrySurfacePropertiesTableInitialized = false;
 
 	FDelegateHandle ReverbAssignmentTableChangedHandle;
@@ -440,9 +441,6 @@ private:
 #endif
 
 	TMap<FGuid, FAkAcousticTextureParams> AcousticTextureParamsMap;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UDataTable> GeometrySurfacePropertiesKeepAlive = nullptr;
 
 public:
 	bool bRequestRefresh = false;
@@ -473,8 +471,10 @@ public:
 #endif
 
 	/** Get the associated AuxBus for the given environment decay value.
-	 * Return the AuxBus associated with the next highest decay value in the ReverbAssignmentTable, after the given value.
+	 * Return the AuxBus associated with the next highest decay value in the ReverbAssignmentTable, after the given value. 
 	 */
-	TWeakObjectPtr<UAkAuxBus> GetAuxBusForDecayValue(float Decay);
+	UAkAuxBus* GetAuxBusForDecayValue(float Decay);
+
+	void GetAudioInputEvent(class UAkAudioEvent*& OutInputEvent);
 
 };

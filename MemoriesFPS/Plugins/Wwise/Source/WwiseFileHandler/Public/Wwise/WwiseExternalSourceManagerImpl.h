@@ -56,8 +56,7 @@ public:
 	virtual void SetExternalSourceMediaById(const FName& ExternalSourceName, const int32 MediaId) override;
 	virtual void SetExternalSourceMediaByName(const FName& ExternalSourceName, const FName& MediaName) override;
 	virtual void SetExternalSourceMediaWithIds(const int32 ExternalSourceCookie, const int32 MediaId) override;
-	
-	virtual void DoPostTerm() override;
+
 
 #if WITH_EDITORONLY_DATA
 	virtual void Cook(IWwiseResourceCooker& InResourceCooker, const FWwiseExternalSourceCookedData& InCookedData, const TCHAR* PackageFilename,

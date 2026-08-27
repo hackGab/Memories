@@ -72,8 +72,6 @@ namespace AK
 		AkInt32   m_cPos;
 	};
 
-	// In-memory buffer that can dynamically grow with use. 
-	// If you need something more lean to wrap a fixed memory area, consider using AK::InMemoryBuffer instead.
 	class WriteBytesMem
 		: public AK::IWriteBuffer
 	{

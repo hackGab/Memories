@@ -30,7 +30,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 void UAkGroupValue::UnloadGroupValue(bool bAsync)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkGroupValue::UnloadGroupValue"));
 	auto PreviouslyLoadedGroupValue = LoadedGroupValue.exchange(nullptr);
 	if (PreviouslyLoadedGroupValue)
 	{
@@ -152,27 +151,19 @@ bool UAkGroupValue::SplitAssetName(FString& OutGroupName, FString& OutValueName)
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 UE_COOK_DEPENDENCY_FUNCTION(HashWwiseGroupValueDependenciesForCook, UAkAudioType::HashDependenciesForCook);
 
-#if UE_5_6_OR_LATER
-void UAkGroupValue::OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context)
+void UAkGroupValue::PreSave(FObjectPreSaveContext SaveContext)
 {
 	ON_SCOPE_EXIT
 	{
-		Super::OnCookEvent(CookEvent, Context);
+		Super::PreSave(SaveContext);
 	};
-#else
-void UAkGroupValue::PreSave(FObjectPreSaveContext Context)
-{
-	ON_SCOPE_EXIT
-	{
-		Super::PreSave(Context);
-	};
-#endif
-	if (!Context.IsCooking())
+
+	if (!SaveContext.IsCooking())
 	{
 		return;
 	}
 
-	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(Context.GetTargetPlatform());
+	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(SaveContext.GetTargetPlatform());
 	if (UNLIKELY(!ResourceCooker))
 	{
 		return;
@@ -184,10 +175,10 @@ void UAkGroupValue::PreSave(FObjectPreSaveContext Context)
 
 	FCbWriter Writer;
 	Writer.BeginObject();
-	CookedDataToArchive.GetPlatformCookDependencies(Context, Writer);
+	CookedDataToArchive.PreSave(SaveContext, Writer);
 	Writer.EndObject();
 	
-	WwiseCookEventContext::AddLoadBuildDependency(Context,
+	SaveContext.AddCookBuildDependency(
 		UE::Cook::FCookDependency::Function(
 			UE_COOK_DEPENDENCY_FUNCTION_CALL(HashWwiseGroupValueDependenciesForCook), Writer.Save()));
 }

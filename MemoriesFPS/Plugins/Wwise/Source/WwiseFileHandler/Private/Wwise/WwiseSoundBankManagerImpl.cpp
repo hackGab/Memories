@@ -61,25 +61,6 @@ void FWwiseSoundBankManagerImpl::SetGranularity(uint32 InStreamingGranularity)
 	StreamingGranularity = InStreamingGranularity;
 }
 
-void FWwiseSoundBankManagerImpl::DoPostTerm()
-{
-	for (auto FileStateTuple : FileStatesById)
-	{
-		auto& FileStateSharedPtr{ FileStateTuple.Value };
-		if (!FileStateSharedPtr.IsValid())
-		{
-			continue;
-		}
-		auto& FileState = *FileStateSharedPtr.Get();
-		if (FileState.State != FWwiseFileState::EState::Loaded || FileState.State != FWwiseFileState::EState::Unloading)
-		{
-			continue;
-		}
-
-		FileState.SetState(TEXT("FWwiseSoundBankManagerImpl::DoPostTerm"), FWwiseFileState::EState::Opened);
-	}
-}
-
 FWwiseFileStateSharedPtr FWwiseSoundBankManagerImpl::CreateOp(const FWwiseSoundBankCookedData& InSoundBankCookedData)
 {
 	return FWwiseFileStateSharedPtr(new FWwiseInMemorySoundBankFileState(InSoundBankCookedData));

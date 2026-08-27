@@ -78,20 +78,6 @@ void FWwiseResourceLoader::UnloadAssetLibrary(FWwiseLoadedAssetLibraryPtr&& InAs
 {
 }
 
-FWwiseLoadedAudioNodePtr FWwiseResourceLoader::LoadAudioNode(const FWwiseAudioNodeCookedData& InAudioNodeCookedData)
-{
-	SCOPED_WWISERESOURCELOADER_EVENT_4(TEXT("FWwiseResourceLoader::LoadAudioNode"));
-	return LoadAudioNodeAsync(InAudioNodeCookedData).Get();
-}
-
-void FWwiseResourceLoader::UnloadAudioNode(FWwiseLoadedAudioNodePtr&& InAudioNode)
-{
-	SCOPED_WWISERESOURCELOADER_EVENT_4(TEXT("FWwiseResourceLoader::UnloadAudioNode"));
-	FWwiseLoadedAudioNodePromise Promise;
-	Promise.EmplaceValue(MoveTemp(InAudioNode));
-	UnloadAudioNodeAsync(Promise.GetFuture()).Wait();
-}
-
 FWwiseLoadedAuxBusPtr FWwiseResourceLoader::LoadAuxBus(const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData,
 	const FWwiseLanguageCookedData* InLanguageOverride)
 {
@@ -105,21 +91,6 @@ void FWwiseResourceLoader::UnloadAuxBus(FWwiseLoadedAuxBusPtr&& InAuxBus)
 	FWwiseLoadedAuxBusPromise Promise;
 	Promise.EmplaceValue(MoveTemp(InAuxBus));
 	UnloadAuxBusAsync(Promise.GetFuture()).Wait();
-}
-
-FWwiseLoadedDialogueEventPtr FWwiseResourceLoader::LoadDialogueEvent(const FWwiseLocalizedDialogueEventCookedData& InDialogueEventCookedData,
-	const FWwiseLanguageCookedData* InLanguageOverride)
-{
-	SCOPED_WWISERESOURCELOADER_EVENT_4(TEXT("FWwiseResourceLoader::LoadDialogueEvent"));
-	return LoadDialogueEventAsync(InDialogueEventCookedData, InLanguageOverride).Get();
-}
-
-void FWwiseResourceLoader::UnloadDialogueEvent(FWwiseLoadedDialogueEventPtr&& InDialogueEvent)
-{
-	SCOPED_WWISERESOURCELOADER_EVENT_4(TEXT("FWwiseResourceLoader::UnloadDialogueEvent"));
-	FWwiseLoadedDialogueEventPromise Promise;
-	Promise.EmplaceValue(MoveTemp(InDialogueEvent));
-	UnloadDialogueEventAsync(Promise.GetFuture()).Wait();
 }
 
 FWwiseLoadedEventPtr FWwiseResourceLoader::LoadEvent(const FWwiseLocalizedEventCookedData& InEventCookedData,
@@ -245,7 +216,7 @@ FWwiseLoadedAssetLibraryFuture FWwiseResourceLoader::LoadAssetLibraryAsync(const
 	}
 	else
 	{
-		auto* AssetLibraryNode = CreateAssetLibraryListEntry(InAssetLibraryCookedData);
+		auto* AssetLibraryNode = CreateAssetLibraryNode(InAssetLibraryCookedData);
 		if (UNLIKELY(!AssetLibraryNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -327,105 +298,8 @@ FWwiseResourceUnloadFuture FWwiseResourceLoader::UnloadAssetLibraryAsync(FWwiseL
 	return Future;
 }
 
-FWwiseLoadedAudioNodeFuture FWwiseResourceLoader::LoadAudioNodeAsync(
-	const FWwiseAudioNodeCookedData& InAudioNodeCookedData)
-{
-	FWwiseLoadedAudioNodePromise Promise;
-	auto Future = Promise.GetFuture();
-
-	if (!IsEnabled())
-	{
-		UE_LOG(LogWwiseResourceLoader, Warning, TEXT("ResourceLoader is disabled"));
-		Promise.EmplaceValue(nullptr);
-	}
-	else
-	{
-		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_AudioNodes);
-		auto* AudioNodeNode = CreateAudioNodeListEntry(InAudioNodeCookedData);
-		if (UNLIKELY(!AudioNodeNode))
-		{
-			Promise.EmplaceValue(nullptr);
-		}
-		else
-		{
-			LoadAudioNodeNode(MoveTemp(Promise), MoveTemp(AudioNodeNode));
-		}
-	}
-
-	return Future;
-}
-
-FWwiseResourceUnloadFuture FWwiseResourceLoader::UnloadAudioNodeAsync(FWwiseLoadedAudioNodeFuture&& InAudioNode)
-{
-	FWwiseResourceUnloadPromise Promise;
-	auto Future = Promise.GetFuture();
-
-	if (!IsEnabled())
-	{
-		UE_LOG(LogWwiseResourceLoader, Warning, TEXT("ResourceLoader is disabled"));
-		Promise.EmplaceValue();
-	}
-	else if (UNLIKELY(InAudioNode.IsReady() && InAudioNode.Get() == nullptr))
-	{
-		Promise.EmplaceValue();
-	}
-	else if (LIKELY(InAudioNode.IsReady()))
-	{
-		auto* AudioNode = InAudioNode.Get();
-		UnloadAudioNodeNode(MoveTemp(Promise), MoveTemp(AudioNode));
-	}
-	else
-	{
-		LaunchWwiseTask(WWISERESOURCELOADER_ASYNC_NAME("FWwiseResourceLoader::UnloadAudioNodeAsync"), [WeakThis=AsWeak(), InAudioNode = MoveTemp(InAudioNode), Promise = MoveTemp(Promise)]() mutable
-		{
-			{
-				int WaitCount = 0;
-				while (!InAudioNode.WaitFor(FTimespan::FromSeconds(1.0)))
-				{
-					if (IsEngineExitRequested())
-					{
-						UE_LOG(LogWwiseResourceLoader, Verbose, TEXT("Giving up on waiting for AudioNode load since we are exiting. Gave up on count [%d]"), WaitCount);
-						Promise.EmplaceValue();
-						return;
-					}
-					else
-					{
-						UE_CLOG(WaitCount != 10, LogWwiseResourceLoader, Verbose, TEXT("Waiting for an AudioNode to be fully loaded so we can unload it [%d]"), WaitCount);
-						UE_CLOG(WaitCount == 10, LogWwiseResourceLoader, Warning, TEXT("Waited 10 seconds for an AUdioNode to be loaded so we can unload it."));
-						++WaitCount;
-					}
-				}
-			}
-			auto* AudioNode = InAudioNode.Get();
-
-			auto SharedResourceLoader = WeakThis.Pin();
-			if (!SharedResourceLoader.IsValid())
-			{
-				UE_LOG(LogWwiseResourceLoader, Error, TEXT("FWwiseResourceLoader::UnloadAudioNodeAsync: Failed. ResourceLoader is not valid"))
-				return Promise.EmplaceValue();
-			}
-			if (!SharedResourceLoader->IsEnabled())
-			{
-				UE_LOG(LogWwiseResourceLoader, Warning, TEXT("ResourceLoader is disabled"));
-				Promise.EmplaceValue();
-			}
-			else if (UNLIKELY(!AudioNode))
-			{
-				Promise.EmplaceValue();
-			}
-			else
-			{
-				SharedResourceLoader->UnloadAudioNodeNode(MoveTemp(Promise), MoveTemp(AudioNode));
-			}
-		});
-	}
-
-	return Future;
-}
-
-FWwiseLoadedAuxBusFuture FWwiseResourceLoader::LoadAuxBusAsync(
-	const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData,
-	const FWwiseLanguageCookedData* InLanguageOverride)
+FWwiseLoadedAuxBusFuture FWwiseResourceLoader::LoadAuxBusAsync(const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData,
+                                                               const FWwiseLanguageCookedData* InLanguageOverride)
 {
 	FWwiseLoadedAuxBusPromise Promise;
 	auto Future = Promise.GetFuture();
@@ -438,7 +312,7 @@ FWwiseLoadedAuxBusFuture FWwiseResourceLoader::LoadAuxBusAsync(
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_AuxBusses);
-		auto* AuxBusNode = CreateAuxBusListEntry(InAuxBusCookedData, InLanguageOverride);
+		auto* AuxBusNode = CreateAuxBusNode(InAuxBusCookedData, InLanguageOverride);
 		if (UNLIKELY(!AuxBusNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -520,102 +394,6 @@ FWwiseResourceUnloadFuture FWwiseResourceLoader::UnloadAuxBusAsync(FWwiseLoadedA
 	return Future;
 }
 
-FWwiseLoadedDialogueEventFuture FWwiseResourceLoader::LoadDialogueEventAsync(const FWwiseLocalizedDialogueEventCookedData& InDialogueEventCookedData,
-	const FWwiseLanguageCookedData* InLanguageOverride)
-{
-	FWwiseLoadedDialogueEventPromise Promise;
-	auto Future = Promise.GetFuture();
-
-	if (!IsEnabled())
-	{
-		UE_LOG(LogWwiseResourceLoader, Warning, TEXT("ResourceLoader is disabled"));
-		Promise.EmplaceValue(nullptr);
-	}
-	else
-	{
-		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_DialogueEvents);
-		auto* DialogueEventNode = CreateDialogueEventListEntry(InDialogueEventCookedData, InLanguageOverride);
-		if (UNLIKELY(!DialogueEventNode))
-		{
-			Promise.EmplaceValue(nullptr);
-		}
-		else
-		{
-			LoadDialogueEventNode(MoveTemp(Promise), MoveTemp(DialogueEventNode));
-		}
-	}
-
-	return Future;
-}
-
-FWwiseResourceUnloadFuture FWwiseResourceLoader::UnloadDialogueEventAsync(FWwiseLoadedDialogueEventFuture&& InDialogueEvent)
-{
-	FWwiseResourceUnloadPromise Promise;
-	auto Future = Promise.GetFuture();
-
-	if (!IsEnabled())
-	{
-		UE_LOG(LogWwiseResourceLoader, Warning, TEXT("ResourceLoader is disabled"));
-		Promise.EmplaceValue();
-	}
-	else if (UNLIKELY(InDialogueEvent.IsReady() && InDialogueEvent.Get() == nullptr))
-	{
-		Promise.EmplaceValue();
-	}
-	else if (LIKELY(InDialogueEvent.IsReady()))
-	{
-		auto* DialogueEvent = InDialogueEvent.Get();
-		UnloadDialogueEventNode(MoveTemp(Promise), MoveTemp(DialogueEvent));
-	}
-	else
-	{
-		LaunchWwiseTask(WWISERESOURCELOADER_ASYNC_NAME("FWwiseResourceLoader::UnloadDialogueEventAsync"), [WeakThis=AsWeak(), InDialogueEvent = MoveTemp(InDialogueEvent), Promise = MoveTemp(Promise)]() mutable
-		{
-			{
-				int WaitCount = 0;
-				while (!InDialogueEvent.WaitFor(FTimespan::FromSeconds(1.0)))
-				{
-					if (IsEngineExitRequested())
-					{
-						UE_LOG(LogWwiseResourceLoader, Verbose, TEXT("Giving up on waiting for Dialogue Event load since we are exiting. Gave up on count [%d]"), WaitCount);
-						Promise.EmplaceValue();
-						return;
-					}
-					else
-					{
-						UE_CLOG(WaitCount != 10, LogWwiseResourceLoader, Verbose, TEXT("Waiting for a Dialogue Event to be fully loaded so we can unload it [%d]"), WaitCount);
-						UE_CLOG(WaitCount == 10, LogWwiseResourceLoader, Warning, TEXT("Waited 10 seconds for a Dialogue Event to be loaded so we can unload it."));
-						++WaitCount;
-					}
-				}
-			}
-			auto* DialogueEvent = InDialogueEvent.Get();
-
-			auto SharedResourceLoader = WeakThis.Pin();
-			if (!SharedResourceLoader.IsValid())
-			{
-				UE_LOG(LogWwiseResourceLoader, Error, TEXT("FWwiseResourceLoader::UnloadDialogueEventAsync: Failed. ResourceLoader is not valid"))
-				return Promise.EmplaceValue();
-			}
-			if (!SharedResourceLoader->IsEnabled())
-			{
-				UE_LOG(LogWwiseResourceLoader, Warning, TEXT("ResourceLoader is disabled"));
-				Promise.EmplaceValue();
-			}
-			else if (UNLIKELY(!DialogueEvent))
-			{
-				Promise.EmplaceValue();
-			}
-			else
-			{
-				SharedResourceLoader->UnloadDialogueEventNode(MoveTemp(Promise), MoveTemp(DialogueEvent));
-			}
-		});
-	}
-
-	return Future;
-}
-
 FWwiseLoadedEventFuture FWwiseResourceLoader::LoadEventAsync(const FWwiseLocalizedEventCookedData& InEventCookedData,
                                                        const FWwiseLanguageCookedData* InLanguageOverride)
 {
@@ -630,7 +408,7 @@ FWwiseLoadedEventFuture FWwiseResourceLoader::LoadEventAsync(const FWwiseLocaliz
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_Events);
-		auto* EventNode = CreateEventListEntry(InEventCookedData, InLanguageOverride);
+		auto* EventNode = CreateEventNode(InEventCookedData, InLanguageOverride);
 		if (UNLIKELY(!EventNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -726,7 +504,7 @@ FWwiseLoadedExternalSourceFuture FWwiseResourceLoader::LoadExternalSourceAsync(
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_ExternalSources);
-		auto* ExternalSourceNode = CreateExternalSourceListEntry(InExternalSourceCookedData);
+		auto* ExternalSourceNode = CreateExternalSourceNode(InExternalSourceCookedData);
 		if (UNLIKELY(!ExternalSourceNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -821,7 +599,7 @@ FWwiseLoadedGroupValueFuture FWwiseResourceLoader::LoadGroupValueAsync(const FWw
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_GroupValues);
-		auto* GroupValueNode = CreateGroupValueListEntry(InGroupValueCookedData);
+		auto* GroupValueNode = CreateGroupValueNode(InGroupValueCookedData);
 		if (UNLIKELY(!GroupValueNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -916,7 +694,7 @@ FWwiseLoadedInitBankFuture FWwiseResourceLoader::LoadInitBankAsync(const FWwiseI
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_InitBanks);
-		auto* InitBankNode = CreateInitBankListEntry(InInitBankCookedData);
+		auto* InitBankNode = CreateInitBankNode(InInitBankCookedData);
 		if (UNLIKELY(!InitBankNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -1011,7 +789,7 @@ FWwiseLoadedMediaFuture FWwiseResourceLoader::LoadMediaAsync(const FWwiseMediaCo
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_Media);
-		auto* MediaNode = CreateMediaListEntry(InMediaCookedData);
+		auto* MediaNode = CreateMediaNode(InMediaCookedData);
 		if (UNLIKELY(!MediaNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -1107,7 +885,7 @@ FWwiseLoadedShareSetFuture FWwiseResourceLoader::LoadShareSetAsync(
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_ShareSets);
-		auto* ShareSetNode = CreateShareSetListEntry(InShareSetCookedData, InLanguageOverride);
+		auto* ShareSetNode = CreateShareSetNode(InShareSetCookedData, InLanguageOverride);
 		if (UNLIKELY(!ShareSetNode))
 		{
 			Promise.EmplaceValue(nullptr);
@@ -1203,7 +981,7 @@ FWwiseLoadedSoundBankFuture FWwiseResourceLoader::LoadSoundBankAsync(
 	else
 	{
 		LLM_SCOPE_BYTAG(Audio_Wwise_ResourceLoader_SoundBanks);
-		auto* SoundBankNode = CreateSoundBankListEntry(InSoundBankCookedData, InLanguageOverride);
+		auto* SoundBankNode = CreateSoundBankNode(InSoundBankCookedData, InLanguageOverride);
 		if (UNLIKELY(!SoundBankNode))
 		{
 			Promise.EmplaceValue(nullptr);

@@ -18,7 +18,3 @@ Copyright (c) 2025 Audiokinetic Inc.
 #pragma once
 
 #include "Wwise/Compat_2023_1/AkSpatialAudio.h"
-#include "Wwise/Compat_2023_1/common_types.h"
-
-#define AK_DEFAULT_HEIGHT_ANGLE (30.0f)
-#define AK_INVALID_SAMPLE_POS 0xFFFFFFFF

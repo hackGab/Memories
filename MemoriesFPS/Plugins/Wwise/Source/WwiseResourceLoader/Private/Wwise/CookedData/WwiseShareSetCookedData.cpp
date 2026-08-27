@@ -48,7 +48,7 @@ void FWwiseShareSetCookedData::Serialize(FArchive& Ar)
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseShareSetCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseShareSetCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "SS";
 	Writer.BeginObject();
@@ -59,7 +59,7 @@ void FWwiseShareSetCookedData::GetPlatformCookDependencies(FWwiseCookEventContex
 	Writer.BeginArray();
 	for (auto& SoundBank : SoundBanks)
 	{
-		SoundBank.GetPlatformCookDependencies(Context, Writer);
+		SoundBank.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 
@@ -67,7 +67,7 @@ void FWwiseShareSetCookedData::GetPlatformCookDependencies(FWwiseCookEventContex
 	Writer.BeginArray();
 	for (auto& MediaItem : Media)
 	{
-		MediaItem.GetPlatformCookDependencies(Context, Writer);
+		MediaItem.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 	Writer.EndObject();

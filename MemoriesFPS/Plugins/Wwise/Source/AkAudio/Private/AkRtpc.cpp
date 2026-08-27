@@ -16,7 +16,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 *******************************************************************************/
 
 #include "AkRtpc.h"
-#include "Wwise/Stats/AkAudio.h"
 
 #if WITH_EDITORONLY_DATA
 #include "Wwise/WwiseProjectDatabase.h"
@@ -31,7 +30,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 void UAkRtpc::Serialize(FArchive& Ar)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkRtpc::Serialize"));
 	Super::Serialize(Ar);
 
 	if (HasAnyFlags(RF_ClassDefaultObject))
@@ -91,7 +89,6 @@ void UAkRtpc::GetGameParameterCookedData()
 
 void UAkRtpc::FillInfo()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkRtpc::FillInfo"));
 	auto* ResourceCooker = IWwiseResourceCooker::GetDefault();
 	if (UNLIKELY(!ResourceCooker))
 	{
@@ -148,27 +145,19 @@ bool UAkRtpc::ObjectIsInSoundBanks()
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 UE_COOK_DEPENDENCY_FUNCTION(HashWwiseRtpcDependenciesForCook, UAkAudioType::HashDependenciesForCook);
 
-#if UE_5_6_OR_LATER
-void UAkRtpc::OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context)
+void UAkRtpc::PreSave(FObjectPreSaveContext SaveContext)
 {
 	ON_SCOPE_EXIT
 	{
-		Super::OnCookEvent(CookEvent, Context);
+		Super::PreSave(SaveContext);
 	};
-#else
-void UAkRtpc::PreSave(FObjectPreSaveContext Context)
-{
-	ON_SCOPE_EXIT
-	{
-		Super::PreSave(Context);
-	};
-#endif
-	if (!Context.IsCooking())
+
+	if (!SaveContext.IsCooking())
 	{
 		return;
 	}
 
-	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(Context.GetTargetPlatform());
+	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(SaveContext.GetTargetPlatform());
 	if (UNLIKELY(!ResourceCooker))
 	{
 		return;
@@ -180,10 +169,10 @@ void UAkRtpc::PreSave(FObjectPreSaveContext Context)
 
 	FCbWriter Writer;
 	Writer.BeginObject();
-	CookedDataToArchive.GetPlatformCookDependencies(Context, Writer);
+	CookedDataToArchive.PreSave(SaveContext, Writer);
 	Writer.EndObject();
 	
-	WwiseCookEventContext::AddLoadBuildDependency(Context,
+	SaveContext.AddCookBuildDependency(
 		UE::Cook::FCookDependency::Function(
 			UE_COOK_DEPENDENCY_FUNCTION_CALL(HashWwiseRtpcDependenciesForCook), Writer.Save()));
 }

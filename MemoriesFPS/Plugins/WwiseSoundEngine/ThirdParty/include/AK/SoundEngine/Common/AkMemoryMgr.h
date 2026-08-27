@@ -155,7 +155,7 @@ namespace AK
 		/// This function is only required for optimization purposes and does not have to be defined.
 		/// Therefore, unlike TermForThread, this is not expected to be called in all scenarios by Wwise.
 		/// It is also recommended to be called by game engine integrations in any worker threads that run Wwise jobs.
-		/// See \ref eventmgrthread_jobmgr_best_practices for more information.
+		/// Refer to \ref eventmgrthread_jobmgr_best_practices for more information.
 		/// \sa
 		/// - AkMemTrimForThread
 		AK_EXTERNAPIFUNC( void, TrimForThread )();

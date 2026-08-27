@@ -266,6 +266,7 @@ namespace AK
 			ErrorCode_MismatchingMediaSize,
 			ErrorCode_IncompatibleBankVersion,
 			ErrorCode_UnexpectedPrepareGameSyncsCall,
+			ErrorCode_MusicEngineNotInitialized,
 			ErrorCode_LoadingBankMismatch,
 
 			ErrorCode_ProxyObjectMismatch,
@@ -298,7 +299,7 @@ namespace AK
 			ErrorCode_PlayingTriggerRateNotSupported,
 			ErrorCode_SetGeometryTriangleIsSkipped,
 			ErrorCode_SetGeometryInstanceInvalidTransform,
-
+			
 			//AkSpatialAudio:AkMonitorError_WithID
 			ErrorCode_SetGameObjectRadiusSizeError,
 			ErrorCode_SetPortalNonDistinctRoom,
@@ -373,21 +374,13 @@ namespace AK
 			ErrorCode_WwiseIODisconnectedStr,
 			ErrorCode_IODevice,
 
-			ErrorCode_InvalidCommand,
-			ErrorCode_PlayingIDAlreadyExists,
-			ErrorCode_IOStreamLeak,
-
-			ErrorCode_SetSidechainMixConfigInvalid,
-
-			ErrorCode_NodeNotCompatibleWithMidi,
-
 			// ALWAYS ADD NEW CODES AT THE END !!!!!!!
 			// Otherwise it may break comm compatibility in a patch
 
 			Num_ErrorCodes // THIS STAYS AT END OF ENUM
 		};
 
-		static_assert(Num_ErrorCodes == 227,
+		static_assert(Num_ErrorCodes == 223,
 			"Please document your new ErrorCode "
 			"in 'Documentation/Help/source_en/reference/common_errors_capture_log.xml', "
 			"then you can increment this value."

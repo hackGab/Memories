@@ -32,22 +32,20 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkCallbackInfoPool.h"
 #include "HAL/PlatformString.h"
 
-UAkCallbackInfo* AkCallbackTypeHelpers::GetBlueprintableCallbackInfo(EAkCallbackType CallbackType, AkCombinedCallbackInfo* CallbackInfo)
+UAkCallbackInfo* AkCallbackTypeHelpers::GetBlueprintableCallbackInfo(EAkCallbackType CallbackType, AkCallbackInfo* CallbackInfo)
 {
 	switch (CallbackType)
 	{
 	case EAkCallbackType::EndOfEvent:
-		return UAkEventCallbackInfo::Create(&CallbackInfo->eventInfo);
-	case EAkCallbackType::EndOfDynamicSequenceItem:
-		return UAkDynamicSequenceItemCallbackInfo::Create(CallbackInfo);
+		return UAkEventCallbackInfo::Create((AkEventCallbackInfo*)CallbackInfo);
 	case EAkCallbackType::Marker:
-		return UAkMarkerCallbackInfo::Create(CallbackInfo);
+		return UAkMarkerCallbackInfo::Create((AkMarkerCallbackInfo*)CallbackInfo);
 	case EAkCallbackType::Duration:
-		return UAkDurationCallbackInfo::Create(CallbackInfo);
+		return UAkDurationCallbackInfo::Create((AkDurationCallbackInfo*)CallbackInfo);
 	case EAkCallbackType::Starvation:
-		return UAkEventCallbackInfo::Create(&CallbackInfo->eventInfo);
+		return UAkEventCallbackInfo::Create((AkEventCallbackInfo*)CallbackInfo);
 	case EAkCallbackType::MusicPlayStarted:
-		return UAkEventCallbackInfo::Create(&CallbackInfo->eventInfo);
+		return UAkEventCallbackInfo::Create((AkEventCallbackInfo*)CallbackInfo);
 	case EAkCallbackType::MusicSyncBeat:
 	case EAkCallbackType::MusicSyncBar:
 	case EAkCallbackType::MusicSyncEntry:
@@ -55,114 +53,16 @@ UAkCallbackInfo* AkCallbackTypeHelpers::GetBlueprintableCallbackInfo(EAkCallback
 	case EAkCallbackType::MusicSyncGrid:
 	case EAkCallbackType::MusicSyncUserCue:
 	case EAkCallbackType::MusicSyncPoint:
-		return UAkMusicSyncCallbackInfo::Create(CallbackInfo);
+		return UAkMusicSyncCallbackInfo::Create((AkMusicSyncCallbackInfo*)CallbackInfo);
 	case EAkCallbackType::MIDIEvent:
-		return UAkMIDIEventCallbackInfo::Create(CallbackInfo);
+		return UAkMIDIEventCallbackInfo::Create((AkMIDIEventCallbackInfo*)CallbackInfo);
 	default: 
 		return nullptr;
 	}
 }
 
-#if WWISE_2025_1_OR_LATER
-AkCombinedCallbackInfo* AkCallbackTypeHelpers::CopyWwiseCallbackInfo(AkCallbackType CallbackType, AkEventCallbackInfo* EventCallbackInfo, void* SourceCallbackInfo)
+AkCallbackInfo* AkCallbackTypeHelpers::CopyWwiseCallbackInfo(AkCallbackType CallbackType, AkCallbackInfo* SourceCallbackInfo)
 {
-	SCOPED_AKAUDIO_EVENT_4(TEXT("AkCallbackTypeHelpers::CopyWwiseCallbackInfo"));
-	size_t szBase = sizeof(AkCombinedCallbackInfo);
-	size_t szSourceInfo = 0;
-	size_t szExtraInfo = 0;
-
-	// First, determine the total size to allocate
-	switch (CallbackType)
-	{
-	case AK_Marker:
-	{
-		szSourceInfo = sizeof(AkMarkerCallbackInfo);
-		const char* SourceLabel = ((AkMarkerCallbackInfo*)SourceCallbackInfo)->strLabel;
-		szExtraInfo = SourceLabel ? FPlatformString::Strlen(SourceLabel) + 1 : 0;
-		break;
-	}
-    case AK_EndOfDynamicSequenceItem:
-    {
-        szSourceInfo = sizeof(AkDynamicSequenceItemCallbackInfo);
-        break;
-    }
-	case AK_Duration:
-	{
-		szSourceInfo = sizeof(AkDurationCallbackInfo);
-		break;
-	}
-	case AK_MusicSyncBeat:
-	case AK_MusicSyncBar:
-	case AK_MusicSyncEntry:
-	case AK_MusicSyncExit:
-	case AK_MusicSyncGrid:
-	case AK_MusicSyncUserCue:
-	case AK_MusicSyncPoint:
-	{
-		szSourceInfo = sizeof(AkMusicSyncCallbackInfo);
-		const char* SourceUserCue = ((AkMusicSyncCallbackInfo*)SourceCallbackInfo)->pszUserCueName;
-		szExtraInfo = SourceUserCue ? FPlatformString::Strlen(SourceUserCue) + 1 : 0;
-		break;
-	}
-	case AK_MIDIEvent:
-	{
-		szSourceInfo = sizeof(AkMIDIEventCallbackInfo);
-		break;
-	}
-	default:
-		// No extra size to allocate
-		break;
-	}
-
-	// Allocate the memory for the copy
-	AkCombinedCallbackInfo* CbInfoCopy = (AkCombinedCallbackInfo*)FMemory::Malloc(szBase + szSourceInfo + szExtraInfo);
-	if (CbInfoCopy == nullptr)
-		return CbInfoCopy;
-
-	uint8_t* SourceCopy = (uint8_t*)(reinterpret_cast<uint8_t*>(CbInfoCopy) + szBase);
-	uint8_t* ExtraCopy = SourceCopy + szSourceInfo;
-
-	// Copy the event data
-	FMemory::Memcpy(CbInfoCopy, EventCallbackInfo, sizeof(AkEventCallbackInfo));
-
-#if WWISE_2025_1_OR_LATER
-	// Assign the callback pointer to the type-specific callback info
-	CbInfoCopy->pCallbackInfo = SourceCopy;
-#endif
-
-	// Copy the source data, if any
-	if (szSourceInfo > 0)
-	{
-		FMemory::Memcpy(SourceCopy, SourceCallbackInfo, szSourceInfo);
-	}
-
-	// Copy the 'extra' data, if any
-	if (szExtraInfo > 0)
-	{
-		switch (CallbackType)
-		{
-		case AK_Marker:
-			reinterpret_cast<AkMarkerCallbackInfo*>(SourceCopy)->strLabel = (const char*)ExtraCopy;
-			FPlatformString::Strncpy((char*)ExtraCopy, static_cast<AkMarkerCallbackInfo*>(SourceCallbackInfo)->strLabel, szExtraInfo);
-			break;
-		case AK_MusicSyncBeat:
-		case AK_MusicSyncBar:
-		case AK_MusicSyncEntry:
-		case AK_MusicSyncExit:
-		case AK_MusicSyncGrid:
-		case AK_MusicSyncUserCue:
-		case AK_MusicSyncPoint:
-			reinterpret_cast<AkMusicSyncCallbackInfo*>(SourceCopy)->pszUserCueName = (char*)ExtraCopy;
-			FPlatformString::Strncpy((char*)ExtraCopy, static_cast<AkMusicSyncCallbackInfo*>(SourceCallbackInfo)->pszUserCueName, szExtraInfo);
-			break;
-		}
-	}
-	return CbInfoCopy;
-}
-#else
-AkCombinedCallbackInfo* AkCallbackTypeHelpers::CopyWwiseCallbackInfo(AkCallbackType CallbackType, AkCallbackInfo* SourceCallbackInfo)
-{
-	SCOPED_AKAUDIO_EVENT_4(TEXT("AkCallbackTypeHelpers::CopyWwiseCallbackInfo"));
 	switch (CallbackType)
 	{
 	case AK_EndOfEvent:
@@ -171,14 +71,8 @@ AkCombinedCallbackInfo* AkCallbackTypeHelpers::CopyWwiseCallbackInfo(AkCallbackT
 	{
 		AkEventCallbackInfo* CbInfoCopy = (AkEventCallbackInfo*)FMemory::Malloc(sizeof(AkEventCallbackInfo));
 		FMemory::Memcpy(CbInfoCopy, SourceCallbackInfo, sizeof(AkEventCallbackInfo));
-		return (AkCombinedCallbackInfo*)CbInfoCopy;
+		return CbInfoCopy;
 	}
-	case AK_EndOfDynamicSequenceItem:
-		{
-			AkDynamicSequenceItemCallbackInfo* CbInfoCopy = (AkDynamicSequenceItemCallbackInfo*)FMemory::Malloc(sizeof(AkDynamicSequenceItemCallbackInfo));
-			FMemory::Memcpy(CbInfoCopy, SourceCallbackInfo, sizeof(AkDynamicSequenceItemCallbackInfo));
-			return (AkCombinedCallbackInfo*)CbInfoCopy;
-		}
 	case AK_Marker:
 	{
 		const char* SourceLabel = ((AkMarkerCallbackInfo*)SourceCallbackInfo)->strLabel;
@@ -191,13 +85,13 @@ AkCombinedCallbackInfo* AkCallbackTypeHelpers::CopyWwiseCallbackInfo(AkCallbackT
 			CbInfoCopy->strLabel = reinterpret_cast<const char*>(CbInfoCopy) + sizeof(AkMarkerCallbackInfo);
 			FPlatformString::Strcpy(const_cast<char*>(CbInfoCopy->strLabel), LabelSize - 1, SourceLabel);
 		}
-		return (AkCombinedCallbackInfo*)CbInfoCopy;
+		return CbInfoCopy;
 	}
 	case AK_Duration:
 	{
 		AkDurationCallbackInfo* CbInfoCopy = (AkDurationCallbackInfo*)FMemory::Malloc(sizeof(AkDurationCallbackInfo));
 		FMemory::Memcpy(CbInfoCopy, SourceCallbackInfo, sizeof(AkDurationCallbackInfo));
-		return (AkCombinedCallbackInfo*)CbInfoCopy;
+		return CbInfoCopy;
 	}
 	case AK_MusicSyncBeat:
 	case AK_MusicSyncBar:
@@ -218,19 +112,18 @@ AkCombinedCallbackInfo* AkCallbackTypeHelpers::CopyWwiseCallbackInfo(AkCallbackT
 			CbInfoCopy->pszUserCueName = reinterpret_cast<char*>(CbInfoCopy) + sizeof(AkMusicSyncCallbackInfo);
 			FPlatformString::Strcpy(const_cast<char*>(CbInfoCopy->pszUserCueName), UserCueSize, SourceUserCue);
 		}
-		return (AkCombinedCallbackInfo*)CbInfoCopy;
+		return CbInfoCopy;
 	}
 	case AK_MIDIEvent:
 	{
 		AkMIDIEventCallbackInfo* CbInfoCopy = (AkMIDIEventCallbackInfo*)FMemory::Malloc(sizeof(AkMIDIEventCallbackInfo));
 		FMemory::Memcpy(CbInfoCopy, SourceCallbackInfo, sizeof(AkMIDIEventCallbackInfo));
-		return (AkCombinedCallbackInfo*)CbInfoCopy;
+		return CbInfoCopy;
 	}
 	default:
 		return nullptr;
 	}
 }
-#endif
 
 AkCallbackType AkCallbackTypeHelpers::GetCallbackMaskFromBlueprintMask(int32 BlueprintCallbackType)
 {
@@ -284,47 +177,19 @@ UAkEventCallbackInfo* UAkEventCallbackInfo::Create(AkEventCallbackInfo* AkEventC
 	return CbInfo;
 }
 
-UAkDynamicSequenceItemCallbackInfo::UAkDynamicSequenceItemCallbackInfo(class FObjectInitializer const& ObjectInitializer) :
-	Super(ObjectInitializer)
-{}
-
-UAkDynamicSequenceItemCallbackInfo* UAkDynamicSequenceItemCallbackInfo::Create(AkCombinedCallbackInfo * akCallbackInfo)
-{
-	auto CbInfo = FAkAudioDevice::Get()->GetAkCallbackInfoPool()->Acquire<UAkDynamicSequenceItemCallbackInfo>();
-	if (CbInfo)
-	{
-#if WWISE_2025_1_OR_LATER
-		AkDynamicSequenceItemCallbackInfo* AkDynamicSequenceCbInfo = static_cast<AkDynamicSequenceItemCallbackInfo*>(akCallbackInfo->pCallbackInfo);
-#else
-		AkDynamicSequenceItemCallbackInfo* AkDynamicSequenceCbInfo = reinterpret_cast<AkDynamicSequenceItemCallbackInfo*>(akCallbackInfo);
-#endif
-		CbInfo->AkComponent = UAkComponent::GetAkComponent(akCallbackInfo->eventInfo.gameObjID);
-		CbInfo->AudioNodeID = AkDynamicSequenceCbInfo->audioNodeID;
-		CbInfo->PlayingID = akCallbackInfo->eventInfo.gameObjID;
-		CbInfo->CustomInfo = static_cast<UObject*>(AkDynamicSequenceCbInfo->pCustomInfo);
-	}
-	return CbInfo;
-}
-
 UAkMIDIEventCallbackInfo::UAkMIDIEventCallbackInfo(class FObjectInitializer const & ObjectInitializer) :
 	Super(ObjectInitializer)
 {}
 
-UAkMIDIEventCallbackInfo* UAkMIDIEventCallbackInfo::Create(AkCombinedCallbackInfo * akCallbackInfo)
+UAkMIDIEventCallbackInfo* UAkMIDIEventCallbackInfo::Create(AkMIDIEventCallbackInfo* AkMIDIEventCbInfo)
 {
 	auto CbInfo = FAkAudioDevice::Get()->GetAkCallbackInfoPool()->Acquire<UAkMIDIEventCallbackInfo>();
 	if (CbInfo)
 	{
-#if WWISE_2025_1_OR_LATER
-		AkMIDIEventCallbackInfo* AkMIDICbInfo = static_cast<AkMIDIEventCallbackInfo*>(akCallbackInfo->pCallbackInfo);
-#else
-		AkMIDIEventCallbackInfo* AkMIDICbInfo = static_cast<AkMIDIEventCallbackInfo*>(&akCallbackInfo->eventInfo);
-#endif
-
-		CbInfo->AkComponent = UAkComponent::GetAkComponent(akCallbackInfo->eventInfo.gameObjID);
-		CbInfo->PlayingID = akCallbackInfo->eventInfo.playingID;
-		CbInfo->EventID = akCallbackInfo->eventInfo.eventID;
-		CbInfo->AkMidiEvent = AkMIDICbInfo->midiEvent;
+		CbInfo->AkComponent = UAkComponent::GetAkComponent(AkMIDIEventCbInfo->gameObjID);
+		CbInfo->PlayingID = AkMIDIEventCbInfo->playingID;
+		CbInfo->EventID = AkMIDIEventCbInfo->eventID;
+		CbInfo->AkMidiEvent = AkMIDIEventCbInfo->midiEvent;
 	}
 	return CbInfo;
 }
@@ -333,20 +198,14 @@ UAkMarkerCallbackInfo::UAkMarkerCallbackInfo(class FObjectInitializer const & Ob
 	Super(ObjectInitializer)
 {}
 
-UAkMarkerCallbackInfo* UAkMarkerCallbackInfo::Create(AkCombinedCallbackInfo* akCallbackInfo)
+UAkMarkerCallbackInfo* UAkMarkerCallbackInfo::Create(AkMarkerCallbackInfo* AkMarkerCbInfo)
 {
 	auto CbInfo = FAkAudioDevice::Get()->GetAkCallbackInfoPool()->Acquire<UAkMarkerCallbackInfo>();
 	if (CbInfo)
 	{
-#if WWISE_2025_1_OR_LATER
-		AkMarkerCallbackInfo* AkMarkerCbInfo = static_cast<AkMarkerCallbackInfo*>(akCallbackInfo->pCallbackInfo);
-#else
-		AkMarkerCallbackInfo* AkMarkerCbInfo = static_cast<AkMarkerCallbackInfo*>(&akCallbackInfo->eventInfo);
-#endif
-
-		CbInfo->AkComponent = UAkComponent::GetAkComponent(akCallbackInfo->eventInfo.gameObjID);
-		CbInfo->PlayingID = akCallbackInfo->eventInfo.playingID;
-		CbInfo->EventID = akCallbackInfo->eventInfo.eventID;
+		CbInfo->AkComponent = UAkComponent::GetAkComponent(AkMarkerCbInfo->gameObjID);
+		CbInfo->PlayingID = AkMarkerCbInfo->playingID;
+		CbInfo->EventID = AkMarkerCbInfo->eventID;
 		CbInfo->Identifier = AkMarkerCbInfo->uIdentifier;
 		CbInfo->Position = AkMarkerCbInfo->uPosition;
 		CbInfo->Label = FString(AkMarkerCbInfo->strLabel);
@@ -358,20 +217,14 @@ UAkDurationCallbackInfo::UAkDurationCallbackInfo(class FObjectInitializer const 
 	Super(ObjectInitializer)
 {}
 
-UAkDurationCallbackInfo* UAkDurationCallbackInfo::Create(AkCombinedCallbackInfo* akCallbackInfo)
+UAkDurationCallbackInfo* UAkDurationCallbackInfo::Create(AkDurationCallbackInfo* AkDurationCbInfo)
 {
 	auto CbInfo = FAkAudioDevice::Get()->GetAkCallbackInfoPool()->Acquire<UAkDurationCallbackInfo>();
 	if (CbInfo)
 	{
-#if WWISE_2025_1_OR_LATER
-		AkDurationCallbackInfo* AkDurationCbInfo = static_cast<AkDurationCallbackInfo*>(akCallbackInfo->pCallbackInfo);
-#else
-		AkDurationCallbackInfo* AkDurationCbInfo = static_cast<AkDurationCallbackInfo*>(&akCallbackInfo->eventInfo);
-#endif
-
-		CbInfo->AkComponent = UAkComponent::GetAkComponent(akCallbackInfo->eventInfo.gameObjID);
-		CbInfo->PlayingID = akCallbackInfo->eventInfo.playingID;
-		CbInfo->EventID = akCallbackInfo->eventInfo.eventID;
+		CbInfo->AkComponent = UAkComponent::GetAkComponent(AkDurationCbInfo->gameObjID);
+		CbInfo->PlayingID = AkDurationCbInfo->playingID;
+		CbInfo->EventID = AkDurationCbInfo->eventID;
 		CbInfo->Duration = AkDurationCbInfo->fDuration;
 		CbInfo->EstimatedDuration = AkDurationCbInfo->fEstimatedDuration;
 		CbInfo->AudioNodeID = AkDurationCbInfo->audioNodeID;
@@ -385,19 +238,13 @@ UAkMusicSyncCallbackInfo::UAkMusicSyncCallbackInfo(class FObjectInitializer cons
 	Super(ObjectInitializer)
 {}
 
-UAkMusicSyncCallbackInfo* UAkMusicSyncCallbackInfo::Create(AkCombinedCallbackInfo* akCallbackInfo)
+UAkMusicSyncCallbackInfo* UAkMusicSyncCallbackInfo::Create(AkMusicSyncCallbackInfo* AkMusicCbInfo)
 {
 	auto CbInfo = FAkAudioDevice::Get()->GetAkCallbackInfoPool()->Acquire<UAkMusicSyncCallbackInfo>();
 	if (CbInfo)
 	{
-#if WWISE_2025_1_OR_LATER
-		AkMusicSyncCallbackInfo* AkMusicCbInfo = static_cast<AkMusicSyncCallbackInfo*>(akCallbackInfo->pCallbackInfo);
-#else
-		AkMusicSyncCallbackInfo* AkMusicCbInfo = reinterpret_cast<AkMusicSyncCallbackInfo*>(akCallbackInfo);
-#endif
-
-		CbInfo->AkComponent = UAkComponent::GetAkComponent(akCallbackInfo->eventInfo.gameObjID);
-		CbInfo->PlayingID = akCallbackInfo->eventInfo.playingID;
+		CbInfo->AkComponent = UAkComponent::GetAkComponent(AkMusicCbInfo->gameObjID);
+		CbInfo->PlayingID = AkMusicCbInfo->playingID;
 		CbInfo->SegmentInfo = AkMusicCbInfo->segmentInfo;
 		CbInfo->MusicSyncType = AkCallbackTypeHelpers::GetBlueprintCallbackTypeFromAkCallbackType(AkMusicCbInfo->musicSyncType);
 		CbInfo->UserCueName = FString(AkMusicCbInfo->pszUserCueName);
@@ -503,11 +350,7 @@ FAkSDKExternalSourceArray::FAkSDKExternalSourceArray(const TArray<FAkExternalSou
 {
 	for (auto& ExternalSourceInfo : BlueprintArray)
 	{
-#if WWISE_2025_1_OR_LATER
-		char* CharArray = nullptr;
-#else
 		AkOSChar* OsCharArray = nullptr;
-#endif
 		void* MediaData = nullptr;
 		AkUInt32 MediaSize = 0;
 
@@ -523,15 +366,10 @@ FAkSDKExternalSourceArray::FAkSDKExternalSourceArray(const TArray<FAkExternalSou
 			{
 				ExternalFileName += TEXT(".wem");
 			}
-#if WWISE_2025_1_OR_LATER
-			CharArray = (char*)FMemory::Malloc((ExternalFileName.Len() + 1) * sizeof(char));
-			FPlatformString::Strncpy(CharArray, TCHAR_TO_UTF8(*(ExternalFileName)), ExternalFileName.Len() + 1);
-			ExternalSourceArray.Emplace(CharArray, FAkAudioDevice::GetShortIDFromString(ExternalSourceInfo.ExternalSrcName), (AkCodecID)ExternalSourceInfo.CodecID);
-#else
 			OsCharArray = (AkOSChar*)FMemory::Malloc((ExternalFileName.Len() + 1) * sizeof(AkOSChar));
 			FPlatformString::Strcpy(OsCharArray, ExternalFileName.Len(), TCHAR_TO_AK(*(ExternalFileName)));
+
 			ExternalSourceArray.Emplace(OsCharArray, FAkAudioDevice::GetShortIDFromString(ExternalSourceInfo.ExternalSrcName), (AkCodecID)ExternalSourceInfo.CodecID);
-#endif
 		}
 	}
 }

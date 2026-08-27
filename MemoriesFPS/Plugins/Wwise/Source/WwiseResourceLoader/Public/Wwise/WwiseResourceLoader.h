@@ -19,9 +19,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include "Wwise/CookedData/WwiseLanguageCookedData.h"
 #include "Wwise/Loaded/WwiseLoadedAssetLibrary.h"
-#include "Wwise/Loaded/WwiseLoadedAudioNode.h"
 #include "Wwise/Loaded/WwiseLoadedAuxBus.h"
-#include "Wwise/Loaded/WwiseLoadedDialogueEvent.h"
 #include "Wwise/Loaded/WwiseLoadedEvent.h"
 #include "Wwise/Loaded/WwiseLoadedExternalSource.h"
 #include "Wwise/Loaded/WwiseLoadedInitBank.h"
@@ -104,14 +102,8 @@ public:
 	virtual FWwiseLoadedAssetLibraryPtr LoadAssetLibrary(const FWwiseAssetLibraryCookedData& InAssetLibraryCookedData);
 	virtual void UnloadAssetLibrary(FWwiseLoadedAssetLibraryPtr&& InAssetLibrary);
 	
-	virtual FWwiseLoadedAudioNodePtr LoadAudioNode(const FWwiseAudioNodeCookedData& InAudioNodeCookedData);
-	virtual void UnloadAudioNode(FWwiseLoadedAudioNodePtr&& InAudioNode);
-
 	virtual FWwiseLoadedAuxBusPtr LoadAuxBus(const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData, const FWwiseLanguageCookedData* InLanguageOverride = nullptr);
 	virtual void UnloadAuxBus(FWwiseLoadedAuxBusPtr&& InAuxBus);
-
-	virtual FWwiseLoadedDialogueEventPtr LoadDialogueEvent(const FWwiseLocalizedDialogueEventCookedData& InDialogueEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride = nullptr);
-	virtual void UnloadDialogueEvent(FWwiseLoadedDialogueEventPtr&& InDialogueEvent);
 
 	virtual FWwiseLoadedEventPtr LoadEvent(const FWwiseLocalizedEventCookedData& InEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride = nullptr);
 	virtual void UnloadEvent(FWwiseLoadedEventPtr&& InEvent);
@@ -139,14 +131,8 @@ public:
 	virtual FWwiseLoadedAssetLibraryFuture LoadAssetLibraryAsync(const FWwiseAssetLibraryCookedData& InAssetLibraryCookedData);
 	virtual FWwiseResourceUnloadFuture UnloadAssetLibraryAsync(FWwiseLoadedAssetLibraryFuture&& InAssetLibrary);
 	
-	virtual FWwiseLoadedAudioNodeFuture LoadAudioNodeAsync(const FWwiseAudioNodeCookedData& InAudioNodeCookedData);
-	virtual FWwiseResourceUnloadFuture UnloadAudioNodeAsync(FWwiseLoadedAudioNodeFuture&& InAudioNode);
-
 	virtual FWwiseLoadedAuxBusFuture LoadAuxBusAsync(const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData, const FWwiseLanguageCookedData* InLanguageOverride = nullptr);
 	virtual FWwiseResourceUnloadFuture UnloadAuxBusAsync(FWwiseLoadedAuxBusFuture&& InAuxBus);
-
-	virtual FWwiseLoadedDialogueEventFuture LoadDialogueEventAsync(const FWwiseLocalizedDialogueEventCookedData& InDialogueEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride = nullptr);
-	virtual FWwiseResourceUnloadFuture UnloadDialogueEventAsync(FWwiseLoadedDialogueEventFuture&& InDialogueEvent);
 
 	virtual FWwiseLoadedEventFuture LoadEventAsync(const FWwiseLocalizedEventCookedData& InEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride = nullptr);
 	virtual FWwiseResourceUnloadFuture UnloadEventAsync(FWwiseLoadedEventFuture&& InEvent);
@@ -184,48 +170,39 @@ protected:
 
 	virtual void UpdateLanguage(FWwiseSetLanguagePromise&& Promise, const FWwiseLanguageCookedData& InLanguage, EWwiseReloadLanguage InReloadLanguage) = 0;
 
-	virtual FWwiseLoadedAssetLibraryPtr CreateAssetLibraryListEntry(const FWwiseAssetLibraryCookedData& InAssetLibraryCookedData) = 0;
+	virtual FWwiseLoadedAssetLibraryPtr CreateAssetLibraryNode(const FWwiseAssetLibraryCookedData& InAssetLibraryCookedData) = 0;
 	virtual void LoadAssetLibraryNode(FWwiseLoadedAssetLibraryPromise&& Promise, FWwiseLoadedAssetLibraryPtr&& InAssetLibraryListNode) = 0;
 	virtual void UnloadAssetLibraryNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedAssetLibraryPtr&& InAssetLibraryListNode) = 0;
 
-	virtual FWwiseLoadedAudioNodePtr CreateAudioNodeListEntry(const FWwiseAudioNodeCookedData& InAudioNodeCookedData) = 0;
-	virtual void LoadAudioNodeNode(FWwiseLoadedAudioNodePromise&& Promise, FWwiseLoadedAudioNodePtr&& InAudioNodeListNode) = 0;
-	virtual void UnloadAudioNodeNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedAudioNodePtr&& InAudioNodeListNode) = 0;
-
-	virtual FWwiseLoadedAuxBusPtr CreateAuxBusListEntry(const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
+	virtual FWwiseLoadedAuxBusPtr CreateAuxBusNode(const FWwiseLocalizedAuxBusCookedData& InAuxBusCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
 	virtual void LoadAuxBusNode(FWwiseLoadedAuxBusPromise&& Promise, FWwiseLoadedAuxBusPtr&& InAuxBusListNode) = 0;
 	virtual void UnloadAuxBusNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedAuxBusPtr&& InAuxBusListNode) = 0;
 
-	virtual FWwiseLoadedDialogueEventPtr CreateDialogueEventListEntry(const FWwiseLocalizedDialogueEventCookedData& InDialogueEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
-	virtual void LoadDialogueEventNode(FWwiseLoadedDialogueEventPromise&& Promise, FWwiseLoadedDialogueEventPtr&& InDialogueEventListNode) = 0;
-	virtual void UnloadDialogueEventNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedDialogueEventPtr&& InDialogueEventListNode) = 0;
-
-	virtual FWwiseLoadedEventPtr CreateEventListEntry(const FWwiseLocalizedEventCookedData& InEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
+	virtual FWwiseLoadedEventPtr CreateEventNode(const FWwiseLocalizedEventCookedData& InEventCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
 	virtual void LoadEventNode(FWwiseLoadedEventPromise&& Promise, FWwiseLoadedEventPtr&& InEventListNode) = 0;
 	virtual void UnloadEventNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedEventPtr&& InEventListNode) = 0;
 
-	virtual FWwiseLoadedExternalSourcePtr CreateExternalSourceListEntry(const FWwiseExternalSourceCookedData& InExternalSourceCookedData) = 0;
+	virtual FWwiseLoadedExternalSourcePtr CreateExternalSourceNode(const FWwiseExternalSourceCookedData& InExternalSourceCookedData) = 0;
 	virtual void LoadExternalSourceNode(FWwiseLoadedExternalSourcePromise&& Promise, FWwiseLoadedExternalSourcePtr&& InExternalSourceListNode) = 0;
 	virtual void UnloadExternalSourceNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedExternalSourcePtr&& InExternalSourceListNode) = 0;
 
-	virtual FWwiseLoadedGroupValuePtr CreateGroupValueListEntry(const FWwiseGroupValueCookedData& InGroupValueCookedData) = 0;
+	virtual FWwiseLoadedGroupValuePtr CreateGroupValueNode(const FWwiseGroupValueCookedData& InGroupValueCookedData) = 0;
 	virtual void LoadGroupValueNode(FWwiseLoadedGroupValuePromise&& Promise, FWwiseLoadedGroupValuePtr&& InGroupValueListNode) = 0;
 	virtual void UnloadGroupValueNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedGroupValuePtr&& InGroupValueListNode) = 0;
 
-	virtual FWwiseLoadedInitBankPtr CreateInitBankListEntry(const FWwiseInitBankCookedData& InInitBankCookedData) = 0;
+	virtual FWwiseLoadedInitBankPtr CreateInitBankNode(const FWwiseInitBankCookedData& InInitBankCookedData) = 0;
 	virtual void LoadInitBankNode(FWwiseLoadedInitBankPromise&& Promise, FWwiseLoadedInitBankPtr&& InInitBankListNode) = 0;
 	virtual void UnloadInitBankNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedInitBankPtr&& InInitBankListNode) = 0;
 
-	virtual FWwiseLoadedMediaPtr CreateMediaListEntry(const FWwiseMediaCookedData& InMediaCookedData) = 0;
+	virtual FWwiseLoadedMediaPtr CreateMediaNode(const FWwiseMediaCookedData& InMediaCookedData) = 0;
 	virtual void LoadMediaNode(FWwiseLoadedMediaPromise&& Promise, FWwiseLoadedMediaPtr&& InMediaListNode) = 0;
 	virtual void UnloadMediaNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedMediaPtr&& InMediaListNode) = 0;
 
-	virtual FWwiseLoadedShareSetPtr CreateShareSetListEntry(const FWwiseLocalizedShareSetCookedData& InShareSetCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
+	virtual FWwiseLoadedShareSetPtr CreateShareSetNode(const FWwiseLocalizedShareSetCookedData& InShareSetCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
 	virtual void LoadShareSetNode(FWwiseLoadedShareSetPromise&& Promise, FWwiseLoadedShareSetPtr&& InShareSetListNode) = 0;
 	virtual void UnloadShareSetNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedShareSetPtr&& InShareSetListNode) = 0;
 
-	virtual FWwiseLoadedSoundBankPtr CreateSoundBankListEntry(const FWwiseLocalizedSoundBankCookedData& InSoundBankCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
+	virtual FWwiseLoadedSoundBankPtr CreateSoundBankNode(const FWwiseLocalizedSoundBankCookedData& InSoundBankCookedData, const FWwiseLanguageCookedData* InLanguageOverride) = 0;
 	virtual void LoadSoundBankNode(FWwiseLoadedSoundBankPromise&& Promise, FWwiseLoadedSoundBankPtr&& InSoundBankListNode) = 0;
 	virtual void UnloadSoundBankNode(FWwiseResourceUnloadPromise&& Promise, FWwiseLoadedSoundBankPtr&& InSoundBankListNode) = 0;
 };
-

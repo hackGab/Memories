@@ -15,6 +15,10 @@ in a written agreement between you and Audiokinetic Inc.
 Copyright (c) 2025 Audiokinetic Inc.
 *******************************************************************************/
 
-#if defined(PLATFORM_TVOS) && PLATFORM_TVOS
-
+#if PLATFORM_TVOS
+#include <AK/Plugin/AkToneSourceFactory.h>
+#include <AK/Plugin/AkRoomVerbFXFactory.h>
+#include <AK/Plugin/AkTremoloFXFactory.h>
+#include <AK/Plugin/AkSynthOneSourceFactory.h>
+#include <AK/Plugin/AkReflectFXFactory.h>
 #endif

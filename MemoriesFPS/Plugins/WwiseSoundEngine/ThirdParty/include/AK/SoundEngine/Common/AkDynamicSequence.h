@@ -30,11 +30,13 @@ the specific language governing permissions and limitations under the License.
 #include <AK/SoundEngine/Common/AkSoundEngine.h>
 #include <AK/Tools/Common/AkArray.h>
 
+class AkExternalSourceArray;
+
 namespace AK
 {
 	namespace SoundEngine
 	{
-		/// Dynamic Sequence namespace. Use the Dynamic Sequence API to play and sequence Dialogue Events dynamically, according to a set of rules and conditions. For more information, see \ref integrating_elements_dynamicdialogue and <a href="https://www.audiokinetic.com/library/edge/?source=Help&id=understanding_dynamic_dialogue_system" target="_blank">Understanding the Dynamic Dialogue System</a>.
+		/// Dynamic Sequence namespace. Use the Dynamic Sequence API to play and sequence Dialogue Events dynamically, according to a set of rules and conditions. For more information, refer to \ref integrating_elements_dynamicdialogue and <a href="https://www.audiokinetic.com/library/edge/?source=Help&id=understanding_dynamic_dialogue_system" target="_blank">Understanding the Dynamic Dialogue System</a>.
 		/// \remarks The functions in this namespace are thread-safe, unless stated otherwise.
 		namespace DynamicSequence
 		{
@@ -64,10 +66,15 @@ namespace AK
 				/// \ref integrating_external_sources
 				AKRESULT SetExternalSources(AkUInt32 in_nExternalSrc, AkExternalSourceInfo* in_pExternalSrc);
 
+				/// Get the external source array.  Internal use only.
+				AkExternalSourceArray* GetExternalSources(){return pExternalSrcs;}
+
 				AkUniqueID audioNodeID;	///< Unique ID of Audio Node
 				AkTimeMs   msDelay;		///< Delay before playing this item, in milliseconds
 				void *	   pCustomInfo;	///< Optional user data
-				AkExternalSourceArray pExternalSrcs;
+
+			private:
+				AkExternalSourceArray *pExternalSrcs;
 			};
 
 			/// List of items to play in a Dynamic Sequence.
@@ -99,17 +106,35 @@ namespace AK
 				}
 			};
 
-			// \deprecated Use AkDynamicSequenceType in the global scope.
-			using DynamicSequenceType = ::AkDynamicSequenceType;
-			const AkDynamicSequenceType DynamicSequenceType_SampleAccurate = AkDynamicSequenceType_SampleAccurate;
-			const AkDynamicSequenceType DynamicSequenceType_NormalTransition = AkDynamicSequenceType_NormalTransition;
-			const AkDynamicSequenceType DynamicSequenceType_Last = AkDynamicSequenceType_Last;
+			/// The DynamicSequenceType is specified when creating a new dynamic sequence.\n
+			/// \n
+			/// The default option is DynamicSequenceType_SampleAccurate. \n
+			/// \n
+			/// In sample accurate mode, when a dynamic sequence item finishes playing and there is another item\n
+			/// pending in its playlist, the next sound will be stitched to the end of the ending sound. In this \n
+			/// mode, if there are one or more pending items in the playlist while the dynamic sequence is playing,\n 
+			/// or if something is added to the playlist during the playback, the dynamic sequence\n
+			/// can remove the next item to be played from the playlist and prepare it for sample accurate playback before\n 
+			/// the first sound is finished playing. This mechanism helps keep sounds sample accurate, but then\n
+			/// you might not be able to remove that next item from the playlist if required.\n
+			/// \n
+			/// If your game requires the capability of removing the next to be played item from the\n
+			/// playlist at any time, then you should use the DynamicSequenceType_NormalTransition option  instead.\n
+			/// In this mode, you cannot ensure sample accuracy between sounds.\n
+			/// \n
+			/// Note that a Stop or a Break will always prevent the next to be played sound from actually being played.
+			///
+			/// \sa
+			/// - AK::SoundEngine::DynamicSequence::Open
+			enum DynamicSequenceType
+			{
+				DynamicSequenceType_SampleAccurate,			///< Sample accurate mode
+				DynamicSequenceType_NormalTransition,		///< Normal transition mode, allows the entire playlist to be edited at all times.
+				DynamicSequenceType_Last					///< End of enum, invalid value.
+			};
 
 			/// Open a new Dynamic Sequence.
 	        /// \return Playing ID of the dynamic sequence, or AK_INVALID_PLAYING_ID in failure case and an error message in the debug console and Wwise Profiler
-			/// 
-			/// If \c AK_DynamicSequenceSelect bit is set in \c in_uFlags, the dynamic sequence uses the callback for determining the next item to play.
-			/// If this bit is not set, then the dynamic sequence uses the Playlist to determine the next item to play.
 			///
 			/// \sa
 			/// - AK::SoundEngine::DynamicSequence::DynamicSequenceType
@@ -118,7 +143,7 @@ namespace AK
 				AkUInt32			in_uFlags	   = 0,			///< Bitmask: see \ref AkCallbackType
 				AkCallbackFunc		in_pfnCallback = NULL,		///< Callback function
 				void* 				in_pCookie	   = NULL,		///< Callback cookie that will be sent to the callback function along with additional information;
-				AkDynamicSequenceType in_eDynamicSequenceType = AkDynamicSequenceType_SampleAccurate ///< See : \ref AkDynamicSequenceType
+				DynamicSequenceType in_eDynamicSequenceType = DynamicSequenceType_SampleAccurate ///< See : \ref AK::SoundEngine::DynamicSequence::DynamicSequenceType
 				);
 														
 			/// Close specified Dynamic Sequence. The Dynamic Sequence will play until finished and then
@@ -230,12 +255,6 @@ namespace AK
 
 			/// Lock the Playlist for editing. Needs a corresponding UnlockPlaylist call.
 			/// \return Pointer to locked Playlist if successful, NULL otherwise (in_playingID not found)
-			/// 
-			/// \akwarning 
-			/// When opening a dynamic sequence with the callback flag \c AK_DynamicSequenceSelect, the callback is the ONLY way to determine the next item to play.
-			/// \c AK::SoundEngine::DynamicSequence::LockPlaylist always returns \c NULL for dynamic sequences opened with \c AK_DynamicSequenceSelect.
-			/// \endakwarning
-			/// 
 			/// \sa
 			/// - AK::SoundEngine::DynamicSequence::UnlockPlaylist
 			AK_EXTERNAPIFUNC( Playlist *, LockPlaylist )(

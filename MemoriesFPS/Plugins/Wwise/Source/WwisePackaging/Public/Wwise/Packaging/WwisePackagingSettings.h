@@ -42,9 +42,7 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Cooking", DisplayName = "Libraries used for cooking Wwise UAssets as Bulk Data",
 		meta=(EditCondition="bPackageAsBulkData", EditConditionHides=true))
 	TArray<TSoftObjectPtr<UWwiseAssetLibrary>> AssetLibraries;
-	UPROPERTY(Transient)
-	mutable TArray<TObjectPtr<UWwiseAssetLibrary>> AssetLibrariesKeepAlive;
-	
+
 #if WITH_EDITORONLY_DATA
 	//Editor: If we are enabling the Bulk Data for the first time, we should create a default Shared Asset library. 
 	UPROPERTY(Config)
@@ -68,8 +66,9 @@ protected:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void PostInitProperties() override;
 
-	virtual void OnPostEngineInit() {}
+	virtual void OnPostEngineInit();
 	virtual bool EnsurePostEngineInit();
+	virtual void CreateInitialAssetLibrary();
 
 	bool SaveConfigFile();
 #endif

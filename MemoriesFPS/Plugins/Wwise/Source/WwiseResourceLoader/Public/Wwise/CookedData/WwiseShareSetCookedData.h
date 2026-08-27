@@ -45,7 +45,7 @@ struct WWISERESOURCELOADER_API FWwiseShareSetCookedData
 	FWwiseShareSetCookedData();
 	void Serialize(FArchive& Ar);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
+	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
 #endif
 
 	FString GetDebugString() const;

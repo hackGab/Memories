@@ -55,7 +55,6 @@ enum EWwiseTypeFilter
 {
 	AcousticTexture,
 	AudioDeviceShareSet,
-	DialogueEvents,
 	Effects,
 	Events,
 	GameParameters,
@@ -123,9 +122,6 @@ public:
 
 	// Clean placeholder children
 	void ClearEmptyChildren(FWwiseTreeItemPtr TreeItem);
-
-	// Remove all childrens that should not be visible
-	void ClearInvisibleChildren(FWwiseTreeItemPtr TreeItem);
 
 	EWwiseConnectionStatus GetWaapiConnectionStatus() const;
 

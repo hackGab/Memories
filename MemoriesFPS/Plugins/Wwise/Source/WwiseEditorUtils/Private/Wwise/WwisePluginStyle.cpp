@@ -29,16 +29,11 @@ const FName FWwisePluginStyle::ActorMixerIconName{ TEXT("Wwise.ActorMixerIcon") 
 const FName FWwisePluginStyle::AssetLibraryIconName{ TEXT("Wwise.AssetLibraryIcon") };
 const FName FWwisePluginStyle::AssetLibraryFilterIconName{ TEXT("Wwise.AssetLibraryFilterIcon") };
 const FName FWwisePluginStyle::AudioDeviceIconName{ TEXT("Wwise.AudioDeviceIcon") };
-const FName FWwisePluginStyle::AudioNodeIconName{ TEXT("Wwise.AudioNodeIcon") };
 const FName FWwisePluginStyle::AuxBusIconName{ TEXT("Wwise.AuxBusIcon") };
 const FName FWwisePluginStyle::BlendContainerIconName{ TEXT("Wwise.BlendContainerIcon") };
 const FName FWwisePluginStyle::BusIconName{ TEXT("Wwise.BusIcon") };
-const FName FWwisePluginStyle::CollapseAll{ TEXT("Wwise.CollapseAll") };
 const FName FWwisePluginStyle::EffectShareSetIconName{ TEXT("Wwise.EffectShareSetIcon") };
-const FName FWwisePluginStyle::DialogueEventIconName{ TEXT("Wwise.DialogueEventIcon") };
-const FName FWwisePluginStyle::DynamicSequenceIconName{ TEXT("Wwise.DynamicSequenceIcon") };
 const FName FWwisePluginStyle::EventIconName{ TEXT("Wwise.EventIcon") };
-const FName FWwisePluginStyle::ExpandAll{ TEXT("Wwise.ExpandAll") };
 const FName FWwisePluginStyle::ExternalSourceIconName{ TEXT("Wwise.ExternalSourceIcon") };
 const FName FWwisePluginStyle::FolderIconName{ TEXT("Wwise.FolderIcon") };
 const FName FWwisePluginStyle::GameParameterIconName{ TEXT("Wwise.GameParameterIcon") };
@@ -99,16 +94,11 @@ void FWwisePluginStyle::Initialize()
 	SetV(AssetLibraryIconName, "ObjectIcons_Asset_Library", Icon);
 	SetV(AssetLibraryFilterIconName, "ObjectIcons_Asset_Library_Filter", Icon);
 	SetV(AudioDeviceIconName, "ObjectIcons_AudioDevicePlugin_nor", Icon);
-	SetV(AudioNodeIconName, "ObjectIcons_AudioObjectSound_nor", Icon);
 	SetV(AuxBusIconName, "ObjectIcons_AuxBus_nor", Icon);
 	SetV(BlendContainerIconName, "ObjectIcons_BlendContainer_nor", Icon);
 	SetV(BusIconName, "ObjectIcons_Bus_nor", Icon);
-	SetV(CollapseAll, "GraphNode_CollapseAll", Icon);
-	SetV(DialogueEventIconName, "ObjectIcons_DynamicSequenceItem_nor", Icon);
-	SetV(DynamicSequenceIconName, "ObjectIcons_DynamicSequence_nor", Icon);
 	SetV(EffectShareSetIconName, "ObjectIcons_EffectPlugin_nor", Icon);
 	SetV(EventIconName, "ObjectIcons_Event_nor", Icon);
-	SetV(ExpandAll, "GraphNode_ExpandAll", Icon);
 	SetV(ExternalSourceIconName, "ObjectIcons_ExternalSource_nor", Icon);
 	SetV(FolderIconName, "ObjectIcons_Folder_nor", Icon);
 	SetV(GameParameterIconName, "ObjectIcons_GameParameter_nor", Icon);
@@ -132,40 +122,16 @@ void FWwisePluginStyle::Initialize()
 
 	SetV("ClassIcon.AkAcousticPortal", "Integration_AcousticPortal_Icon", Icon);
 	SetV("ClassIcon.AkAmbientSound", "Integration_Object_Icon", Icon);
-	SetV("ClassIcon.AkAudioNode", "ObjectIcons_AudioObjectSound_nor", Icon);
-	SetV("ClassIcon.AkDialogueEvent", "ObjectIcons_DynamicSequenceItem_nor", Icon);
-	SetV("ClassIcon.AkDynamicSequence", "ObjectIcons_DynamicSequence_nor", Icon);
 	SetV("ClassIcon.AkReverbVolume", "Integration_ReverbVolume_Icon", Icon);
 	SetV("ClassIcon.AkSpatialAudioVolume", "Integration_SpatialAudioVolume_Icon", Icon);
 	SetV("ClassIcon.AkSpotReflector", "Integration_SpotReflector_Icon", Icon);
-	SetV("ClassIcon.AkAudioEvent", "ObjectIcons_Event_nor", Icon);
-	SetV("ClassIcon.AkAudioDevice", "ObjectIcons_AudioDevicePlugin_nor", Icon);
-	SetV("ClassIcon.AkAudioNode", "ObjectIcons_AudioObjectSound_nor", Icon);
-	SetV("ClassIcon.AkAuxBus", "ObjectIcons_AuxBus_nor", Icon);
-	SetV("ClassIcon.AkRtpc", "ObjectIcons_GameParameter_nor", Icon);
-	SetV("ClassIcon.AkEffectShareSet", "ObjectIcons_EffectPlugin_nor", Icon);
-	SetV("ClassIcon.AkInitBank", "ObjectIcons_SoundbankInit_nor", Icon);
-	SetV("ClassIcon.AkReverbVolume", "Integration_ReverbVolume", Icon);
-	SetV("ClassIcon.AkRtpc", "ObjectIcons_GameParameter_nor", Icon);
-	SetV("ClassIcon.AkSpatialAudioVolume", "Integration_SpatialAudioVolume", Icon);
-	SetV("ClassIcon.AkSpotReflector", "Integration_SpotReflector", Icon);
-	SetV("ClassIcon.AkStateValue", "ObjectIcons_State_nor", Icon);
-	SetV("ClassIcon.AkSwitchValue", "ObjectIcons_Switch_nor", Icon);
-	SetV("ClassIcon.AkTrigger", "ObjectIcons_Trigger_nor", Icon);
-	SetV("ClassIcon.WwiseAssetLibrary", "ObjectIcons_Asset_Library", Icon);
-	SetV("ClassIcon.WwiseSharedAssetLibraryFilter", "ObjectIcons_Asset_Library_Filter", Icon);
-	SetV("ClassIcon.AkAudioDeviceShareSet", "ObjectIcons_AudioDevicePlugin_nor", Icon);
-	SetV("ClassIcon.AkAcousticTexture", "ObjectIcons_AcousticTexture_nor", Icon);
 	
 	SetV("ClassThumbnail.AkAcousticPortal", "Integration_AcousticPortal", Thumbnail);
 	SetV("ClassThumbnail.AkAmbientSound", "Integration_Object", Thumbnail);
 	SetV("ClassThumbnail.AkAcousticTexture", "ObjectIcons_AcousticTexture_nor", Thumbnail);
 	SetV("ClassThumbnail.AkAudioDeviceShareSet", "ObjectIcons_AudioDevicePlugin_nor", Thumbnail);
 	SetV("ClassThumbnail.AkAudioEvent", "ObjectIcons_Event_nor", Thumbnail);
-	SetV("ClassThumbnail.AkAudioNode", "ObjectIcons_AudioObjectSound_nor", Thumbnail);
 	SetV("ClassThumbnail.AkAuxBus", "ObjectIcons_AuxBus_nor", Thumbnail);
-	SetV("ClassThumbnail.AkDialogueEvent", "ObjectIcons_DynamicSequenceItem_nor", Thumbnail);
-	SetV("ClassThumbnail.AkDynamicSequence", "ObjectIcons_DynamicSequence_nor", Thumbnail);
 	SetV("ClassThumbnail.AkEffectShareSet", "ObjectIcons_EffectPlugin_nor", Thumbnail);
 	SetV("ClassThumbnail.AkInitBank", "ObjectIcons_SoundbankInit_nor", Thumbnail);
 	SetV("ClassThumbnail.AkReverbVolume", "Integration_ReverbVolume", Thumbnail);
@@ -201,13 +167,6 @@ void FWwisePluginStyle::ShutdownWwisePluginStyle()
 	StyleInstance->Shutdown();
 	StyleInstance.Reset();
 }
-
-FName FWwisePluginStyle::GetWwisePluginStyleSetName()
-{
-	static FName StyleSetName(TEXT("WwisePluginStyle"));
-	return StyleSetName;
-}
-
 
 TSharedPtr< FWwisePluginStyle > FWwisePluginStyle::Get()
 {

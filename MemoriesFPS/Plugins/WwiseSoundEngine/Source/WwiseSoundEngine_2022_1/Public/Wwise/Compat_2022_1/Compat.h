@@ -19,13 +19,9 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include "Wwise/Compat_2022_1/AkAsyncFileOpenData.h"
 #include "Wwise/Compat_2022_1/AkSpatialAudio.h"
-#include "Wwise/Compat_2022_1/common_types.h"
 
 static constexpr auto AK_CannotAddItselfAsAChild = (AKRESULT)23;
 static constexpr auto AK_TooManyConcurrentOperations = (AKRESULT)105;
 static constexpr auto AK_InvalidFileSize = (AKRESULT)106;
 static constexpr auto AK_Deferred = (AKRESULT)107;
 static constexpr auto AK_FilePathTooLong = (AKRESULT)108;
-
-#define AK_DEFAULT_HEIGHT_ANGLE (30.0f)
-#define AK_INVALID_SAMPLE_POS 0xFFFFFFFF

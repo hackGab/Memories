@@ -33,7 +33,6 @@ public:
 	FWwiseSimpleExtSrcManager();
 	~FWwiseSimpleExtSrcManager();
 
-	void OnObjectReimported(UObject* ReimportedObject);
 	virtual void LoadMediaTables();
 	virtual void ReloadExternalSources();
 
@@ -64,7 +63,6 @@ protected:
 
 	TStrongObjectPtr<UDataTable> MediaInfoTable;
 	TStrongObjectPtr<UDataTable> ExternalSourceDefaultMedia;
-	FDelegateHandle PreReimportDelegateHandle;
 	FStreamableManager StreamableManager;
 	TMap<uint32, uint32> CookieToMediaId;
 	TMap<uint32, int> CookieLoadCount;

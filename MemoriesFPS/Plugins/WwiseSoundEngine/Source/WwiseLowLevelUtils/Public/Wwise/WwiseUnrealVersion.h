@@ -31,9 +31,3 @@ Copyright (c) 2025 Audiokinetic Inc.
 #ifndef UE_5_5_OR_LATER
 #define UE_5_5_OR_LATER   (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5)
 #endif
-#ifndef UE_5_6_OR_LATER
-#define UE_5_6_OR_LATER   (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 6)
-#endif
-#ifndef UE_5_7_OR_LATER
-#define UE_5_7_OR_LATER   (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 7)
-#endif

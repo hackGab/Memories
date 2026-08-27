@@ -73,6 +73,15 @@ public:
 		}
 
 		// Loading optional modules - Modules defined by Project Settings
+		bool bAkAudioMixerEnabled = false;
+		GConfig->GetBool(TEXT("/Script/AkAudio.AkSettings"), TEXT("bAkAudioMixerEnabled"), bAkAudioMixerEnabled, GGameIni);
+		if (bAkAudioMixerEnabled)
+		{
+			SCOPED_WWISE_EVENT(TEXT("StartupModule: AkAudioMixer"));
+			UE_LOG(LogWwise, Log, TEXT("WwiseModule: Loading AkAudioMixer"));
+			ModuleManager.LoadModule(TEXT("AkAudioMixer"));
+		}
+
 		bool bWwiseAudioLinkEnabled = false;
 		GConfig->GetBool(TEXT("/Script/AkAudio.AkSettings"), TEXT("bWwiseAudioLinkEnabled"), bWwiseAudioLinkEnabled, GGameIni);
 		if (bWwiseAudioLinkEnabled)

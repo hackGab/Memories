@@ -22,8 +22,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "IWwiseBrowserDataSource.h"
 #include "WwiseItemType.h"
 #include "../WwiseBrowserForwards.h"
-#include "WwiseDefines.h"
-#include "Wwise/WwiseTreeItem.h"
 
 class FJsonValue;
 class FJsonObject;
@@ -58,22 +56,6 @@ struct TransformStringField
 	const FString keyArg;
 	const TArray<FString> valueStringArgs;
 	const TArray<int32> valueNumberArgs;
-};
-
-enum EWaapiOperation
-{
-	WaapiOperationCreate,
-	WaapiOperationParentChange,
-	WaapiOperationNameChange,
-	WaapiOperationDelete
-};
-
-struct WaapiNotificationStruct
-{
-	const TSharedPtr<FJsonObject>* Object;
-	FGuid Guid;
-	const TSharedPtr<FJsonObject>* OperationInfo;
-	bool operator<(const WaapiNotificationStruct& Rhs) const;
 };
 
 class FWaapiDataSource : IWwiseBrowserDataSource
@@ -159,6 +141,8 @@ private:
 	FCriticalSection WaapiRootItemsLock;
 	TArray< FWwiseTreeItemPtr > RootItems;
 
+	TArray<FGuid> ItemsToCreate;
+
 	// Container paths along the Browser Tree
 	TMap<FString, FWwiseTreeItemPtr> NodesByPath;
 
@@ -174,23 +158,11 @@ private:
 
 	void OnWaapiClientBeginDestroyCallback();
 
-	void OnWwiseSelectionChanged(uint64_t Id, TSharedPtr<FJsonObject> Response);
-
-#if WWISE_2025_1_OR_LATER
-	void OnStructureChanged(uint64_t Id, TSharedPtr<FJsonObject> Response);
-	void OnWaapiChildAdded(const TSharedPtr<FJsonObject>*& ChildJsonPtr);
-	void OnWaapiRenamed(const TSharedPtr<FJsonObject>*& ChildJsonPtr, const TSharedPtr<FJsonObject>*& NameChange);
-#else
 	void OnWaapiRenamed(uint64_t Id, TSharedPtr<FJsonObject> Response);
 	void OnWaapiChildAdded(uint64_t Id, TSharedPtr<FJsonObject> Response);
 	void OnWaapiChildRemoved(uint64_t Id, TSharedPtr<FJsonObject> Response);
-	TArray<FGuid> ItemsToCreate;
-#endif
-	
-	void OnWaapiChildMoved(const TSharedPtr<FJsonObject>*& ChildJsonPtr, const TSharedPtr<FJsonObject>*& NameChange);
-	void NodeByPathCleanup(FWwiseTreeItemPtr& Root);
-	void UpdateChildrenPath(const FWwiseTreeItemPtr& Root, const FString& Path);
-	
+	void OnWwiseSelectionChanged(uint64_t Id, TSharedPtr<FJsonObject> Response);
+
 	void SubscribeWaapiCallbacks();
 
 	void UnsubscribeWaapiCallbacks();
@@ -202,7 +174,6 @@ private:
 		uint64 ChildAdded = 0;
 		uint64 ChildRemoved = 0;
 		uint64 SelectionChanged = 0;
-		uint64 StructureChanged = 0;
 	} WaapiSubscriptionIds;
 
 

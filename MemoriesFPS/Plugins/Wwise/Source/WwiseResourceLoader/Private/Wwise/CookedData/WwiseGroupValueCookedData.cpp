@@ -65,7 +65,7 @@ void FWwiseGroupValueCookedData::Serialize(FArchive& Ar)
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseGroupValueCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseGroupValueCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "GV";
 	Writer.BeginObject();
@@ -77,52 +77,4 @@ void FWwiseGroupValueCookedData::GetPlatformCookDependencies(FWwiseCookEventCont
 FString FWwiseGroupValueCookedData::GetDebugString() const
 {
 	return FString::Printf(TEXT("%s %s (%" PRIu32 ":%" PRIu32 ")"), *GetTypeName(), *DebugName.ToString(), GroupId, Id);
-}
-
-void FWwiseGroupValueCookedDataSet::Serialize(FArchive& Ar)
-{
-	UStruct* Struct = StaticStruct();
-	check(Struct);
-
-	if (Ar.WantBinaryPropertySerialization())
-	{
-		Struct->SerializeBin(Ar, this);
-	}
-	else
-	{
-		Struct->SerializeTaggedProperties(Ar, (uint8*)this, Struct, nullptr);
-	}
-}
-
-#if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseGroupValueCookedDataSet::GetPlatformCookDependencies(FWwiseCookEventContext& SaveContext, FCbWriter& Writer) const
-{
-	Writer << "GVS";
-	Writer.BeginArray();
-	for (auto& GroupValue : GroupValues)
-	{
-		GroupValue.GetPlatformCookDependencies(SaveContext, Writer);
-	}
-	Writer.EndArray();
-}
-#endif
-
-FString FWwiseGroupValueCookedDataSet::GetDebugString() const
-{
-	FString Result = TEXT("[");
-	bool Add = false;
-	for (const auto& GroupValue : GroupValues)
-	{
-		if (Add)
-		{
-			Result += TEXT(",");
-		}
-		else
-		{
-			Add = true;
-		}
-		Result += GroupValue.GetDebugString();
-	}
-	Result += TEXT("]");
-	return Result;
 }

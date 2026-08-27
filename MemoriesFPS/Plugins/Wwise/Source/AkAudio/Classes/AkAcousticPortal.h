@@ -54,10 +54,10 @@ public:
 	void DisablePortal();
 
 	/**
-	 * Returns an EAkAcousticPortalState, which represents current the state of the portal: Enabled or Disabled.
+	 * Returns an AkAcousticPortalState, which represents current the state of the portal: Enabled or Disabled.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkPortalComponent")
-	EAkAcousticPortalState GetCurrentState() const;
+	AkAcousticPortalState GetCurrentState() const;
 
 	/**
 	 * Returns a floating point number between 0 and 1 that represents the occlusion value applied to the portal. A value of 0 indicates that the portal is not occluded and a value of 1 indicates that it is completely occluded.
@@ -103,14 +103,11 @@ public:
 	UFUNCTION(BlueprintSetter, Category = "AkPortalComponent")
 	void SetDynamic(bool bInDynamic);
 
-	UFUNCTION(BlueprintSetter, Category = "AkPortalComponent")
-	void SetTransition(bool bInDynamic);
-
 	/**
 	 * Initially enables or disables the portal. When the portal is enabled, emitters positioned in the AkRoomComponent in front of and behind the portal emit through it.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AkPortalComponent")
-	EAkAcousticPortalState InitialState = EAkAcousticPortalState::Open;
+	AkAcousticPortalState InitialState = AkAcousticPortalState::Open;
 
 	/**
 	* The initial occlusion value applied to the portal. When the occlusion value is set to 0, the portal is not occluded, and when it is set to 1, the portal is completely occluded.
@@ -124,32 +121,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AkPortalComponent|Obstruction Occlusion", meta = (ClampMin = 0.f))
 	float ObstructionRefreshInterval = .0f;
 
-	/** Transition obstruction and occlusion through portals. Default false */
-	UPROPERTY(EditAnywhere, BlueprintSetter = SetTransition, BlueprintReadWrite, Category = "AkPortalComponent|Obstruction Occlusion", meta = (ClampMin = 0.f, DisplayName = "Transition"))
-	bool ObstructionOcclusionTransition = false;
-
 	/** Collision channel for obstruction checks; a direct line of sight between the current portal and an emitter, a listener, or another portal. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AkPortalComponent|Obstruction Occlusion")
 	TEnumAsByte<ECollisionChannel> ObstructionCollisionChannel = ECollisionChannel::ECC_Visibility;
-
-	/**
-	 * A scaling factor that manipulates reverb send values. Affects the proportion of audio sent to the adjacent room versus the proportion sent to the emitter's current room, for this particular portal.
-	 *
-	 * This value is multiplied by the global AkSpatialAudioInitSettings::fAdjacentRoomBleed, which scales reverb bleed for ALL portals.
-	 *
-	 * When calculating reverb send amounts, the portal's aperture is multiplied by AdjacentRoomBleed, altering its perceived size:
-	 * - 1.0 (Default): Maintain the portal at its true geometric size (no scaling).
-	 * - > 1.0: Increases the perceived portal size, allowing more bleed into adjacent rooms.
-	 * - < 1.0: Decreases the perceived portal size, reducing bleed into adjacent rooms.
-	 *
-	 * Valid range: [0.0 - infinity)
-	 * Note: Values approaching 0 may result in abrupt portal transitions.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintSetter = SetAdjacentRoomBleed, Category = "AkPortalComponent", meta = (ClampMin = 0.f))
-	float AdjacentRoomBleed = 1.0f;
-
-	UFUNCTION(BlueprintSetter, Category = "AkPortalComponent")
-	void SetAdjacentRoomBleed(float InAdjacentRoomBleed);
 
 	void ResetPortalState();
 	void ResetPortalOcclusion();
@@ -200,7 +174,7 @@ private:
 
 	void FindConnectedComponents(FAkEnvironmentIndex& RoomQuery, TWeakObjectPtr<UAkRoomComponent>& out_pFront, TWeakObjectPtr<UAkRoomComponent>& out_pBack);
 
-	EAkAcousticPortalState PortalState = EAkAcousticPortalState::Open;
+	AkAcousticPortalState PortalState = AkAcousticPortalState::Open;
 	float PortalOcclusion = 0.f;
 
 	static const float RoomsRefreshIntervalGame;
@@ -239,7 +213,6 @@ private:
 	// Updates the location, rotation and visibility of the text visualizers
 	void UpdateTextLocRotVis();
 	bool bWasSelected = false;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 #if WITH_EDITORONLY_DATA
@@ -266,7 +239,7 @@ public:
 	void DisablePortal();
 
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkAcousticPortal")
-	EAkAcousticPortalState GetCurrentState() const;
+	AkAcousticPortalState GetCurrentState() const;
 
 	UPROPERTY(VisibleAnywhere, Category = "AcousticPortal", BlueprintReadOnly, meta = (ShowOnlyInnerProperties))
 	TObjectPtr<UAkPortalComponent> Portal = nullptr;
@@ -351,7 +324,7 @@ protected:
 private:
 	/** As of Wwise 2020.1, the InitialState is contained in the AkPortalComponent */
 	UPROPERTY()
-	EAkAcousticPortalState InitialState;
+	AkAcousticPortalState InitialState;
 
 	UPROPERTY(Transient)
 	bool bRequiresStateMigration = false;

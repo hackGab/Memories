@@ -78,7 +78,7 @@ bool FWwiseTreeItem::IsRenamedInSoundBank() const
 		return false;
 	}
 	FString NameToCompare = DisplayName;
-	if(IsInGroup())
+	if(IsOfType({ EWwiseItemType::Switch , EWwiseItemType::State }))
 	{
 		NameToCompare = GetSwitchAssetName();
 	}
@@ -88,11 +88,6 @@ bool FWwiseTreeItem::IsRenamedInSoundBank() const
 bool FWwiseTreeItem::IsUAssetMissing() const
 {
 	return WwiseBankRefExists() && !UEAssetExists();
-}
-
-bool FWwiseTreeItem::IsInWAAPIAndUnreal() const
-{
-	return WaapiRefExists() && !WwiseBankRefExists() && UEAssetExists();
 }
 
 bool FWwiseTreeItem::IsUAssetOrphaned() const
@@ -168,26 +163,6 @@ bool FWwiseTreeItem::IsFolder() const
 					});
 }
 
-bool FWwiseTreeItem::IsInGroup() const
-{
-	return IsOfType({ EWwiseItemType::Switch, EWwiseItemType::State });
-}
-
-bool FWwiseTreeItem::IsUnusedEffect() const
-{
-	return IsOfType({ EWwiseItemType::EffectShareSet }) && IsNewInWwise();
-}
-
-bool FWwiseTreeItem::IsUnusedTrigger() const
-{
-	return IsOfType({ EWwiseItemType::Trigger }) && IsNewInWwise();
-}
-
-bool FWwiseTreeItem::IsUnusedItem() const
-{
-	return IsUnusedEffect() || IsUnusedTrigger();
-}
-
 bool FWwiseTreeItem::IsAuxBus() const
 {
 	return IsOfType({
@@ -236,7 +211,7 @@ FString FWwiseTreeItem::GetSwitchAssetName() const
 
 const FString FWwiseTreeItem::GetDefaultAssetName() const
 {
-	if (IsInGroup())
+	if (IsOfType({ EWwiseItemType::Switch , EWwiseItemType::State }))
 	{
 		return GetSwitchAssetName();
 	}
@@ -310,8 +285,6 @@ bool FWwiseTreeItem::IsBrowserType() const
 			EWwiseItemType::Bus,
 			EWwiseItemType::AuxBus,
 			EWwiseItemType::AcousticTexture,
-			EWwiseItemType::AudioDeviceShareSet,
-			EWwiseItemType::DialogueEvent,
 			EWwiseItemType::State,
 			EWwiseItemType::Switch,
 			EWwiseItemType::GameParameter,

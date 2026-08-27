@@ -50,7 +50,7 @@ void FWwiseAcousticTextureCookedData::Serialize(FArchive& Ar)
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseAcousticTextureCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseAcousticTextureCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "AT";
 	Writer.BeginObject();

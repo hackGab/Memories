@@ -36,7 +36,7 @@ public:
 		int32 WwiseShortId,
 		const FString& WwiseName,
 		EWwiseEventSwitchContainerLoading SwitchContainerLoading,
-		EWwiseAssetDestroyOptions DestroyOptions,
+		EWwiseEventDestroyOptions DestroyOptions,
 		int32 HardCodedSoundBankShortId = 0)
 	{
 		return FWwiseEventInfo(WwiseGuid, (uint32)WwiseShortId, FName(WwiseName), SwitchContainerLoading, DestroyOptions, (uint32)HardCodedSoundBankShortId);
@@ -50,7 +50,7 @@ public:
 		int32& OutWwiseShortId,
 		FString& OutWwiseName,
 		EWwiseEventSwitchContainerLoading& OutSwitchContainerLoading,
-		EWwiseAssetDestroyOptions& OutDestroyOptions,
+		EWwiseEventDestroyOptions& OutDestroyOptions,
 		int32& OutHardCodedSoundBankShortId)
 	{
 		OutWwiseGuid = Ref.WwiseGuid;
@@ -99,7 +99,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Wwise|Event Info", Meta = (BlueprintThreadSafe))
 	static
-	UPARAM(DisplayName="Destroy Options") EWwiseAssetDestroyOptions
+	UPARAM(DisplayName="Destroy Options") EWwiseEventDestroyOptions
 	GetDestroyOptions(
 		UPARAM(DisplayName="Event Info") const FWwiseEventInfo& Ref)
 	{
@@ -168,7 +168,7 @@ public:
 	UPARAM(DisplayName="Struct Out") FWwiseEventInfo
 	SetDestroyOptions(
 		UPARAM(DisplayName="Event Info") const FWwiseEventInfo& Ref,
-		const EWwiseAssetDestroyOptions& DestroyOptions)
+		const EWwiseEventDestroyOptions& DestroyOptions)
 	{
 		auto Result = Ref;
 		Result.DestroyOptions = DestroyOptions;

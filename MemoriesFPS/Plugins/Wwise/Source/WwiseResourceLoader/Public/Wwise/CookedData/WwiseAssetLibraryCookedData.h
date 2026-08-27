@@ -17,7 +17,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
-#include "WwiseCookEventContext.h"
 #include "Wwise/WwisePackagedFile.h"
 
 #include "WwiseAssetLibraryCookedData.generated.h"
@@ -34,7 +33,7 @@ public:
 	virtual void Serialize(FArchive& Ar);
 	virtual void SerializeBulkData(FArchive& Ar, const FWwisePackagedFileSerializationOptions& Options);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
+	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
 #endif
 
 	virtual FString GetDebugString() const;

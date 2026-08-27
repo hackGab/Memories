@@ -17,8 +17,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
-#include "WwiseDefines.h"
-
 #include "Containers/UnrealString.h"
 #include "Engine/EngineTypes.h"
 
@@ -29,14 +27,13 @@ namespace EWwiseItemType
 	{
 		Event,
 		AuxBus,
-		Switch,
-		State,
-		GameParameter,
-		DialogueEvent,
-		EffectShareSet,
-		Trigger,
 		AcousticTexture,
 		AudioDeviceShareSet,
+		State,
+		Switch,
+		GameParameter,
+		Trigger,
+		EffectShareSet,
 		ActorMixer,
 		Bus,
 		Project,
@@ -52,20 +49,18 @@ namespace EWwiseItemType
 		StateGroup,
 		SwitchGroup,
 		InitBank,
-		AudioNode,
-		LastWwiseBrowserType = AudioDeviceShareSet,
+		LastWwiseBrowserType = EffectShareSet,
 
 		None = -1,
 	};
 
 	static const FString EventsBrowserName = TEXT("Events");
-	static const FString DialogueEventsBrowserName = TEXT("Dynamic Dialogue");
 	static const FString BussesBrowserName = TEXT("Busses");
-	static const FString AcousticTexturesBrowserName = TEXT("Virtual Acoustics");
-	static const FString AudioDeviceShareSetBrowserName = TEXT("Device ShareSets");
+	static const FString AcousticTexturesBrowserName = TEXT("AcousticTextures");
+	static const FString AudioDeviceShareSetBrowserName = TEXT("Audio Device ShareSets");
 	static const FString StatesBrowserName = TEXT("States");
 	static const FString SwitchesBrowserName = TEXT("Switches");
-	static const FString GameParametersBrowserName = TEXT("Game Parameters");
+	static const FString GameParametersBrowserName = TEXT("GameParameters");
 	static const FString TriggersBrowserName = TEXT("Triggers");
 	static const FString ShareSetsBrowserName =	TEXT("Effect ShareSets");
 	static const FString OrphanAssetsBrowserName = TEXT("Orphan Assets");
@@ -73,7 +68,6 @@ namespace EWwiseItemType
 	//Name to show in the Browser
 	static const FString BrowserDisplayNames[] = {
 		EventsBrowserName,
-		DialogueEventsBrowserName,
 		BussesBrowserName,
 		AcousticTexturesBrowserName,
 		AudioDeviceShareSetBrowserName,
@@ -85,26 +79,46 @@ namespace EWwiseItemType
 		OrphanAssetsBrowserName
 	};
 
+	//Tag in the work unit XML for this WwiseObjectType
+	static const FString WorkUnitTagNames[] = {
+		TEXT("Events"),
+		TEXT("Busses"),
+		TEXT("VirtualAcoustics"),
+		TEXT("AudioDevices"),
+		TEXT("States"),
+		TEXT("Switches"),
+		TEXT("GameParameters"),
+		TEXT("Triggers"),
+		TEXT("Effects"),
+	};
+
 	//Name of the folder containing the work units of this WwiseObjectType
 	static const FString FolderNames[] = {
 		TEXT("Events"),
-#if WWISE_2025_1_OR_LATER
-		TEXT("Busses"),
-#else
 		TEXT("Master-Mixer Hierarchy"),
-#endif
-		TEXT("Switches"),
-		TEXT("States"),
-		TEXT("Game Parameters"),
-		TEXT("Dynamic Dialogue"),
-		TEXT("Effects"),
-		TEXT("Triggers"),
 		TEXT("Virtual Acoustics"),
-#if WWISE_2025_1_OR_LATER
-		TEXT("Devices")
-#else
-		TEXT("Audio Devices")
-#endif
+		TEXT("Audio Devices"),
+		TEXT("States"),
+		TEXT("Switches"),
+		TEXT("Game Parameters"),
+		TEXT("Triggers"),
+		TEXT("Effects")
+	};
+
+	static const TArray<FString> PhysicalFoldersToIgnore = {
+		TEXT("Actor-Mixer Hierarchy"),
+		TEXT("Attenuations"),
+		TEXT("Control Surface Sessions"),
+		TEXT("Conversion Settings"),
+		TEXT("Dynamic Dialogue"),
+		TEXT("Interactive Music Hierarchy"),
+		TEXT("Metadata"),
+		TEXT("Mixing Sessions"),
+		TEXT("Modulators"),
+		TEXT("Presets"),
+		TEXT("Queries"),
+		TEXT("SoundBanks"),
+		TEXT("Soundcaster Sessions"),
 	};
 
 	inline Type FromString(const FString& ItemName)
@@ -122,7 +136,6 @@ namespace EWwiseItemType
 			{TEXT("AuxBus"), Type::AuxBus},
 			{TEXT("BlendContainer"), Type::BlendContainer},
 			{TEXT("Bus"), Type::Bus},
-			{TEXT("DialogueEvent"), Type::DialogueEvent},
 			{TEXT("Event"), Type::Event},
 			{TEXT("Folder"), Type::Folder},
 			{TEXT("GameParameter"), Type::GameParameter},
@@ -140,6 +153,37 @@ namespace EWwiseItemType
 			{TEXT("WorkUnit"), Type::StandaloneWorkUnit},
 			{TEXT("Effect"), Type::EffectShareSet},
 
+		};
+
+		for (const auto& type : ValidTypes)
+		{
+			if (type.Name == ItemName)
+			{
+				return type.Value;
+			}
+		}
+
+		return Type::None;
+	}
+
+	inline Type FromFolderName(const FString& ItemName)
+	{
+		struct TypePair
+		{
+			FString Name;
+			Type Value;
+		};
+
+		static const TypePair ValidTypes[] = {
+			{TEXT("Virtual Acoustics"), Type::AcousticTexture},
+			{TEXT("Audio Devices"), Type::AudioDeviceShareSet},
+			{TEXT("Master-Mixer Hierarchy"), Type::AuxBus},
+			{TEXT("Events"), Type::Event},
+			{TEXT("Game Parameters"), Type::GameParameter},
+			{TEXT("States"), Type::State},
+			{TEXT("Switches"), Type::Switch},
+			{TEXT("Triggers"), Type::Trigger},
+			{TEXT("Effects"), Type::EffectShareSet},
 		};
 
 		for (const auto& type : ValidTypes)

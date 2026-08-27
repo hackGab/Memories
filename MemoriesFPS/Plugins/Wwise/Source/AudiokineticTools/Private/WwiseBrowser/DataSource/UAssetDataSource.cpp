@@ -78,9 +78,7 @@ void FUAssetDataSource::ConstructItems()
 	{
 		auto AssetType = WwiseBrowserHelpers::GetTypeFromClass(Asset.GetClass());
 		
-		if (AssetType == EWwiseItemType::None ||
-			AssetType == EWwiseItemType::InitBank ||
-			AssetType == EWwiseItemType::AudioNode)
+		if (AssetType == EWwiseItemType::InitBank)
 		{
 			continue;
 		}

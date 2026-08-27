@@ -43,7 +43,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Widgets/Input/SButton.h"
 
 #include "Editor.h"
-#include "Wwise/WwisePluginStyle.h"
 
 #define LOCTEXT_NAMESPACE "MovieSceneWwiseGameParameterTrackEditor"
 
@@ -99,7 +98,7 @@ TSharedRef<ISequencerSection> FMovieSceneWwiseGameParameterTrackEditor::MakeSect
 
 const FSlateBrush* FMovieSceneWwiseGameParameterTrackEditor::GetIconBrush() const
 {
-	return FAkAudioStyle::GetBrush("Wwise.GameParameterIcon");
+	return FAkAudioStyle::Get().GetBrush("Wwise.GameParameterIcon");
 }
 
 
@@ -305,9 +304,9 @@ void FMovieSceneWwiseGameParameterTrackEditor::BuildAddTrackMenu(FMenuBuilder& M
 	};
 
 	MenuBuilder.AddMenuEntry(
-		LOCTEXT("AddAkAudioGameParameterTrack", "Wwise Game Parameter"),
+		LOCTEXT("AddAkAudioGameParameterTrack", "GameParameter"),
 		LOCTEXT("AddAkAudioGameParameterMasterTrackTooltip", "Adds a master Game Parameter track."),
-		FSlateIcon(FWwisePluginStyle::GetWwisePluginStyleSetName(), "Wwise.GameParameterIcon"),
+		FSlateIcon(FAkAudioStyle::GetStyleSetName(), "Wwise.GameParameterIcon"),
 		FUIAction(FExecuteAction::CreateLambda([this, CreateAkAudioRTPCTrack = MoveTemp(CreateAkAudioRTPCTrack)]
 		{
 			TryAddWwiseGameParameterTrack(FCreateWwiseGameParameterTrack::CreateLambda(CreateAkAudioRTPCTrack));
@@ -333,9 +332,9 @@ void FMovieSceneWwiseGameParameterTrackEditor::BuildObjectBindingTrackMenu(FMenu
 	auto CreateAkAudioRTPCTrack = [=](UMovieScene* MovieScene) { return MovieScene->AddTrack<UMovieSceneWwiseGameParameterTrack>(ObjectBinding); };
 
 	MenuBuilder.AddMenuEntry(
-		LOCTEXT("AddWwiseGameParameterTrack", "Wwise Game Parameter"),
+		LOCTEXT("AddWwiseGameParameterTrack", "WwiseGameParameter"),
 		LOCTEXT("AddWwiseGameParameterTrackTooltip", "Adds a Game Parameter track."),
-		FSlateIcon(FWwisePluginStyle::GetWwisePluginStyleSetName(), "Wwise.GameParameterIcon"),
+		FSlateIcon(FAkAudioStyle::GetStyleSetName(), "Wwise.GameParameterIcon"),
 		FUIAction(FExecuteAction::CreateLambda([this, CreateAkAudioRTPCTrack = MoveTemp(CreateAkAudioRTPCTrack)]
 		{
 			TryAddWwiseGameParameterTrack(FCreateWwiseGameParameterTrack::CreateLambda(CreateAkAudioRTPCTrack));

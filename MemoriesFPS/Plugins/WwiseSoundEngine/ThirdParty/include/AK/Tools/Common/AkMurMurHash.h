@@ -86,16 +86,4 @@ AkForceInline void AkHashMurMur32( AkUInt32* pHash, const void* pData, size_t uS
 	*pHash = uH1;
 }
 
-// Given an already hashed/mixed uHash, mix in uExtraValue as well
-AkForceInline AkUInt32 AkHashMurMurMixExtra32(AkUInt32 uHash, AkUInt32 uExtraValue)
-{
-	uExtraValue *= MURMUR3_C1;
-	uExtraValue = AK::ROTL32(uExtraValue, 15);
-	uExtraValue *= MURMUR3_C2;
-	uHash ^= uExtraValue;
-	uHash = AK::ROTL32(uHash, 13);
-	uHash = uHash * 5 + MURMUR3_C3;
-	return uHash;
-}
-
 #endif // _AKMURMURHASH_H_

@@ -35,7 +35,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedAssetLibraryInfo
 		FLoadedData& operator=(const FLoadedData&) = delete;
 
 		bool bLoaded = false;
-		std::atomic<int> IsProcessing{0};
+		int IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;

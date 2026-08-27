@@ -31,11 +31,8 @@ public:
 	EWwiseExportDebugNameRule ExportDebugNameRule;
 	EWwisePackagingStrategy TargetPackagingStrategy;
 
-	virtual void CookAudioNode(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename,
-		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookAuxBus(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename,
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
-	virtual void CookDialogueEvent(const FWwiseDialogueEventInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookEvent(const FWwiseEventInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookExternalSource(uint32 InCookie, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookInitBank(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename, const WriteAdditionalFileFunction& WriteAdditionalFile) override;
@@ -52,9 +49,7 @@ public:
 	virtual void PrepareAssetLibrary(UObject* Owner, FWwiseAssetLibraryCookedData& OutCookedData, bool bPackageAssets) override;
 	virtual bool PrepareCookedData(FWwiseAcousticTextureCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) override;
 	virtual bool PrepareCookedData(FWwiseAudioDeviceShareSetCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) override;
-	virtual bool PrepareCookedData(FWwiseAudioNodeCookedData& OutCookedData, const UObject* Owner, const FWwiseObjectInfo& InInfo) override;
 	virtual bool PrepareCookedData(FWwiseLocalizedAuxBusCookedData& OutCookedData, const UObject* Owner, const FWwiseObjectInfo& InInfo) override;
-	virtual bool PrepareCookedData(FWwiseLocalizedDialogueEventCookedData& OutCookedData, const UObject* Owner, const FWwiseDialogueEventInfo& InInfo) override;
 	virtual bool PrepareCookedData(FWwiseLocalizedEventCookedData& OutCookedData, const UObject* Owner, const FWwiseEventInfo& InInfo) override;
 	virtual bool PrepareCookedData(FWwiseExternalSourceCookedData& OutCookedData, uint32 InCookie) override;
 	virtual bool PrepareCookedData(FWwiseGameParameterCookedData& OutCookedData, const FWwiseObjectInfo& InInf) override;
@@ -99,17 +94,11 @@ protected:
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookLocalizedSoundBankToSandbox(const FWwiseLocalizedSoundBankCookedData& InCookedData, const TCHAR* PackageFilename,
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
-	virtual void CookLocalizedDialogueEventToSandbox(const FWwiseLocalizedDialogueEventCookedData& InCookedData, const TCHAR* PackageFilename,
-		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookLocalizedEventToSandbox(const FWwiseLocalizedEventCookedData& InCookedData, const TCHAR* PackageFilename,
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookLocalizedShareSetToSandbox(const FWwiseLocalizedShareSetCookedData& InCookedData, const TCHAR* PackageFilename,
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
-	virtual void CookAudioNodeToSandbox(const FWwiseAudioNodeCookedData& InCookedData, const TCHAR* PackageFilename,
-		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookAuxBusToSandbox(const FWwiseAuxBusCookedData& InCookedData, const TCHAR* PackageFilename,
-		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
-	virtual void CookDialogueEventToSandbox(const FWwiseDialogueEventCookedData& InCookedData, const TCHAR* PackageFilename,
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
 	virtual void CookEventToSandbox(const FWwiseEventCookedData& InCookedData, const TCHAR* PackageFilename,
 		const WriteAdditionalFileFunction& WriteAdditionalFile) override;
@@ -129,9 +118,7 @@ protected:
 
 	virtual bool GetAcousticTextureCookedData(FWwiseAcousticTextureCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) const override;
 	virtual bool GetAudioDeviceShareSetCookedData(FWwiseAudioDeviceShareSetCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) const override;
-	virtual bool GetAudioNodeCookedData(FWwiseAudioNodeCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseObjectInfo& InInfo) const override;
 	virtual bool GetAuxBusCookedData(FWwiseLocalizedAuxBusCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseObjectInfo& InInfo) const override;
-	virtual bool GetDialogueEventCookedData(FWwiseLocalizedDialogueEventCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseDialogueEventInfo& InInfo) const override;
 	virtual bool GetEventCookedData(FWwiseLocalizedEventCookedData& OutCookedData, const TCHAR* ContentFolderName, const FWwiseEventInfo& InInfo) const override;
 	virtual bool GetExternalSourceCookedData(FWwiseExternalSourceCookedData& OutCookedData, uint32 InCookie) const override;
 	virtual bool GetGameParameterCookedData(FWwiseGameParameterCookedData& OutCookedData, const FWwiseObjectInfo& InInfo) const override;

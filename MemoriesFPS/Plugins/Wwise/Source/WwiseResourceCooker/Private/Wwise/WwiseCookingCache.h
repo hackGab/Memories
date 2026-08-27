@@ -17,7 +17,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
-#include "Wwise/Info/WwiseDialogueEventInfo.h"
 #include "Wwise/Info/WwiseEventInfo.h"
 #include "Wwise/Info/WwiseGroupValueInfo.h"
 #include "Wwise/CookedData/WwiseAcousticTextureCookedData.h"
@@ -25,7 +24,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/CookedData/WwiseInitBankCookedData.h"
 #include "Wwise/CookedData/WwiseLocalizedAuxBusCookedData.h"
 #include "Wwise/CookedData/WwiseLocalizedSoundBankCookedData.h"
-#include "Wwise/CookedData/WwiseLocalizedDialogueEventCookedData.h"
 #include "Wwise/CookedData/WwiseLocalizedEventCookedData.h"
 #include "Wwise/CookedData/WwiseLocalizedShareSetCookedData.h"
 #include "Wwise/CookedData/WwiseGameParameterCookedData.h"
@@ -45,10 +43,8 @@ public:
 	{}
 
 	TMap<FName, FString> StagedFiles;
-	TMap<FWwiseObjectInfo, FWwiseAudioNodeCookedData> AudioNodeCache;
 	TMap<FWwiseObjectInfo, FWwiseLocalizedAuxBusCookedData> AuxBusCache;
 	TMap<FWwiseObjectInfo, FWwiseLocalizedSoundBankCookedData> SoundBankCache;
-	TMap<FWwiseDialogueEventInfo, FWwiseLocalizedDialogueEventCookedData> DialogueEventCache;
 	TMap<FWwiseEventInfo, FWwiseLocalizedEventCookedData> EventCache;
 	TMap<uint32, FWwiseExternalSourceCookedData> ExternalSourceCache;
 	TMap<FWwiseObjectInfo, FWwiseInitBankCookedData> InitBankCache;

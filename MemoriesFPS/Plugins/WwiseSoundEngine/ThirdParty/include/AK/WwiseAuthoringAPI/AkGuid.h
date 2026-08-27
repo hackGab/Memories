@@ -48,16 +48,6 @@ namespace AK
 				memcpy( this, &other, sizeof other );
 			}
 
-			AkGuid(uint32_t d1, uint16_t d2, uint16_t d3,
-				uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3,
-				uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7) :
-				data1(d1),
-				data2(d2),
-				data3(d3),
-				data4{ b0, b1, b2, b3, b4, b5, b6, b7 }
-			{
-			}
-
 		#ifdef GUID_DEFINED
 			AkGuid( const GUID& guid )
 			{
@@ -97,17 +87,6 @@ namespace AK
 			{
 				memcpy( this, &other, sizeof other );
 				return *this;
-			}
-
-			bool operator<(const AkGuid& other) const
-			{
-				if (data1 != other.data1)
-					return data1 < other.data1;
-				if (data2 != other.data2)
-					return data2 < other.data2;
-				if (data3 != other.data3)
-					return data3 < other.data3;
-				return std::memcmp(data4, other.data4, 8) < 0;
 			}
 
 			inline bool IsNull() const

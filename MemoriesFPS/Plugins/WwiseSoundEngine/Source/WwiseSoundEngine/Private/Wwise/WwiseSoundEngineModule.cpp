@@ -19,6 +19,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/API/WwiseCommAPI.h"
 #include "Wwise/API/WwiseMemoryMgrAPI.h"
 #include "Wwise/API/WwiseMonitorAPI.h"
+#include "Wwise/API/WwiseMusicEngineAPI.h"
 #include "Wwise/API/WwiseSoundEngineAPI.h"
 #include "Wwise/API/WwiseSpatialAudioAPI.h"
 #include "Wwise/API/WwiseStreamMgrAPI.h"
@@ -35,6 +36,7 @@ IMPLEMENT_MODULE(FWwiseSoundEngineModule, WwiseSoundEngine)
 IWwiseCommAPI* IWwiseSoundEngineModule::Comm = nullptr;
 IWwiseMemoryMgrAPI* IWwiseSoundEngineModule::MemoryMgr = nullptr;
 IWwiseMonitorAPI* IWwiseSoundEngineModule::Monitor = nullptr;
+IWwiseMusicEngineAPI* IWwiseSoundEngineModule::MusicEngine = nullptr;
 IWwiseSoundEngineAPI* IWwiseSoundEngineModule::SoundEngine = nullptr;
 IWwiseSpatialAudioAPI* IWwiseSoundEngineModule::SpatialAudio = nullptr;
 IWwiseStreamMgrAPI* IWwiseSoundEngineModule::StreamMgr = nullptr;
@@ -53,13 +55,16 @@ void FWwiseSoundEngineModule::StartupModule()
 	Comm = VersionInterface->GetComm();
 	MemoryMgr = VersionInterface->GetMemoryMgr();
 	Monitor = VersionInterface->GetMonitor();
+	MusicEngine = VersionInterface->GetMusicEngine();
 	SoundEngine = VersionInterface->GetSoundEngine();
 	SpatialAudio = VersionInterface->GetSpatialAudio();
 	StreamMgr = VersionInterface->GetStreamMgr();
 
 	Platform = VersionInterface->GetPlatform();
 
-	SoundEngine->SetAssertHook(WwiseAssertHook);
+#if defined(AK_ENABLE_ASSERTS)
+	g_pAssertHook = WwiseAssertHook;
+#endif
 }
 
 void FWwiseSoundEngineModule::ShutdownModule()
@@ -85,6 +90,7 @@ void FWwiseSoundEngineModule::DeleteInterface()
 	delete Comm; Comm = nullptr;
 	delete MemoryMgr; MemoryMgr = nullptr;
 	delete Monitor; Monitor = nullptr;
+	delete MusicEngine; MusicEngine = nullptr;
 	delete SoundEngine; SoundEngine = nullptr;
 	delete SpatialAudio; SpatialAudio = nullptr;
 	delete StreamMgr; StreamMgr = nullptr;

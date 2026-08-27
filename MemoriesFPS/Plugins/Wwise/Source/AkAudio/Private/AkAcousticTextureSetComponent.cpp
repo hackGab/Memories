@@ -26,7 +26,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 UAkAcousticTextureSetComponent::UAkAcousticTextureSetComponent(const class FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent Ctor"));
 	PrimaryComponentTick.bCanEverTick = true;
 	bTickInEditor = true;
 #if WITH_EDITOR
@@ -39,7 +38,6 @@ UAkAcousticTextureSetComponent::UAkAcousticTextureSetComponent(const class FObje
 
 void UAkAcousticTextureSetComponent::OnRegister()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::OnRegister"));
 	Super::OnRegister();
 #if WITH_EDITOR
 	RegisterAllTextureParamCallbacks();
@@ -59,7 +57,6 @@ void UAkAcousticTextureSetComponent::OnRegister()
 
 void UAkAcousticTextureSetComponent::OnUnregister()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::OnUnregister"));
 #if WITH_EDITOR
 	UnregisterTextureParamChangeCallbacks();
 	UAkSettings* AkSettings = GetMutableDefault<UAkSettings>();
@@ -80,7 +77,6 @@ void UAkAcousticTextureSetComponent::BeginPlay()
 
 void UAkAcousticTextureSetComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::TickComponent"));
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (SecondsSinceDampingUpdate < PARAM_ESTIMATION_UPDATE_PERIOD)
@@ -105,7 +101,6 @@ void UAkAcousticTextureSetComponent::TickComponent(float DeltaTime, enum ELevelT
 
 void UAkAcousticTextureSetComponent::SetReverbDescriptor(FAkReverbDescriptor* reverbDescriptor)
 {
-	SCOPED_AKAUDIO_EVENT(TEXT("UAkAcousticTextureSetComponent::SetReverbDescriptor"));
 	ReverbDescriptor = reverbDescriptor;
 #if WITH_EDITOR
 	UnregisterTextureParamChangeCallbacks();
@@ -128,7 +123,6 @@ void UAkAcousticTextureSetComponent::RecalculateHFDamping()
 #if WITH_EDITOR
 void UAkAcousticTextureSetComponent::BeginDestroy()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::BeginDestroy"));
 	Super::BeginDestroy();
 	if (AkSpatialAudioHelper::GetObjectReplacedEvent())
 	{
@@ -138,7 +132,6 @@ void UAkAcousticTextureSetComponent::BeginDestroy()
 
 void UAkAcousticTextureSetComponent::HandleObjectsReplaced(const TMap<UObject*, UObject*>& ReplacementMap)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::HandleObjectsReplaced"));
 	auto ValuePtr = ReplacementMap.Find(this);
 	if (ValuePtr && *ValuePtr)
 	{
@@ -155,7 +148,6 @@ void UAkAcousticTextureSetComponent::HandleObjectsReplaced(const TMap<UObject*, 
 
 void UAkAcousticTextureSetComponent::RegisterReverbRTPCChangedCallback()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::RegisterReverbRTPCChangedCallback"));
 	UAkSettings* AkSettings = GetMutableDefault<UAkSettings>();
 	if (AkSettings != nullptr)
 	{
@@ -170,7 +162,6 @@ void UAkAcousticTextureSetComponent::RegisterReverbRTPCChangedCallback()
 
 void UAkAcousticTextureSetComponent::RegisterTextureParamChangeCallback(FGuid textureID)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::RegisterTextureParamChangeCallback"));
 	UAkSettings* AkSettings = GetMutableDefault<UAkSettings>();
 	if (AkSettings != nullptr)
 	{
@@ -192,7 +183,6 @@ void UAkAcousticTextureSetComponent::RegisterTextureParamChangeCallback(FGuid te
 
 void UAkAcousticTextureSetComponent::UnregisterTextureParamChangeCallbacks()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::UnregisterTextureParamChangeCallbacks"));
 	UAkSettings* AkSettings = GetMutableDefault<UAkSettings>();
 	if (AkSettings != nullptr)
 	{
@@ -218,7 +208,6 @@ bool UAkAcousticTextureSetComponent::ShouldSendGeometry() const
 
 void UAkAcousticTextureSetComponent::SendGeometryToWwise(const AkGeometryParams& params)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::SendGeometryToWwise"));
 	if (ShouldSendGeometry())
 	{
 		FAkAudioDevice* AkAudioDevice = FAkAudioDevice::Get();
@@ -229,7 +218,6 @@ void UAkAcousticTextureSetComponent::SendGeometryToWwise(const AkGeometryParams&
 
 void UAkAcousticTextureSetComponent::SendGeometryInstanceToWwise(const FRotator& rotation, const FVector& location, const FVector& scale, bool useForReflectionAndDiffraction, bool solid, bool bypassPortalSubtraction)
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::SendGeometryInstanceToWwise"));
 	if (ShouldSendGeometry() && GeometryHasBeenSent)
 	{
 		AkVector front, up;
@@ -258,7 +246,6 @@ void UAkAcousticTextureSetComponent::SendGeometryInstanceToWwise(const FRotator&
 
 void UAkAcousticTextureSetComponent::RemoveGeometryFromWwise()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::RemoveGeometryFromWwise"));
 	if (GeometryHasBeenSent)
 	{
 		FAkAudioDevice* AkAudioDevice = FAkAudioDevice::Get();
@@ -272,7 +259,6 @@ void UAkAcousticTextureSetComponent::RemoveGeometryFromWwise()
 
 void UAkAcousticTextureSetComponent::RemoveGeometryInstanceFromWwise()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAcousticTextureSetComponent::RemoveGeometryInstanceFromWwise"));
 	if (GeometryInstanceHasBeenSent)
 	{
 		FAkAudioDevice* AkAudioDevice = FAkAudioDevice::Get();

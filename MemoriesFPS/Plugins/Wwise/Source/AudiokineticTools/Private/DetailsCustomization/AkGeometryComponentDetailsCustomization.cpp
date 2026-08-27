@@ -139,7 +139,7 @@ void FAkGeometryComponentDetailsCustomization::CustomizeDetails(IDetailLayoutBui
 	FOnRefreshDetails refreshDetails = FOnRefreshDetails::CreateSP(this, &FAkGeometryComponentDetailsCustomization::RefreshDetails);
 	ComponentBeingCustomized->SetOnRefreshDetails(refreshDetails);
 
-	if (ComponentBeingCustomized->MeshType == EAkMeshType::StaticMesh)
+	if (ComponentBeingCustomized->MeshType == AkMeshType::StaticMesh)
 	{
 		InDetailBuilder.HideProperty("CollisionMeshSurfaceOverride");
 		if (ObjectsBeingCustomized.Num() == 1)
@@ -214,7 +214,7 @@ void FAkGeometryComponentDetailsCustomization::CustomizeDetails(IDetailLayoutBui
 			}
 		}
 	}
-	else if (ComponentBeingCustomized->MeshType == EAkMeshType::CollisionMesh)
+	else if (ComponentBeingCustomized->MeshType == AkMeshType::CollisionMesh)
 	{
 		InDetailBuilder.HideProperty("LOD");
 		InDetailBuilder.HideProperty("WeldingThreshold");

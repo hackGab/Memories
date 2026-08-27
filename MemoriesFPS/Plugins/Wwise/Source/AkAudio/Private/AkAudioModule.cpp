@@ -23,7 +23,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "WwiseUnrealDefines.h"
 
 #include "Wwise/Packaging/WwiseAssetLibrary.h"
-#include "Wwise/WwiseFileHandlerModule.h"
 #include "Wwise/WwiseResourceLoader.h"
 #include "Wwise/WwiseSoundEngineModule.h"
 #include "WwiseInitBankLoader/WwiseInitBankLoader.h"
@@ -31,11 +30,12 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Misc/ScopedSlowTask.h"
 
 #include "UObject/UObjectIterator.h"
-#include "Framework/Application/SlateApplication.h"
+
 
 #include "Wwise/API/WwiseSoundEngineAPI.h"
 
 #if WITH_EDITORONLY_DATA
+#include "Wwise/WwiseFileHandlerModule.h"
 #include "Wwise/WwiseProjectDatabase.h"
 #include "Wwise/WwiseDataStructure.h"
 #include "Wwise/WwiseResourceCooker.h"
@@ -49,7 +49,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #endif
 #include "Async/Async.h"
 #include "Platforms/AkPlatformInfo.h"
-#include "Wwise/WwiseConcurrencyModule.h"
 #include "Wwise/WwisePackagingModule.h"
 #include "Wwise/WwiseExternalSourceManager.h"
 #include "Wwise/Packaging/WwisePackagingSettings.h"
@@ -163,16 +162,7 @@ namespace WwiseUnrealHelper
 
 void FAkAudioModule::StartupModule()
 {
-	IWwiseConcurrencyModule::GetModule();
-	IWwiseFileHandlerModule::GetModule();
-	IWwiseResourceLoaderModule::GetModule();
 	IWwiseSoundEngineModule::ForceLoadModule();
-
-#if WITH_EDITORONLY_DATA
-	IWwiseProjectDatabaseModule::GetModule();
-	IWwiseResourceLoaderModule::GetModule();
-#endif
-
 	WwiseUnrealHelper::SetHelperFunctions(
 		WwiseUnrealHelper::GetWwiseSoundEnginePluginDirectoryImpl,
 		WwiseUnrealHelper::GetWwiseProjectPathImpl,
@@ -282,8 +272,6 @@ void FAkAudioModule::StartupModule()
 		return;
 	}
 
-	OnPreExitHandle = FCoreDelegates::OnEnginePreExit.AddRaw(this, &FAkAudioModule::OnPreExit);
-
 	//Load init bank in Runtime
 	UE_LOG(LogAkAudio, VeryVerbose, TEXT("FAkAudioModule::StartupModule: Loading Init Bank."));
 	FWwiseInitBankLoader::Get()->LoadInitBank();
@@ -296,12 +284,6 @@ void FAkAudioModule::StartupModule()
 	UE_LOG(LogAkAudio, VeryVerbose, TEXT("FAkAudioModule::StartupModule: Module Initialized."));
 	OnModuleInitialized.Broadcast();
 	bModuleInitialized = true;
-
-#if WITH_EDITOR
-	PIEEndedHandle = FEditorDelegates::EndPIE.AddRaw(this, &FAkAudioModule::OnPIEExit);
-#endif
-
-	OnApplicationDeactivatedHandle = FSlateApplication::Get().OnApplicationActivationStateChanged().Add(TDelegate<void(const bool)>::CreateRaw(this, &FAkAudioModule::OnApplicationDeactivated));
 }
 
 void FAkAudioModule::ShutdownModule()
@@ -323,60 +305,6 @@ void FAkAudioModule::ShutdownModule()
 	}
 
 	AkAudioModuleInstance = nullptr;
-
-#if WITH_EDITOR
-	if (PIEEndedHandle.IsValid())
-	{
-		FEditorDelegates::EndPIE.Remove(PIEEndedHandle);
-	}
-#endif
-}
-
-void FAkAudioModule::OnPreExit()
-{
-	FCoreDelegates::OnEnginePreExit.Remove(OnPreExitHandle);
-	if (AkAudioDevice)
-	{
-		AkAudioDevice->Teardown();
-	}
-	if (OnApplicationDeactivatedHandle.IsValid())
-	{
-		FSlateApplication::Get().OnApplicationActivationStateChanged().Remove(OnApplicationDeactivatedHandle);
-	}
-}
-
-#if WITH_EDITOR
-void FAkAudioModule::OnPIEExit(const bool bWasSimulating)
-{
-	if (auto* SoundEngine = IWwiseSoundEngineAPI::Get())
-	{
-		SoundEngine->ResetGlobalValues();
-	}
-}
-#endif
-
-void FAkAudioModule::OnApplicationDeactivated(const bool IsActive)
-{
-	bool RenderDuringFocusLoss = false;
-	if(auto* AkSettings = GetDefault<UAkSettings>())
-	{
-		if (!AkSettings->SuspendAudioDuringFocusLoss)
-		{
-			return;
-		}
-		RenderDuringFocusLoss = AkSettings->RenderDuringFocusLoss;
-	}
-	if (auto* SoundEngine = IWwiseSoundEngineAPI::Get())
-	{
-		if (!IsActive)
-		{
-			SoundEngine->Suspend(RenderDuringFocusLoss);
-		}
-		else
-		{
-			SoundEngine->WakeupFromSuspend();
-		}
-	}
 }
 
 FAkAudioDevice* FAkAudioModule::GetAkAudioDevice() const
@@ -535,11 +463,6 @@ void FAkAudioModule::CreateResourceCookerForPlatform(const ITargetPlatform* Targ
 				return;
 			}
 			ResourceCooker->PreCacheAssetLibraries(AssetLibraryPreCooker->Process(*AssetLibraries));
-			for (auto& LibrarySoftPtr : *AssetLibraries)
-			{
-				auto* WwisePackagingSettings = GetDefault<UWwisePackagingSettings>();
-				WwisePackagingSettings->AssetLibrariesKeepAlive.Add(LibrarySoftPtr.Get());
-			}
 		}
 	}
 	

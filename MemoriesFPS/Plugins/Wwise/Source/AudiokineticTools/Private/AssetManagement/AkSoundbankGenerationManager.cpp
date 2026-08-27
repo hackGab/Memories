@@ -168,10 +168,7 @@ void AkSoundBankGenerationManager::Notify(const FString& key, const FString& mes
 					sharedThis->NotificationItem->ExpireAndFadeout();
 				}
 
-				if (GEngine->UseSound() && GEditor->CanPlayEditorSound())
-				{
-					GEditor->PlayEditorSound(AudioCuePath);					
-				}
+				GEditor->PlayEditorSound(AudioCuePath);
 			});
 	}
 }

@@ -42,13 +42,9 @@ struct AKAUDIO_API FWwiseEventTracker
 	static int GetScrubTimeMs() { return 100; }
 
 	/** Callback received at various points during lifetime Wwise event. 
-	 *  The FWwiseEventTracker is stored as the user cookie.
+	 *  The FWwiseEventTracker is stored in the AkCallbackInfo as pCookie.
 	 */
-#if WWISE_2025_1_OR_LATER
-	static void PostEventCallbackHandler(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo, void* in_pCookie);
-#else
 	static void PostEventCallbackHandler(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo);
-#endif
 
 	void RemoveScheduledStop(AkPlayingID InID);
 

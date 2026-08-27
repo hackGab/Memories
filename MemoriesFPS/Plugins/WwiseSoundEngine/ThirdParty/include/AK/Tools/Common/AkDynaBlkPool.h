@@ -98,10 +98,6 @@ class AkDynaBlkPool: public TAlloc
 	typedef AkListBareLight< PoolChunk > tChunkList;
 
 public:
-	~AkDynaBlkPool()
-	{
-		AKASSERT(m_chunkList.IsEmpty());
-	}
 
 	T* New()
 	{
@@ -178,12 +174,10 @@ private:
 		if (pChunk == NULL)
 		{
 			pChunk = (PoolChunk *) TAlloc::Alloc( sizeof( PoolChunk ) );
-			if (pChunk)
-			{
-				AkPlacementNew(pChunk) PoolChunk();
-				STATS_NEWCHUNK();
+			AkPlacementNew(pChunk) PoolChunk();
+			STATS_NEWCHUNK();
+			if (pChunk != NULL)
 				m_chunkList.AddFirst(pChunk);
-			}
 		}
 
 		if (pChunk != NULL)

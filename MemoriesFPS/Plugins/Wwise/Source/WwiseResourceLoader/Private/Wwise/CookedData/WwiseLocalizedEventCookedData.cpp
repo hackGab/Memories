@@ -56,7 +56,7 @@ void FWwiseLocalizedEventCookedData::SerializeBulkData(FArchive& Ar, const FWwis
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseLocalizedEventCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseLocalizedEventCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "LocEvents";
 	Writer.BeginObject();
@@ -71,7 +71,7 @@ void FWwiseLocalizedEventCookedData::GetPlatformCookDependencies(FWwiseCookEvent
 	
 		for (const auto& Language : Languages)
 		{
-			EventLanguageMap[Language].GetPlatformCookDependencies(Context, Writer);
+			EventLanguageMap[Language].PreSave(SaveContext, Writer);
 		}
 		Writer.EndArray();
 	}

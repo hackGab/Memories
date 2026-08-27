@@ -31,7 +31,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkInclude.h"
 #include "WwiseUnrealDefines.h"
 #include "AkJobWorkerScheduler.h"
-#include "AkSettingsPerUser.h"
 #include "Wwise/WwiseSharedLanguageId.h"
 #include "Engine/EngineTypes.h"
 
@@ -71,6 +70,7 @@ class UAkAudioType;
 class UAkAudioEvent;
 class UAkEffectShareSet;
 class AkXMLErrorMessageTranslator;
+class AkWAAPIErrorMessageTranslator;
 class AkUnrealErrorTranslator;
 
 // Set for holding UAkComponents
@@ -687,7 +687,7 @@ public:
     AKRESULT SetMultiplePositions(
         UAkComponent* in_pGameObjectAkComponent,
         TArray<FTransform> in_aPositions,
-        EAkMultiPositionType in_eMultiPositionType = EAkMultiPositionType::MultiDirections
+        AkMultiPositionType in_eMultiPositionType = AkMultiPositionType::MultiDirections
     );
 
     /** Sets multiple positions to a single game object, with flexible assignment of input channels.
@@ -702,9 +702,9 @@ public:
     */
     AKRESULT SetMultiplePositions(
         UAkComponent* in_pGameObjectAkComponent,
-        const TArray<EAkChannelConfiguration>& in_aChannelConfigurations,
+        const TArray<AkChannelConfiguration>& in_aChannelConfigurations,
         const TArray<FTransform>& in_aPositions,
-        EAkMultiPositionType in_eMultiPositionType = EAkMultiPositionType::MultiDirections
+        AkMultiPositionType in_eMultiPositionType = AkMultiPositionType::MultiDirections
     );
 
 	/** Sets multiple positions to a single game object, with flexible assignment of input channels.
@@ -721,7 +721,7 @@ public:
 		UAkComponent* in_pGameObjectAkComponent,
 		const TArray<FAkChannelMask>& in_channelMasks,
 		const TArray<FTransform>& in_aPositions,
-		EAkMultiPositionType in_eMultiPositionType = EAkMultiPositionType::MultiDirections
+		AkMultiPositionType in_eMultiPositionType = AkMultiPositionType::MultiDirections
 	);
 
     /** Sets multiple positions to a single game object.
@@ -739,7 +739,7 @@ public:
         AkGameObjectID in_GameObjectID,
         const AkSoundPosition * in_pPositions,
         AkUInt16 in_NumPositions,
-        AkMultiPositionType in_eMultiPositionType = AkMultiPositionType::AkMultiPositionType_MultiDirections
+        AK::SoundEngine::MultiPositionType in_eMultiPositionType = AK::SoundEngine::MultiPositionType_MultiDirections
         );
 
     /** Sets multiple positions to a single game object, with flexible assignment of input channels.
@@ -756,7 +756,7 @@ public:
         AkGameObjectID in_GameObjectID,
         const AkChannelEmitter * in_pPositions,
         AkUInt16 in_NumPositions,
-        AkMultiPositionType in_eMultiPositionType = AkMultiPositionType_MultiDirections
+        AK::SoundEngine::MultiPositionType in_eMultiPositionType = AK::SoundEngine::MultiPositionType_MultiDirections
         );
 
 	/**
@@ -1113,7 +1113,7 @@ public:
 	/**
 	* Set obstruction and occlusion on sounds going through this portal
 	*/
-	AKRESULT SetPortalObstructionAndOcclusion(const UAkPortalComponent* in_pPortal, float in_fObstructionValue, float in_fOcclusionValue, bool in_bTransition = false);
+	AKRESULT SetPortalObstructionAndOcclusion(const UAkPortalComponent* in_pPortal, float in_fObstructionValue, float in_fOcclusionValue);
 
 	/**
 	* Set obstruction on sounds from this game object going through this portal
@@ -1148,7 +1148,7 @@ public:
 	* Bus which does not have any effects, or removing the last Effect on a currently playing bus. 
 	* Make sure the new effect ShareSet is included in a soundbank, and that sound bank is loaded. Otherwise you will see errors in the Capture Log. 
 	* This function will replace existing Effects on the node. If the target node is not at
-	* the top of the hierarchy and is in the Containers Hierarchy, the option "Override Parent" in
+	* the top of the hierarchy and is in the Actor-Mixer Hierarchy, the option "Override Parent" in
 	* the Effect section in Wwise must be enabled for this node, otherwise the parent's Effect will
 	* still be the one in use and the call to SetBusEffect will have no impact.
 	* ShareSet must be in a loaded bank.
@@ -1168,7 +1168,7 @@ public:
 	* Bus which does not have any effects, or removing the last Effect on a currently playing bus. 
 	* Make sure the new effect ShareSet is included in a soundbank, and that sound bank is loaded. Otherwise you will see errors in the Capture Log. 
 	* This function will replace existing Effects on the node. If the target node is not at 
-	* the top of the hierarchy and is in the Containers Hierarchy, the option "Override Parent" in
+	* the top of the hierarchy and is in the Actor-Mixer Hierarchy, the option "Override Parent" in
 	* the Effect section in Wwise must be enabled for this node, otherwise the parent's Effect will
 	* still be the one in use and the call to SetBusEffect will have no impact.
 	* ShareSet must be in a loaded bank.
@@ -1188,7 +1188,7 @@ public:
 	* still be the one in use and the call to SetActorMixerEffect will have no impact.
 	* ShareSet must be in a loaded bank.
 	*
-	* @param InAudioNodeID Can be a member of the Containers Hierarchy (not a bus).
+	* @param InAudioNodeID Can be a member of the Actor-Mixer or Interactive Music Hierarchy (not a bus).
 	* @param InFXIndex Effect slot index (0-3)
 	* @param InShareSetID ShareSets ID; pass AK_INVALID_UNIQUE_ID to clear the effect slot
 	* @return Always returns AK_Success
@@ -1445,7 +1445,7 @@ public:
 	AKRESULT RemoveImageSource(class AAkSpotReflector* in_pSpotReflector, AkUniqueID in_AuxBusID, UAkComponent* in_AkComponent);
 	AKRESULT ClearImageSources(AkUniqueID in_AuxBusID = AK_INVALID_AUX_ID, UAkComponent* in_AkComponent = NULL);
 
-    static void GetChannelConfig(EAkChannelConfiguration ChannelConfiguration, AkChannelConfig& config);
+    static void GetChannelConfig(AkChannelConfiguration ChannelConfiguration, AkChannelConfig& config);
 	static void GetChannelConfig(FAkChannelMask SpeakerConfiguration, AkChannelConfig& config);
 
 	FAkEnvironmentIndex& GetRoomIndex() { return RoomIndex; }
@@ -1484,7 +1484,7 @@ public:
 	bool IsEventIDActive(uint32 EventID);
 	void RemovePlayingID(uint32 EventID, uint32 PlayingID);
 	void StopEventID(uint32 EventID);
-	void ExecuteActionOnPlayingID(AkActionOnEventType in_ActionType,
+	void ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType in_ActionType,
 	                              uint32 PlayingID,
 	                              AkTimeMs in_uTransitionDuration = 0,
 	                              AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear);
@@ -1503,8 +1503,6 @@ public:
 	void LoadDelayedObjects();
 
 	bool IsWwiseProfilerConnected() const { return bWwiseProfilerConnected;}
-	void CleanupUnfinishedResourceUnload();
-	void AddUnfinishedResourceUnload(FWwiseResourceUnloadFuture&& ResourceUnload);
 
 private:
 	bool EnsureInitialized();
@@ -1527,7 +1525,7 @@ private:
 		UAkComponent* in_pGameObjectAkComponent,
 		const TArray<ChannelConfig>& in_aChannelConfigurations,
 		const TArray<FTransform>& in_aPositions,
-		EAkMultiPositionType in_eMultiPositionType
+		AkMultiPositionType in_eMultiPositionType
 	);
 
 	// Overload allowing to modify StopWhenOwnerDestroyed after getting the AkComponent
@@ -1601,11 +1599,6 @@ private:
 	FDelegateHandle ProjectLoadedHandle;
 	FDelegateHandle ConnectionLostHandle;
 	FDelegateHandle ClientBeginDestroyHandle;
-	
-#if UE_EDITOR
-	 /* WAAPI AutoConnect Handle */
-	FDelegateHandle AutoConnectToWAAPIHandler;
-#endif
 
 	struct FWaapiSubscriptionIds
 	{
@@ -1640,6 +1633,4 @@ private:
 #endif //WITH_EDITORONLY_DATA
 
 	FThreadSafeBool bWwiseProfilerConnected {false};
-	FCriticalSection ResourceUnloadFuturesCriticalSection;
-	TArray<FWwiseResourceUnloadFuture> ResourceUnloadFutures;
 };

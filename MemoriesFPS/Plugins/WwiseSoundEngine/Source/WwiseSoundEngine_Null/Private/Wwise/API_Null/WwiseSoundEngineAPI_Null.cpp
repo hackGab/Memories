@@ -16,9 +16,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 *******************************************************************************/
 
 #include "Wwise/API_Null/WwiseSoundEngineAPI_Null.h"
-
-#include <AK/SoundEngine/Common/AkTypes.h>
-
 #include "Wwise/Stats/SoundEngine.h"
 
 #include "AkInclude.h"
@@ -33,7 +30,7 @@ bool FWwiseSoundEngineAPI_Null::IsInitialized()
 }
 
 AKRESULT FWwiseSoundEngineAPI_Null::Init(
-	WwiseInitSettings* in_pSettings,
+	AkInitSettings* in_pSettings,
 	AkPlatformInitSettings* in_pPlatformSettings
 )
 {
@@ -41,7 +38,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::Init(
 }
 
 void FWwiseSoundEngineAPI_Null::GetDefaultInitSettings(
-	WwiseInitSettings& out_settings
+	AkInitSettings& out_settings
 )
 {
 }
@@ -293,7 +290,7 @@ AkPlayingID FWwiseSoundEngineAPI_Null::PostEvent(
 
 AKRESULT FWwiseSoundEngineAPI_Null::ExecuteActionOnEvent(
 	AkUniqueID in_eventID,
-	AkActionOnEventType in_ActionType,
+	AK::SoundEngine::AkActionOnEventType in_ActionType,
 	AkGameObjectID in_gameObjectID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve,
@@ -306,7 +303,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::ExecuteActionOnEvent(
 #ifdef AK_SUPPORT_WCHAR
 AKRESULT FWwiseSoundEngineAPI_Null::ExecuteActionOnEvent(
 	const wchar_t* in_pszEventName,
-	AkActionOnEventType in_ActionType,
+	AK::SoundEngine::AkActionOnEventType in_ActionType,
 	AkGameObjectID in_gameObjectID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve,
@@ -319,7 +316,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::ExecuteActionOnEvent(
 
 AKRESULT FWwiseSoundEngineAPI_Null::ExecuteActionOnEvent(
 	const char* in_pszEventName,
-	AkActionOnEventType in_ActionType,
+	AK::SoundEngine::AkActionOnEventType in_ActionType,
 	AkGameObjectID in_gameObjectID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve,
@@ -541,15 +538,6 @@ AKRESULT FWwiseSoundEngineAPI_Null::GetSourcePlayPositions(
 	return AK_NotImplemented;
 }
 
-AKRESULT FWwiseSoundEngineAPI_Null::GetPlayingSegmentInfo(
-	AkPlayingID		in_PlayingID,
-	AkSegmentInfo& out_segmentInfo,
-	bool			in_bExtrapolate
-)
-{
-	return AK_NotImplemented;
-}
-
 AKRESULT FWwiseSoundEngineAPI_Null::GetSourceStreamBuffering(
 	AkPlayingID		in_PlayingID,
 	AkTimeMs& out_buffering,
@@ -574,7 +562,7 @@ void FWwiseSoundEngineAPI_Null::StopPlayingID(
 }
 
 void FWwiseSoundEngineAPI_Null::ExecuteActionOnPlayingID(
-	AkActionOnEventType in_ActionType,
+	AK::SoundEngine::AkActionOnEventType in_ActionType,
 	AkPlayingID in_playingID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve
@@ -653,7 +641,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::SetMultiplePositions(
 	AkGameObjectID in_GameObjectID,
 	const AkSoundPosition* in_pPositions,
 	AkUInt16 in_NumPositions,
-	AkMultiPositionType in_eMultiPositionType,
+	AK::SoundEngine::MultiPositionType in_eMultiPositionType,
 	AkSetPositionFlags in_eFlags
 )
 {
@@ -664,7 +652,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::SetMultiplePositions(
 	AkGameObjectID in_GameObjectID,
 	const AkChannelEmitter* in_pPositions,
 	AkUInt16 in_NumPositions,
-	AkMultiPositionType in_eMultiPositionType,
+	AK::SoundEngine::MultiPositionType in_eMultiPositionType,
 	AkSetPositionFlags in_eFlags
 )
 {
@@ -685,10 +673,6 @@ AKRESULT FWwiseSoundEngineAPI_Null::SetDistanceProbe(
 )
 {
 	return AK_NotImplemented;
-}
-
-void FWwiseSoundEngineAPI_Null::ProcessBanks()
-{
 }
 
 AKRESULT FWwiseSoundEngineAPI_Null::ClearBanks()
@@ -1400,41 +1384,6 @@ AKRESULT FWwiseSoundEngineAPI_Null::ResetRTPCValue(
 	return AK_NotImplemented;
 }
 
-AKRESULT FWwiseSoundEngineAPI_Null::ResetRTPCValueByPlayingID(
-	AkRtpcID in_rtpcID,
-	AkPlayingID in_playingID,
-	AkTimeMs in_uValueChangeDuration,
-	AkCurveInterpolation in_eFadeCurve,
-	bool in_bBypassInternalValueInterpolation
-)
-{
-	return AK_NotImplemented;
-}
-
-#ifdef AK_SUPPORT_WCHAR
-AKRESULT FWwiseSoundEngineAPI_Null::ResetRTPCValueByPlayingID(
-	const wchar_t* in_pszRtpcName,
-	AkPlayingID in_playingID,
-	AkTimeMs in_uValueChangeDuration,
-	AkCurveInterpolation in_eFadeCurve,
-	bool in_bBypassInternalValueInterpolation
-)
-{
-	return AK_NotImplemented;
-}
-#endif //AK_SUPPORT_WCHAR
-
-AKRESULT FWwiseSoundEngineAPI_Null::ResetRTPCValueByPlayingID(
-	const char* in_pszRtpcName,
-	AkPlayingID in_playingID,
-	AkTimeMs in_uValueChangeDuration,
-	AkCurveInterpolation in_eFadeCurve,
-	bool in_bBypassInternalValueInterpolation
-)
-{
-	return AK_NotImplemented;
-}
-
 AKRESULT FWwiseSoundEngineAPI_Null::SetSwitch(
 	AkSwitchGroupID in_switchGroup,
 	AkSwitchStateID in_switchState,
@@ -1563,15 +1512,6 @@ AKRESULT FWwiseSoundEngineAPI_Null::SetGameObjectOutputBusVolume(
 	return AK_NotImplemented;
 }
 
-AKRESULT FWwiseSoundEngineAPI_Null::SetContainerEffect(
-	AkUniqueID in_audioNodeID,
-	AkUInt32 in_uFXIndex,
-	AkUniqueID in_shareSetID
-)
-{
-	return AK_NotImplemented;
-}
-
 AKRESULT FWwiseSoundEngineAPI_Null::SetActorMixerEffect(
 	AkUniqueID in_audioNodeID,
 	AkUInt32 in_uFXIndex,
@@ -1645,55 +1585,6 @@ AKRESULT FWwiseSoundEngineAPI_Null::SetBusConfig(
 	return AK_NotImplemented;
 }
 
-AKRESULT FWwiseSoundEngineAPI_Null::ResetBusConfig(
-	AkUniqueID in_audioNodeID
-)
-{
-	return AK_NotImplemented;
-}
-
-#ifdef AK_SUPPORT_WCHAR
-AKRESULT FWwiseSoundEngineAPI_Null::ResetBusConfig(
-	const wchar_t* in_pszBusName
-)
-{
-	return AK_NotImplemented;
-}
-#endif //AK_SUPPORT_WCHAR
-
-AKRESULT FWwiseSoundEngineAPI_Null::ResetBusConfig(
-	const char* in_pszBusName
-)
-{
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSoundEngineAPI_Null::SetSidechainMixConfig(
-	AkUniqueID in_sidechainMixId,
-	AkChannelConfig in_channelConfig
-)
-{
-	return AK_NotImplemented;
-}
-
-#ifdef AK_SUPPORT_WCHAR
-AKRESULT FWwiseSoundEngineAPI_Null::SetSidechainMixConfig(
-	const wchar_t* in_pszSidechainMixName,
-	AkChannelConfig in_channelConfig
-)
-{
-	return AK_NotImplemented;
-}
-#endif //AK_SUPPORT_WCHAR
-
-AKRESULT FWwiseSoundEngineAPI_Null::SetSidechainMixConfig(
-	const char* in_pszSidechainMixName,
-	AkChannelConfig in_channelConfig
-)
-{
-	return AK_NotImplemented;
-}
-
 AKRESULT FWwiseSoundEngineAPI_Null::SetObjectObstructionAndOcclusion(
 	AkGameObjectID in_EmitterID,
 	AkGameObjectID in_ListenerID,
@@ -1741,8 +1632,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::StopOutputCapture()
 }
 
 AKRESULT FWwiseSoundEngineAPI_Null::AddOutputCaptureMarker(
-	const char* in_MarkerText,
-	AkUInt32 in_uSamplePos
+	const char* in_MarkerText
 )
 {
 	return AK_NotImplemented;
@@ -1750,8 +1640,7 @@ AKRESULT FWwiseSoundEngineAPI_Null::AddOutputCaptureMarker(
 
 AKRESULT FWwiseSoundEngineAPI_Null::AddOutputCaptureBinaryMarker(
 	void* in_pMarkerData,
-	AkUInt32 in_uMarkerDataSize,
-	AkUInt32 in_uSamplePos
+	AkUInt32 in_uMarkerDataSize
 	)
 {
 	return AK_NotImplemented;
@@ -1941,17 +1830,6 @@ AkUInt64 FWwiseSoundEngineAPI_Null::GetSampleTick()
 {
 	return 0;
 }
-
-AKRESULT FWwiseSoundEngineAPI_Null::ResetGlobalValues()
-{
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSoundEngineAPI_Null::SetAssertHook(AkAssertHook in_pfnAssertHook)
-{
-	return AK_NotImplemented;
-}
-
 
 AKRESULT FWwiseSoundEngineAPI_Null::FQuery::GetPosition(
 	AkGameObjectID in_GameObjectID,

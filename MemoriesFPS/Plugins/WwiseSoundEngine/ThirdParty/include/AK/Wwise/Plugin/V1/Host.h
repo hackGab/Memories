@@ -119,7 +119,7 @@ struct ak_wwise_plugin_host_v1
 	/**
 	 * \brief Obtain licensing status for the plug-in.
 	 * 
-	 * See \ref wwiseplugin_dll_license for more information.
+	 * Refer to \ref wwiseplugin_dll_license for more information.
 	 * 
 	 * \param[in] in_this Current instance of this interface.
 	 * \param[in] in_guidPlatform GUID of the platform.
@@ -138,7 +138,7 @@ struct ak_wwise_plugin_host_v1
 	/**
 	 * \brief Obtain licensing status for a plug-in-specific asset ID.
 	 * 
-	 * See \ref wwiseplugin_dll_license for more information.
+	 * Refer to \ref wwiseplugin_dll_license for more information.
 	 * 
 	 * \param[in] in_this Current instance of this interface.
 	 * \param[in] in_guidPlatform GUID of the platform.
@@ -316,7 +316,7 @@ namespace AK::Wwise::Plugin
 			/**
 			 * \brief Obtain licensing status for the plug-in.
 			 * 
-			 * See \ref wwiseplugin_dll_license for more information.
+			 * Refer to \ref wwiseplugin_dll_license for more information.
 			 * 
 			 * \param[in] in_guidPlatform GUID of the platform.
 			 * \param[out] out_eType License Type.
@@ -336,7 +336,7 @@ namespace AK::Wwise::Plugin
 			/**
 			 * \brief Obtain licensing status for a plug-in-specific asset ID.
 			 * 
-			 * See \ref wwiseplugin_dll_license for more information.
+			 * Refer to \ref wwiseplugin_dll_license for more information.
 			 * 
 			 * \param[in] in_guidPlatform GUID of the platform.
 			 * \param[in] in_uAssetID ID of the asset.

@@ -193,6 +193,7 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::SetReverbZone(
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	UE_LOG(LogWwiseSoundEngine, Error, TEXT("SetReverbZone is not implemented in Spatial Audio version 22.1"));
 	return AK_NotImplemented;
 }
 
@@ -201,6 +202,7 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::RemoveReverbZone(
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	UE_LOG(LogWwiseSoundEngine, Error, TEXT("RemoveReverbZone is not implemented in Spatial Audio version 22.1"));
 	return AK_NotImplemented;
 }
 
@@ -218,13 +220,7 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::UnsetGameObjectInRoom(
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
-}
-AKRESULT FWwiseSpatialAudioAPI_2022_1::SetAdjacentRoomBleed(
-	AkReal32 in_fAdjacentRoomBleed
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	UE_LOG(LogWwiseSoundEngine, Error, TEXT("UnsetGameObjectInRoom is not implemented in Spatial Audio version 22.1"));
 	return AK_NotImplemented;
 }
 
@@ -246,28 +242,12 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::SetDiffractionOrder(
 	return AK::SpatialAudio::SetDiffractionOrder(in_uDiffractionOrder, in_bUpdatePaths);
 }
 
-AKRESULT FWwiseSpatialAudioAPI_2022_1::SetMaxGlobalReflectionPaths(
-	AkUInt32 in_uMaxGlobalReflectionPaths
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSpatialAudioAPI_2022_1::SetMaxDiffractionPaths(
-	AkUInt32 in_uMaxDiffractionPaths,
-	AkGameObjectID in_gameObjectID
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
-}
-
 AKRESULT FWwiseSpatialAudioAPI_2022_1::SetMaxEmitterRoomAuxSends(
 	AkUInt32 in_uMaxEmitterRoomAuxSends
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	UE_LOG(LogWwiseSoundEngine, Error, TEXT("SetMaxEmitterRoomAuxSends is not implemented in Spatial Audio version 22.1"));
 	return AK_NotImplemented;
 }
 
@@ -285,15 +265,6 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::SetLoadBalancingSpread(
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SpatialAudio::SetLoadBalancingSpread(in_uNbFrames);
-}
-
-AKRESULT FWwiseSpatialAudioAPI_2022_1::SetSmoothingConstant(
-	AkReal32 in_fSmoothingConstantMs,
-	AkGameObjectID in_gameObjectID
-)
-{
-	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK_NotImplemented;
 }
 
 AKRESULT FWwiseSpatialAudioAPI_2022_1::SetEarlyReflectionsAuxSend(
@@ -317,8 +288,7 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::SetEarlyReflectionsVolume(
 AKRESULT FWwiseSpatialAudioAPI_2022_1::SetPortalObstructionAndOcclusion(
 	AkPortalID in_PortalID,
 	AkReal32 in_fObstruction,
-	AkReal32 in_fOcclusion,
-	bool in_bTransition
+	AkReal32 in_fOcclusion
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
@@ -367,9 +337,12 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::QueryDiffractionPaths(
 	return AK::SpatialAudio::QueryDiffractionPaths(in_gameObjectID, in_positionIndex, out_listenerPos, out_emitterPos, out_aPaths, io_uArraySize);
 }
 
-AKRESULT FWwiseSpatialAudioAPI_2022_1::SetTransmissionOperation(
-	AkTransmissionOperation in_eOperation
-)
+AKRESULT FWwiseSpatialAudioAPI_2022_1::SetTransmissionOperation(AkTransmissionOperation in_operation)
+{
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_2022_1::SetSmoothingConstant(AkReal32 in_smoothingConstant, AkGameObjectID in_gameObject)
 {
 	return AK_NotImplemented;
 }
@@ -378,6 +351,18 @@ AKRESULT FWwiseSpatialAudioAPI_2022_1::ResetStochasticEngine()
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SpatialAudio::ResetStochasticEngine();
+}
+
+AKRESULT FWwiseSpatialAudioAPI_2022_1::SetMaxGlobalReflectionPaths(AkUInt32 in_maxNumberOfReflectionPaths)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_2022_1::SetMaxDiffractionPaths(AkUInt32 in_maxNumberOfDiffractionPaths, AkGameObjectID in_gameObject)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
 }
 
 float FWwiseSpatialAudioAPI_2022_1::FReverbEstimation::CalculateSlope(const AkAcousticTexture& texture)

@@ -39,7 +39,7 @@ UMovieSceneSection* UMovieSceneWwiseGameParameterTrack::CreateNewSection()
 FText UMovieSceneWwiseGameParameterTrack::GetDisplayName() const
 {
 	auto AllSections = GetAllSections();
-	FString DisplayName("Wwise Game Parameter");
+	FString DisplayName("WwiseGameParameter");
 	if (AllSections.Num() > 0)
 	{
 		UMovieSceneWwiseGameParameterSection* RTPCSection = CastChecked<UMovieSceneWwiseGameParameterSection>(AllSections[0]);

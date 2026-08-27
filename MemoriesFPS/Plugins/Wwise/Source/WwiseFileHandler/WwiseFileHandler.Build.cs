@@ -25,7 +25,7 @@ public class WwiseFileHandler : ModuleRules
 		
 		PublicDefinitions.AddRange(new string[]
 		{
-			"AK_ENABLE_BANK_MGR_THREAD=(!WWISE_2025_1_OR_LATER)"
+			"AK_ENABLE_BANK_MGR_THREAD=0"
 		});
 
 		PublicDependencyModuleNames.AddRange(new string[] {
@@ -36,15 +36,9 @@ public class WwiseFileHandler : ModuleRules
 
 		if (Target.bCompileAgainstCoreUObject)
 		{
-			PublicDependencyModuleNames.AddRange(new string[] {
+			PublicDependencyModuleNames.AddRange(new string[]
+			{
 				"WwiseObjectUtils"
-			});
-		}
-		
-		if (Target.bCompileAgainstEngine)
-		{
-			PublicDependencyModuleNames.AddRange(new string[] {
-				"WwiseEngineUtils"
 			});
 		}
 

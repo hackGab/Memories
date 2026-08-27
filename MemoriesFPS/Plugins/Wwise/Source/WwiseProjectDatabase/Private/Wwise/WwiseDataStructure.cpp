@@ -508,10 +508,6 @@ WwisePlatformDataStructure::WwisePlatformDataStructure(const WwiseDBSharedPlatfo
                             AddBasicRefToMap(DialogueArguments, WwiseRefDialogueArgument(SharedRootFile, JsonFilePath, SoundBankIndex, LanguageId, DialogueEventIndex, DialogueArgumentIndex), DialogueArgument);
                         }
                     }
-                    if (SoundBank.DialogueEvents.Size() > 0)
-                    {
-                        AddMediaCount(SoundBank.Media);
-                    }
 
                     // We have multiple copies of the Busses. We currently want the Init Bank version.
                     if (SoundBank.IsInitBank())
@@ -896,22 +892,6 @@ bool WwisePlatformDataStructure::GetFromId(WwiseRefMedia& OutRef, WwiseDBShortId
     }
 
     return true;
-}
-
-void WwisePlatformDataStructure::AddMediaCount(const WwiseDBArray<WwiseMetadataMedia>& InMedia)
-{
-    for (const auto& Media : InMedia)
-    {
-        const WwiseDatabaseLocalizableIdKey MediaId{ Media.Id, 0 };
-        if (auto CountPtr = MediaUsageCount.Find(MediaId.Id))
-        {
-            ++(*CountPtr);
-        }
-        else
-        {
-            MediaUsageCount.Add(MediaId.Id, 1);
-        }
-    }
 }
 
 void WwisePlatformDataStructure::AddMediaRefsCount(const WwiseDBArray<WwiseMetadataMediaReference>& InMediaRefs)

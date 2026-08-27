@@ -23,27 +23,30 @@ the specific language governing permissions and limitations under the License.
 
   Copyright (c) 2025 Audiokinetic Inc.
 *******************************************************************************/
+// AkNumeralTypes.h
+
+/// \file
+/// Numeral data type definitions.
 
 #ifndef _AK_NUMERAL_TYPES_H_
 #define _AK_NUMERAL_TYPES_H_
 
-#include <stdbool.h>
 #include <stdint.h>
 
-typedef uint16_t    AkUInt16;    ///< Unsigned 16-bit integer
-typedef uint8_t     AkUInt8;     ///< Unsigned 8-bit integer
-typedef uint32_t    AkUInt32;    ///< Unsigned 32-bit integer
-typedef uint64_t    AkUInt64;    ///< Unsigned 64-bit integer
+typedef uint8_t		AkUInt8;	///< Unsigned 8-bit integer
+typedef uint16_t	AkUInt16;	///< Unsigned 16-bit integer
+typedef uint32_t	AkUInt32;	///< Unsigned 32-bit integer
+typedef uint64_t	AkUInt64;	///< Unsigned 64-bit integer
 
-typedef int8_t      AkInt8;      ///< Signed 8-bit integer
-typedef int16_t     AkInt16;     ///< Signed 16-bit integer
-typedef int32_t     AkInt32;     ///< Signed 32-bit integer
-typedef int64_t     AkInt64;     ///< Signed 64-bit integer
+typedef int8_t		AkInt8;		///< Signed 8-bit integer
+typedef int16_t		AkInt16;	///< Signed 16-bit integer
+typedef int32_t		AkInt32;	///< Signed 32-bit integer
+typedef int64_t		AkInt64;	///< Signed 64-bit integer
 
-typedef float       AkReal32;    ///< 32-bit floating point
-typedef double      AkReal64;    ///< 64-bit floating point
+typedef float		AkReal32;	///< 32-bit floating point
+typedef double		AkReal64;	///< 64-bit floating point
 
-typedef intptr_t    AkIntPtr;    ///< Integer type for pointers
-typedef uintptr_t   AkUIntPtr;   ///< Integer (unsigned) type for pointers
+typedef intptr_t	AkIntPtr;	///< Integer type for pointers
+typedef uintptr_t	AkUIntPtr;	///< Integer (unsigned) type for pointers
 
 #endif // _AK_NUMERAL_TYPES_H_

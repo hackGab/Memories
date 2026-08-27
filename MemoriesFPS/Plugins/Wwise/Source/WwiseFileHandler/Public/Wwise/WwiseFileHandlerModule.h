@@ -106,11 +106,7 @@ public:
 	virtual IWwiseExternalSourceManagerPtr InstantiateExternalSourceManager() { return nullptr; }
 	virtual IWwiseMediaManagerPtr InstantiateMediaManager() { return nullptr; }
 	virtual FWwiseFileCache* InstantiateFileCache() { return nullptr; }
-	virtual FWwiseExecutionQueue* InstantiateBankExecutionQueue() { return nullptr; }
-
-	virtual void RegisterTermCallback() {}
-	virtual void OnPostTerm() {}
-	virtual void RequestProcessBanks() {}
+	virtual FWwiseExecutionQueue* InstantiateBankExecutionQueue() { return nullptr; } 
 
 private:
 	static inline FName GetModuleNameFromConfig()

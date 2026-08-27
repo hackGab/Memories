@@ -24,18 +24,18 @@ Copyright (c) 2025 Audiokinetic Inc.
 #endif
 #include "AkRtpc.generated.h"
 
-UCLASS(BlueprintType, meta=(DisplayName = "Wwise Game Parameter"))
+UCLASS(BlueprintType)
 class AKAUDIO_API UAkRtpc : public UAkAudioType
 {
 	GENERATED_BODY()
 
 public:
 	
-	UPROPERTY(Transient, VisibleAnywhere, Category = "AkGameParameter")
+	UPROPERTY(Transient, VisibleAnywhere, Category = "AkRtpc")
 	FWwiseGameParameterCookedData GameParameterCookedData;
 
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(EditAnywhere, Category = "AkGameParameter", meta = (DisplayName = "Game Parameter Info"))
+	UPROPERTY(EditAnywhere, Category = "AkRtpc")
 	FWwiseObjectInfo RtpcInfo;
 #endif
 
@@ -53,11 +53,6 @@ public :
 #endif
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-public:
-#if UE_5_6_OR_LATER
-	virtual void OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context) override;
-#else
-	virtual void PreSave(FObjectPreSaveContext Context) override;
-#endif
+	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
 #endif
 };

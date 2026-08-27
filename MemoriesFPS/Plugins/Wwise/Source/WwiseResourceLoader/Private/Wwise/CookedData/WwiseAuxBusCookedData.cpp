@@ -60,7 +60,7 @@ void FWwiseAuxBusCookedData::SerializeBulkData(FArchive& Ar, const FWwisePackage
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseAuxBusCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
+void FWwiseAuxBusCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
 {
 	Writer << "AuxBus";
 	Writer.BeginObject();
@@ -70,7 +70,7 @@ void FWwiseAuxBusCookedData::GetPlatformCookDependencies(FWwiseCookEventContext&
 	Writer.BeginArray();
 	for (auto& SoundBank : SoundBanks)
 	{
-		SoundBank.GetPlatformCookDependencies(Context, Writer);
+		SoundBank.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 
@@ -78,7 +78,7 @@ void FWwiseAuxBusCookedData::GetPlatformCookDependencies(FWwiseCookEventContext&
 	Writer.BeginArray();
 	for (auto& MediaItem : Media)
 	{
-		MediaItem.GetPlatformCookDependencies(Context, Writer);
+		MediaItem.PreSave(SaveContext, Writer);
 	}
 	Writer.EndArray();
 	Writer.EndObject();

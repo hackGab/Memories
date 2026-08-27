@@ -85,8 +85,7 @@ public class AudiokineticTools : ModuleRules
 				"WwiseProjectDatabase",
 				"WwiseResourceLoader",
 				"WwiseUtils",
-                "WwiseSoundEngine"
-            }
+			}
 		);
 
 		if (Target.bBuildWithEditorOnlyData)
