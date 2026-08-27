@@ -370,9 +370,7 @@ void AHorlogeActor::UpdateSmallHandAnimation(float DeltaTime)
 				0.f
 			)
 		);
-
 		bAnimatingSmallHand = false;
-		PrintCurrentClockTime();
 	}
 }
 
@@ -427,10 +425,8 @@ void AHorlogeActor::UpdateBigHandAnimation(float DeltaTime)
 		);
 		
 		bWaitingForClockAnimation = false;
-		PrintCurrentClockTime();
 	}
 }
-
 // Debug
 
 void AHorlogeActor::DebugMessage(

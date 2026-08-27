@@ -88,9 +88,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Rotation")
 	float RotationSpeedDegreesPerSecond = 180.f;
 	
-	UFUNCTION(BlueprintCallable, Category="Horloge")
-	void LockClock();
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge")
 	bool bIsLocked = false;
 
@@ -166,6 +163,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge")
 	float RotationRepeatInterval = 0.2f; // seconds between steps while holding
+	
+	UFUNCTION(BlueprintCallable, Category="Horloge")
+	void LockClock();
 	
 	// Delegates
 	UPROPERTY(BlueprintAssignable, Category = "Horloge")

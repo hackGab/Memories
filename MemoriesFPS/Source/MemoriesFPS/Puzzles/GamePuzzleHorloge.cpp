@@ -180,15 +180,21 @@ void AGamePuzzleHorloge::VerifyPuzzleSolution(FHorlogeState& HorlogeState)
 		HorlogeState.bIsSolved = true;
 		nbHorlogesAreSolve++;
 
-		UE_LOG(LogTemp, Log, TEXT("Horloge %s is in the correct state: [%f:%f]"),
-			*HorlogeState.HorlogeSymbole,
-			HorlogeState.timeHours,
-			HorlogeState.timeMinutes);
+		UE_LOG(
+	   LogTemp,
+	   Log,
+	   TEXT("Horloge %s is in the correct state: [%f:%f]"),
+	   *HorlogeState.HorlogeSymbole,
+	   HorlogeState.timeHours,
+	   HorlogeState.timeMinutes
+   );
 
 		if (HorlogeActor)
 		{
 			HorlogeActor->PlaySuccessCue();
+			HorlogeActor->LockClock();
 		}
+
 
 		if (nbHorlogesToSolve == nbHorlogesAreSolve)
 		{

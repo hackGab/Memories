@@ -61,6 +61,9 @@ public:
 	// --- Config (à remplir dans l'éditeur, une entrée par horloge secondaire) ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Config")
 	TArray<FHorlogeSolutionConfig> HorlogeSolutions;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge|Reward")
+	TArray<AActor*> ObjectsToUnlock;
 
 	// --- Runtime ---
 	UPROPERTY(BlueprintReadOnly)
@@ -98,6 +101,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnPuzzleSolved OnPuzzleSolved;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
+	AActor* LinkedUnlockActor;
 	
 
 	// --- Functions ---
