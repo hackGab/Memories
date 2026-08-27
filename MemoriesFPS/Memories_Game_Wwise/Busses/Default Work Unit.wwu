@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{EFA8618D-2009-418B-B102-02237E987808}" SchemaVersion="133">
+	<Busses>
+		<WorkUnit Name="Default Work Unit" ID="{EFA8618D-2009-418B-B102-02237E987808}" PersistMode="Standalone">
+			<ChildrenList>
+				<Bus Name="Main Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}">
+					<ReferenceList>
+						<Reference Name="AudioDevice" PluginName="System" CompanyID="0" PluginID="174" PluginType="7">
+							<ObjectRef Name="System" ID="{502161AC-65E5-4BDF-9D15-FE759AD8778A}" WorkUnitID="{D33FAB5E-3FD6-4E54-857F-D75B091A73A2}"/>
+						</Reference>
+					</ReferenceList>
+					<ChildrenList>
+						<Bus Name="AMB" ID="{1C600C09-7533-4FCE-8B44-BDBF9E966AD4}">
+							<PropertyList>
+								<Property Name="Color" Type="int16" Value="4"/>
+								<Property Name="OverrideColor" Type="bool" Value="True"/>
+							</PropertyList>
+							<ChildrenList>
+								<Bus Name="AMB2D" ID="{ED95E927-50AB-4DAD-B2D1-433E5F3F41EB}"/>
+								<Bus Name="AMB3D" ID="{06585A28-DA83-49B8-95B1-A6A38C68773F}"/>
+							</ChildrenList>
+						</Bus>
+						<Bus Name="SFX" ID="{14F8D507-5CE5-42C7-87BA-54D21B6CCDC2}">
+							<PropertyList>
+								<Property Name="Color" Type="int16" Value="15"/>
+								<Property Name="OverrideColor" Type="bool" Value="True"/>
+							</PropertyList>
+						</Bus>
+						<Bus Name="UI" ID="{DA028835-E7C4-404D-8932-A60C8E9D7131}">
+							<PropertyList>
+								<Property Name="Color" Type="int16" Value="9"/>
+								<Property Name="OverrideColor" Type="bool" Value="True"/>
+							</PropertyList>
+						</Bus>
+						<Bus Name="MUS" ID="{B76C954C-4189-4509-AE8B-A40A3962DF76}">
+							<PropertyList>
+								<Property Name="Color" Type="int16" Value="19"/>
+								<Property Name="OverrideColor" Type="bool" Value="True"/>
+							</PropertyList>
+						</Bus>
+						<Bus Name="FX" ID="{0B4F185C-1A09-49B9-AD9D-F8F62C3F34F5}">
+							<PropertyList>
+								<Property Name="Color" Type="int16" Value="24"/>
+								<Property Name="OverrideColor" Type="bool" Value="True"/>
+							</PropertyList>
+						</Bus>
+					</ChildrenList>
+				</Bus>
+			</ChildrenList>
+		</WorkUnit>
+	</Busses>
+</WwiseDocument>
