@@ -45,7 +45,7 @@ void FWwiseGameParameterCookedData::Serialize(FArchive& Ar)
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseGameParameterCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
+void FWwiseGameParameterCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
 {
 	Writer << "GP" << ShortId;
 }

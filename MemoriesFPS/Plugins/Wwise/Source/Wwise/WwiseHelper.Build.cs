@@ -35,7 +35,6 @@ public struct WwiseHelper
 		Module.PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"AkAudioMixer",
 				"WwiseConcurrency",
 				"WwiseSimpleExternalSource"
 			}

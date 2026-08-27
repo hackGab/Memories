@@ -23,6 +23,12 @@ public class WwiseConcurrency : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
+		PublicDefinitions.AddRange(new string[]
+		{
+			// Enable to use integration-owned threads for ExecutionQueues.
+			"WWISE_CONCURRENCY_USE_SEPARATE_THREADS=0"
+		});
+
 		PublicDependencyModuleNames.AddRange(new string[] {
 			"Core",
 			"WwiseLowLevelUtils",

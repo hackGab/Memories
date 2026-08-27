@@ -38,6 +38,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Editor.h"
 #endif
 
+#include "AkComponentHelpers.h"
 #include "RawIndexBuffer.h"
 #include "StaticMeshResources.h"
 #include "Components/StaticMeshComponent.h"
@@ -55,7 +56,7 @@ UAkGeometryComponent::UAkGeometryComponent(const class FObjectInitializer& Objec
 	// Property initialization
 	bWantsOnUpdateTransform = true;
 
-	MeshType = AkMeshType::CollisionMesh;
+	MeshType = EAkMeshType::CollisionMesh;
 	LOD = 0;
 	CollisionMeshSurfaceOverride.AcousticTexture = nullptr;
 	CollisionMeshSurfaceOverride.bEnableOcclusionOverride = false;
@@ -180,7 +181,7 @@ void UAkGeometryComponent::OnRegister()
 			if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UMeshComponent, OverrideMaterials) &&
 				Parent != nullptr &&
 				Parent == Object &&
-				MeshType == AkMeshType::StaticMesh
+				MeshType == EAkMeshType::StaticMesh
 				)
 			{
 				UpdateStaticMeshOverride();
@@ -188,7 +189,7 @@ void UAkGeometryComponent::OnRegister()
 		});
 	if (Parent != nullptr)
 	{
-		if (MeshType == AkMeshType::StaticMesh)
+		if (MeshType == EAkMeshType::StaticMesh)
 		{
 			UStaticMeshComponent* MeshParent = Cast<UStaticMeshComponent>(Parent);
 			if (MeshParent != nullptr)
@@ -226,7 +227,7 @@ void UAkGeometryComponent::InitializeParent()
 			UE_LOG(LogAkAudio, Error,
 				TEXT("On actor %s, there is a UAkGeometryComponent (%s) attached to parent of type %s (%s).")
 				, *actorString, *GetName(), *parentClass, *parentName);
-			if (MeshType == AkMeshType::StaticMesh)
+			if (MeshType == EAkMeshType::StaticMesh)
 			{
 				UE_LOG(LogAkAudio, Error, TEXT("When MeshType is set to Static Mesh, UAkGeometryComponent requires to be nested under a component inheriting from UStaticMeshComponent."));
 			}
@@ -236,7 +237,7 @@ void UAkGeometryComponent::InitializeParent()
 			}
 			return;
 		}
-		if (MeshType == AkMeshType::StaticMesh)
+		if (MeshType == EAkMeshType::StaticMesh)
 		{
 			UStaticMeshComponent* MeshParent = Cast<UStaticMeshComponent>(SceneParent);
 			if (MeshParent != nullptr)
@@ -265,7 +266,7 @@ void UAkGeometryComponent::InitializeParent()
 					TEXT("On actor %s, there is a UAkGeometryComponent (%s) attached to parent of type %s (%s).")
 					, *actorString, *GetName(), *parentClass, *parentName);
 				UE_LOG(LogAkAudio, Warning, TEXT("When MeshType is set to Static Mesh, UAkGeometryComponent requires to be nested under a component inheriting from UStaticMeshComponent. Reverting to Simple Collision."));
-				MeshType = AkMeshType::CollisionMesh;
+				MeshType = EAkMeshType::CollisionMesh;
 
 				// If we're in the Blueprint editor, update the Archetype object as well.
 				UWorld* World = GetWorld();
@@ -274,7 +275,7 @@ void UAkGeometryComponent::InitializeParent()
 				{
 					UAkGeometryComponent* Archetype = Cast<UAkGeometryComponent>(GetArchetype());
 					if (Archetype != nullptr)
-						Archetype->MeshType = AkMeshType::CollisionMesh;
+						Archetype->MeshType = EAkMeshType::CollisionMesh;
 				}
 			}
 		}
@@ -402,14 +403,14 @@ void UAkGeometryComponent::ConvertMesh()
 
 	switch (MeshType)
 	{
-		case AkMeshType::StaticMesh:
+		case EAkMeshType::StaticMesh:
 		{
 			UStaticMeshComponent* MeshParent = Cast<UStaticMeshComponent>(Parent);
 			if (MeshParent != nullptr)
 				ConvertStaticMesh(MeshParent, AkSettings);
 			break;
 		}
-		case AkMeshType::CollisionMesh:
+		case EAkMeshType::CollisionMesh:
 		{
 			ConvertCollisionMesh(Parent, AkSettings);
 			break;
@@ -799,7 +800,7 @@ void UAkGeometryComponent::ConvertCollisionMesh(UPrimitiveComponent* PrimitiveCo
 	int32 numBoxes = bodySetup->AggGeom.BoxElems.Num();
 	for (int32 i = 0; i < numBoxes; i++)
 	{
-		FKBoxElem box = bodySetup->AggGeom.BoxElems[i];
+		const FKBoxElem& box = bodySetup->AggGeom.BoxElems[i];
 
 		FVector extent;
 		extent.X = box.X / 2;
@@ -823,14 +824,14 @@ void UAkGeometryComponent::ConvertCollisionMesh(UPrimitiveComponent* PrimitiveCo
 	int32 numSpheres = bodySetup->AggGeom.SphereElems.Num();
 	for (int32 i = 0; i < numSpheres; i++)
 	{
-		FKSphereElem sphere = bodySetup->AggGeom.SphereElems[i];
+		const FKSphereElem& sphere = bodySetup->AggGeom.SphereElems[i];
 		GeometryData.AddSphere(surfIdx, sphere.Center, sphere.Radius, kNumSides, kNumRings);
 	}
 
 	int32 numCapsules = bodySetup->AggGeom.SphylElems.Num();
 	for (int32 i = 0; i < numCapsules; i++)
 	{
-		FKSphylElem capsule = bodySetup->AggGeom.SphylElems[i];
+		const FKSphylElem& capsule = bodySetup->AggGeom.SphylElems[i];
 
 		FVector X = capsule.GetTransform().GetUnitAxis(EAxis::X);
 		FVector Y = capsule.GetTransform().GetUnitAxis(EAxis::Y);
@@ -962,7 +963,7 @@ bool UAkGeometryComponent::GetAcousticPropertiesOverride(UMaterialInterface* InM
 {
 	bool bOutIsValid = false;
 
-	if (MeshType == AkMeshType::CollisionMesh)
+	if (MeshType == EAkMeshType::CollisionMesh)
 	{
 		OutAcousticPropertiesOverride = CollisionMeshSurfaceOverride;
 		bOutIsValid = true;
@@ -1048,7 +1049,7 @@ bool UAkGeometryComponent::_SetAcousticPropertiesOverride(UMaterialInterface* In
 {
 	bool bOutIsValid = false;
 
-	if (MeshType == AkMeshType::CollisionMesh)
+	if (MeshType == EAkMeshType::CollisionMesh)
 	{
 		if ((CollisionMeshSurfaceOverride.bEnableOcclusionOverride != InAcousticPropertiesOverride.bEnableOcclusionOverride) ||
 			(CollisionMeshSurfaceOverride.AcousticTexture != InAcousticPropertiesOverride.AcousticTexture) ||
@@ -1135,7 +1136,7 @@ void UAkGeometryComponent::PostEditChangeProperty(FPropertyChangedEvent& Propert
 	const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	if (memberPropertyName == GET_MEMBER_NAME_CHECKED(UAkGeometryComponent, MeshType))
 	{
-		if (Parent != nullptr && MeshType == AkMeshType::StaticMesh)
+		if (Parent != nullptr && MeshType == EAkMeshType::StaticMesh)
 		{
 			UStaticMeshComponent* MeshParent = Cast<UStaticMeshComponent>(Parent);
 			if (MeshParent == nullptr)
@@ -1149,7 +1150,7 @@ void UAkGeometryComponent::PostEditChangeProperty(FPropertyChangedEvent& Propert
 					TEXT("On actor %s, there is a UAkGeometryComponent (%s) attached to parent of type %s (%s).")
 					, *actorString, *GetName(), *parentClass, *parentName);
 				UE_LOG(LogAkAudio, Warning, TEXT("When MeshType is set to Static Mesh, UAkGeometryComponent requires to be nested under a component inheriting from UStaticMeshComponent. Reverting to Simple Collision."));
-				MeshType = AkMeshType::CollisionMesh;
+				MeshType = EAkMeshType::CollisionMesh;
 			}
 			else
 			{
@@ -1159,14 +1160,14 @@ void UAkGeometryComponent::PostEditChangeProperty(FPropertyChangedEvent& Propert
 		UnregisterTextureParamChangeCallbacks();
 		RegisterAllTextureParamCallbacks();
 	}
-	else if ( (memberPropertyName == GET_MEMBER_NAME_CHECKED(UAkGeometryComponent, StaticMeshSurfaceOverride) && MeshType == AkMeshType::StaticMesh)
-		   || (memberPropertyName == GET_MEMBER_NAME_CHECKED(UAkGeometryComponent, CollisionMeshSurfaceOverride) && MeshType == AkMeshType::CollisionMesh))
+	else if ( (memberPropertyName == GET_MEMBER_NAME_CHECKED(UAkGeometryComponent, StaticMeshSurfaceOverride) && MeshType == EAkMeshType::StaticMesh)
+		   || (memberPropertyName == GET_MEMBER_NAME_CHECKED(UAkGeometryComponent, CollisionMeshSurfaceOverride) && MeshType == EAkMeshType::CollisionMesh))
 	{
 		UnregisterTextureParamChangeCallbacks();
 		RegisterAllTextureParamCallbacks();
 		DampingEstimationNeedsUpdate = true;
 	}
-	if (MeshType == AkMeshType::StaticMesh &&
+	if (MeshType == EAkMeshType::StaticMesh &&
 		memberPropertyName == GET_MEMBER_NAME_CHECKED(UAkGeometryComponent, WeldingThreshold) &&
 		PropertyChangedEvent.ChangeType == EPropertyChangeType::ValueSet)
 	{
@@ -1197,7 +1198,7 @@ void UAkGeometryComponent::TickComponent(float DeltaTime, enum ELevelTick TickTy
 		BeginPlayInternal();
 		bRequiresDeferredBeginPlay = false;
 	}
-	if (MeshType == AkMeshType::StaticMesh)
+	if (MeshType == EAkMeshType::StaticMesh)
 	{
 		if (IsValid(Parent) && !Parent->IsBeingDestroyed())
 		{
@@ -1295,7 +1296,7 @@ void UAkGeometryComponent::GetTexturesAndSurfaceAreas(TArray<FAkAcousticTextureP
 	const UAkSettings* AkSettings = GetDefault<UAkSettings>();
 	if (AkSettings != nullptr)
 	{
-		if (MeshType == AkMeshType::CollisionMesh)
+		if (MeshType == EAkMeshType::CollisionMesh)
 		{
 			if (CollisionMeshSurfaceOverride.AcousticTexture != nullptr)
 			{
@@ -1370,7 +1371,7 @@ void UAkGeometryComponent::HandleObjectsReplaced(const TMap<UObject*, UObject*>&
 		InitializeParent();
 		if (Parent != nullptr)
 		{
-			if (MeshType == AkMeshType::StaticMesh)
+			if (MeshType == EAkMeshType::StaticMesh)
 			{
 				UStaticMeshComponent* MeshParent = Cast<UStaticMeshComponent>(Parent);
 				if (MeshParent != nullptr)
@@ -1383,7 +1384,7 @@ void UAkGeometryComponent::HandleObjectsReplaced(const TMap<UObject*, UObject*>&
 
 bool UAkGeometryComponent::ContainsTexture(const FGuid& textureID)
 {
-	if (MeshType == AkMeshType::CollisionMesh)
+	if (MeshType == EAkMeshType::CollisionMesh)
 	{
 		if (CollisionMeshSurfaceOverride.AcousticTexture != nullptr)
 			return CollisionMeshSurfaceOverride.AcousticTexture->AcousticTextureInfo.WwiseGuid == textureID;
@@ -1404,7 +1405,7 @@ bool UAkGeometryComponent::ContainsTexture(const FGuid& textureID)
 
 void UAkGeometryComponent::RegisterAllTextureParamCallbacks()
 {
-	if (MeshType == AkMeshType::CollisionMesh)
+	if (MeshType == EAkMeshType::CollisionMesh)
 	{
 		if (CollisionMeshSurfaceOverride.AcousticTexture != nullptr)
 			RegisterTextureParamChangeCallback(CollisionMeshSurfaceOverride.AcousticTexture->AcousticTextureInfo.WwiseGuid);
@@ -1424,7 +1425,7 @@ void UAkGeometryComponent::RegisterAllTextureParamCallbacks()
 
 void UAkGeometryComponent::OnCollisionAcousticPropertiesOverrideChanged()
 {
-	if (MeshType != AkMeshType::CollisionMesh) return;
+	if (MeshType != EAkMeshType::CollisionMesh) return;
 	if (GeometryData.Surfaces.Num() == 0) return;
 
 	// override the surface acoustic texture and transmission loss values
@@ -1477,7 +1478,7 @@ void UAkGeometryComponent::OnCollisionAcousticPropertiesOverrideChanged()
 
 void UAkGeometryComponent::OnStaticMeshAcousticPropertiesOverrideChanged(UMaterialInterface* InMaterialInterface)
 {
-	if (MeshType != AkMeshType::StaticMesh) return;
+	if (MeshType != EAkMeshType::StaticMesh) return;
 	if (GeometryData.Surfaces.Num() == 0) return;
 
 	if (InMaterialInterface == nullptr) return;

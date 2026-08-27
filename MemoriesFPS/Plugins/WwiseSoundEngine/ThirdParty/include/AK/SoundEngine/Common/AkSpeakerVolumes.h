@@ -31,70 +31,231 @@ the specific language governing permissions and limitations under the License.
 /// Always associated with an AkChannelConfig. In the case of standard configurations, the volume items ordering
 /// match the bit ordering in the channel mask, except for the LFE which is skipped and placed at the end of the
 /// volume array.
-/// Refer to \ref goingfurther_speakermatrixcallback for an example of how to manipulate speaker volume vectors/matrices.
+/// See \ref goingfurther_speakermatrixcallback for an example of how to manipulate speaker volume vectors/matrices.
 
 #ifndef _AK_SPEAKER_VOLUMES_H_
 #define _AK_SPEAKER_VOLUMES_H_
 
+#include <string.h>
 #include <AK/SoundEngine/Common/AkTypes.h>
+
+#ifdef __cplusplus
+
 #include <AK/SoundEngine/Platforms/Generic/AkSpeakerVolumes.h>
-#include <AK/Tools/Common/AkAssert.h>
-#include <AK/Tools/Common/AkPlatformFuncs.h>
+
+extern "C" {
+#endif
+
+/// Copy volumes.
+/// 
+/// \param[out] out_pVolumesDst Pointer to destination volume vector.
+/// \param[in] in_pVolumesSrc Pointer to source volume vector.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_Copy)(AkSpeakerVolumesVectorPtr out_pVolumesDst, AkSpeakerVolumesConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels);
+
+/// Copy volumes with gain.
+/// 
+/// \param[out] out_pVolumesDst Pointer to destination volume vector.
+/// \param[in] in_pVolumesSrc Pointer to source volume vector.
+/// \param[in] in_uNumChannels Number of channels.
+/// \param[in] in_fGain Gain to apply.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_CopyAndApplyGain)(AkSpeakerVolumesVectorPtr out_pVolumesDst, AkSpeakerVolumesConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels, AkReal32 in_fGain);
+
+/// Clear volumes.
+/// 
+/// \param[out] out_pVolumesDst Pointer to volume vector.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_Zero)(AkSpeakerVolumesVectorPtr out_pVolumesDst, AkUInt32 in_uNumChannels);
+
+/// Accumulate two volume vectors.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination vector.
+/// \param[in] in_pVolumesSrc Pointer to second vector.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_Add)(AkSpeakerVolumesVectorPtr io_pVolumesDst, AkSpeakerVolumesConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels);
+
+/// Compute the sum of all components of a volume vector.
+/// 
+/// \param[in] in_pVolumes Pointer to volume vector.
+/// \param[in] in_uNumChannels Number of channels.
+/// \return The sum of all volumes.
+AK_EXTERNAPIFUNC(AkReal32, AK_SpeakerVolumes_Vector_L1Norm)(AkSpeakerVolumesConstVectorPtr in_pVolumes, AkUInt32 in_uNumChannels);
+
+/// Multiply volume vector with a scalar.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to volume vector.
+/// \param[in] in_fVol Volume multiplier.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_MulScalar)(AkSpeakerVolumesVectorPtr io_pVolumesDst, AkReal32 in_fVol, AkUInt32 in_uNumChannels);
+
+/// Multiply two volume vectors.
+///
+/// \param[in,out] io_pVolumesDst Pointer to first and destination vector.
+/// \param[in] in_pVolumesSrc Pointer to second vector.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_Mul)(AkSpeakerVolumesVectorPtr io_pVolumesDst, AkSpeakerVolumesConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels);
+
+/// Get max for all elements of two volume vectors, independently.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination vector.
+/// \param[in] in_pVolumesSrc Pointer to second vector.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_Max)(AkSpeakerVolumesVectorPtr io_pVolumesDst, AkSpeakerVolumesConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels);
+
+/// Get min for all elements of two volume vectors, independently.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination vector.
+/// \param[in] in_pVolumesSrc Pointer to second vector.
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Vector_Min)(AkSpeakerVolumesVectorPtr io_pVolumesDst, AkSpeakerVolumesConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels);
+
+/// Compute size (in number of elements/floats) required for given number of channels in vector.
+/// 
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(AkUInt32, AK_SpeakerVolumes_Vector_GetNumElements)(AkUInt32 in_uNumChannels);
+
+/// Compute size (in bytes) required for given number of channels in vector.
+/// 
+/// \param[in] in_uNumChannels Number of channels.
+AK_EXTERNAPIFUNC(AkUInt32, AK_SpeakerVolumes_Vector_GetRequiredSize)(AkUInt32 in_uNumChannels);
+
+/// Compute matrix size required for given channel configurations.
+/// 
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+/// \return Matrix size in byte.
+AK_EXTERNAPIFUNC(AkUInt32, AK_SpeakerVolumes_Matrix_GetRequiredSize)(AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Compute number of elements in matrix required for given channel configurations.
+/// 
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+/// \return Number of matrix elements.
+AK_EXTERNAPIFUNC(AkUInt32, AK_SpeakerVolumes_Matrix_GetNumElements)(AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Get pointer to volume distribution for input channel in_uIdxChannelIn.
+/// 
+/// \param[in] in_pVolumeMx Pointer to volume matrix.
+/// \param[in] in_uIdxChannelIn Index of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+/// \return Pointer to volume distribution vector.
+AK_EXTERNAPIFUNC(AkSpeakerVolumesVectorPtr, AK_SpeakerVolumes_Matrix_GetChannel)(AkSpeakerVolumesMatrixPtr in_pVolumeMx, AkUInt32 in_uIdxChannelIn, AkUInt32 in_uNumChannelsOut);
+
+/// Get pointer to volume distribution for input channel in_uIdxChannelIn.
+/// 
+/// \param[in] in_pVolumeMx Pointer to volume matrix.
+/// \param[in] in_uIdxChannelIn Index of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+/// \return Pointer to volume distribution vector.
+AK_EXTERNAPIFUNC(AkSpeakerVolumesConstVectorPtr, AK_SpeakerVolumes_Matrix_GetChannel_Const)(AkSpeakerVolumesConstMatrixPtr in_pVolumeMx, AkUInt32 in_uIdxChannelIn, AkUInt32 in_uNumChannelsOut);
+
+/// Copy matrix.
+/// 
+/// \param[out] out_pVolumesDst Pointer to destination volume matrix.
+/// \param[in] in_pVolumesSrc Pointer to source volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_Copy)(AkSpeakerVolumesMatrixPtr out_pVolumesDst, AkSpeakerVolumesConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Copy matrix with gain.
+/// 
+/// \param[out] out_pVolumesDst Pointer to destination volume matrix.
+/// \param[in] in_pVolumesSrc Pointer to source volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+/// \param[in] in_fGain Gain to apply.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_CopyAndApplyGain)(AkSpeakerVolumesMatrixPtr out_pVolumesDst, AkSpeakerVolumesConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut, AkReal32 in_fGain);
+
+/// Clear matrix.
+/// 
+/// \param[out] out_pVolumesDst Pointer to destination volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_Zero)(AkSpeakerVolumesMatrixPtr out_pVolumesDst, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Multiply a matrix with a scalar.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to volume matrix.
+/// \param[in] in_fVol Volume multiplier.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_Mul)(AkSpeakerVolumesMatrixPtr io_pVolumesDst, AkReal32 in_fVol, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Add all elements of two volume matrices, independently.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination volume matrix.
+/// \param[in] in_pVolumesSrc Pointer to second volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_Add)(AkSpeakerVolumesMatrixPtr io_pVolumesDst, AkSpeakerVolumesConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Pointwise Multiply-Add of all elements of two volume matrices.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination volume matrix.
+/// \param[in] in_pVolumesSrc Pointer to second volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+/// \param[in] in_fGain Volume multiplier.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_MAdd)(AkSpeakerVolumesMatrixPtr io_pVolumesDst, AkSpeakerVolumesConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut, AkReal32 in_fGain);
+
+/// Get absolute max for all elements of two volume matrices, independently.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination volume matrix.
+/// \param[in] in_pVolumesSrc Pointer to second volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_AbsMax)(AkSpeakerVolumesMatrixPtr io_pVolumesDst, AkSpeakerVolumesConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+/// Get max for all elements of two volume matrices, independently.
+/// 
+/// \param[in,out] io_pVolumesDst Pointer to first and destination volume matrix.
+/// \param[in] in_pVolumesSrc Pointer to second volume matrix.
+/// \param[in] in_uNumChannelsIn Number of input channels.
+/// \param[in] in_uNumChannelsOut Number of output channels.
+AK_EXTERNAPIFUNC(void, AK_SpeakerVolumes_Matrix_Max)(AkSpeakerVolumesMatrixPtr io_pVolumesDst, AkSpeakerVolumesConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut);
+
+#ifdef __cplusplus
+} // extern "C"
 
 namespace AK
 {
 /// Multi-channel volume definitions and services.
 namespace SpeakerVolumes
 {
-	typedef AkReal32 * VectorPtr;				///< Volume vector. Access each element with the standard bracket [] operator.
-	typedef AkReal32 * MatrixPtr;				///< Volume matrix. Access each input channel vector with AK::SpeakerVolumes::Matrix::GetChannel().
-	typedef const AkReal32 * ConstVectorPtr;	///< Constant volume vector. Access each element with the standard bracket [] operator.
-	typedef const AkReal32 * ConstMatrixPtr;	///< Constant volume matrix. Access each input channel vector with AK::SpeakerVolumes::Matrix::GetChannel().
-
 	/// Volume vector services.
 	namespace Vector
 	{
-		/// Copy volumes.
-		AkForceInline void Copy( VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels )
+		AkForceInline void Copy(VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || in_uNumChannels == 0 );
-			if ( in_uNumChannels )
-				memcpy( in_pVolumesDst, in_pVolumesSrc, in_uNumChannels * sizeof( AkReal32 ) );
+			if (in_uNumChannels)
+				memcpy(in_pVolumesDst, in_pVolumesSrc, in_uNumChannels * sizeof(AkReal32));
 		}
 
-		/// Copy volumes with gain.
-		AkForceInline void Copy( VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels, AkReal32 in_fGain )
+		AkForceInline void Copy(VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels, AkReal32 in_fGain)
 		{
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || in_uNumChannels == 0 );
-			for ( AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++ )
+			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
 				in_pVolumesDst[uChan] = in_pVolumesSrc[uChan] * in_fGain;
 			}
 		}
 
-		/// Clear volumes.
-		AkForceInline void Zero( VectorPtr in_pVolumes, AkUInt32 in_uNumChannels )
+		AkForceInline void Zero(VectorPtr in_pVolumes, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( in_pVolumes || in_uNumChannels == 0 );
-			if ( in_uNumChannels )
-				memset( in_pVolumes, 0, in_uNumChannels * sizeof( AkReal32 ) );
+			if (in_uNumChannels)
+				memset(in_pVolumes, 0, in_uNumChannels * sizeof(AkReal32));
 		}
 
-		/// Accumulate two volume vectors.
-		AkForceInline void Add( VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels )
+		AkForceInline void Add(VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || in_uNumChannels == 0 );
-			for ( AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++ )
+			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
 				in_pVolumesDst[uChan] += in_pVolumesSrc[uChan];
 			}
 		}
 
-		/// Compute the sum of all components of a volume vector.
 		AkForceInline AkReal32 L1Norm(ConstVectorPtr io_pVolumes, AkUInt32 in_uNumChannels)
 		{
 			AkReal32 total = 0;
-			AKASSERT((io_pVolumes) || in_uNumChannels == 0);
 			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
 				total += io_pVolumes[uChan];
@@ -103,43 +264,35 @@ namespace SpeakerVolumes
 			return total;
 		}
 
-		/// Multiply volume vector with a scalar.
-		AkForceInline void Mul( VectorPtr in_pVolumesDst, const AkReal32 in_fVol, AkUInt32 in_uNumChannels )
+		AkForceInline void Mul(VectorPtr in_pVolumesDst, const AkReal32 in_fVol, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( in_pVolumesDst || in_uNumChannels == 0 );
-			for ( AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++ )
+			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
 				in_pVolumesDst[uChan] *= in_fVol;
 			}
 		}
 
-		/// Multiply two volume vectors.
-		AkForceInline void Mul( VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels )
+		AkForceInline void Mul(VectorPtr in_pVolumesDst, ConstVectorPtr in_pVolumesSrc, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || in_uNumChannels == 0 );
-			for ( AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++ )
+			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
 				in_pVolumesDst[uChan] *= in_pVolumesSrc[uChan];
 			}
 		}
 
-		/// Get max for all elements of two volume vectors, independently.
-		AkForceInline void Max( AkReal32 * in_pVolumesDst, const AkReal32 * in_pVolumesSrc, AkUInt32 in_uNumChannels )
+		AkForceInline void Max(AkReal32* in_pVolumesDst, const AkReal32* in_pVolumesSrc, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || in_uNumChannels == 0 );
-			for ( AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++ )
+			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
-				in_pVolumesDst[uChan] = AkMax( in_pVolumesDst[uChan], in_pVolumesSrc[uChan] );
+				in_pVolumesDst[uChan] = AkMax(in_pVolumesDst[uChan], in_pVolumesSrc[uChan]);
 			}
 		}
-		
-		/// Get min for all elements of two volume vectors, independently.
-		AkForceInline void Min( AkReal32 * in_pVolumesDst, const AkReal32 * in_pVolumesSrc, AkUInt32 in_uNumChannels )
+
+		AkForceInline void Min(AkReal32* in_pVolumesDst, const AkReal32* in_pVolumesSrc, AkUInt32 in_uNumChannels)
 		{
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || in_uNumChannels == 0 );
-			for ( AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++ )
+			for (AkUInt32 uChan = 0; uChan < in_uNumChannels; uChan++)
 			{
-				in_pVolumesDst[uChan] = AkMin( in_pVolumesDst[uChan], in_pVolumesSrc[uChan] );
+				in_pVolumesDst[uChan] = AkMin(in_pVolumesDst[uChan], in_pVolumesSrc[uChan]);
 			}
 		}
 	}
@@ -147,110 +300,88 @@ namespace SpeakerVolumes
 	/// Volume matrix (multi-in/multi-out channel configurations) services.
 	namespace Matrix
 	{
-		/// Compute size (in bytes) required for given channel configurations.
-		AkForceInline AkUInt32 GetRequiredSize( AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut ) 
+		AkForceInline AkUInt32 GetRequiredSize(AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
-			return in_uNumChannelsIn * Vector::GetRequiredSize( in_uNumChannelsOut );
+			return in_uNumChannelsIn * Vector::GetRequiredSize(in_uNumChannelsOut);
 		}
 
-		/// Compute size (in number of elements) required for given channel configurations.
-		AkForceInline AkUInt32 GetNumElements( AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut ) 
+		AkForceInline AkUInt32 GetNumElements(AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
-			return in_uNumChannelsIn * Vector::GetNumElements( in_uNumChannelsOut );
-		}
-		
-		/// Get pointer to volume distribution for input channel in_uIdxChannelIn.
-		AkForceInline VectorPtr GetChannel( MatrixPtr in_pVolumeMx, AkUInt32 in_uIdxChannelIn, AkUInt32 in_uNumChannelsOut ) 
-		{
-			AKASSERT( in_pVolumeMx );
-			return in_pVolumeMx + in_uIdxChannelIn * Vector::GetNumElements( in_uNumChannelsOut );
+			return in_uNumChannelsIn * Vector::GetNumElements(in_uNumChannelsOut);
 		}
 
-		/// Get pointer to volume distribution for input channel in_uIdxChannelIn.
-		AkForceInline ConstVectorPtr GetChannel( ConstMatrixPtr in_pVolumeMx, AkUInt32 in_uIdxChannelIn, AkUInt32 in_uNumChannelsOut ) 
+		AkForceInline VectorPtr GetChannel(MatrixPtr in_pVolumeMx, AkUInt32 in_uIdxChannelIn, AkUInt32 in_uNumChannelsOut)
 		{
-			AKASSERT( in_pVolumeMx );
-			return in_pVolumeMx + in_uIdxChannelIn * Vector::GetNumElements( in_uNumChannelsOut );
+			return in_pVolumeMx + in_uIdxChannelIn * Vector::GetNumElements(in_uNumChannelsOut);
 		}
 
-		/// Copy matrix.
-		AkForceInline void Copy( MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut )
+		AkForceInline ConstVectorPtr GetChannel(ConstMatrixPtr in_pVolumeMx, AkUInt32 in_uIdxChannelIn, AkUInt32 in_uNumChannelsOut)
 		{
-			AkUInt32 uNumElements = Matrix::GetNumElements( in_uNumChannelsIn, in_uNumChannelsOut );
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || uNumElements == 0 );
-			if ( uNumElements )
-				memcpy( in_pVolumesDst, in_pVolumesSrc, uNumElements * sizeof( AkReal32 ) );
+			return in_pVolumeMx + in_uIdxChannelIn * Vector::GetNumElements(in_uNumChannelsOut);
 		}
 
-		/// Copy matrix with gain.
-		AkForceInline void Copy( MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut, AkReal32 in_fGain )
+		AkForceInline void Copy(MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
-			AkUInt32 uNumElements = Matrix::GetNumElements( in_uNumChannelsIn, in_uNumChannelsOut );
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || uNumElements == 0 );
-			for ( AkUInt32 uChan = 0; uChan < uNumElements; uChan++ )
+			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
+			if (uNumElements)
+				memcpy(in_pVolumesDst, in_pVolumesSrc, uNumElements * sizeof(AkReal32));
+		}
+
+		AkForceInline void Copy(MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut, AkReal32 in_fGain)
+		{
+			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
+			for (AkUInt32 uChan = 0; uChan < uNumElements; uChan++)
 			{
 				in_pVolumesDst[uChan] = in_pVolumesSrc[uChan] * in_fGain;
 			}
 		}
 
-		/// Clear matrix.
-		AkForceInline void Zero( MatrixPtr in_pVolumes, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut )
+		AkForceInline void Zero(MatrixPtr in_pVolumes, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
-			AkUInt32 uNumElements = Matrix::GetNumElements( in_uNumChannelsIn, in_uNumChannelsOut );
-			AKASSERT( in_pVolumes || uNumElements == 0 );
-			if ( uNumElements )
-				memset( in_pVolumes, 0, uNumElements * sizeof( AkReal32 ) );
+			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
+			if (uNumElements)
+				memset(in_pVolumes, 0, uNumElements * sizeof(AkReal32));
 		}
 
-		/// Multiply a matrix with a scalar.
-		AkForceInline void Mul( MatrixPtr in_pVolumesDst, const AkReal32 in_fVol, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut )
+		AkForceInline void Mul(MatrixPtr in_pVolumesDst, const AkReal32 in_fVol, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
-			AkUInt32 uNumElements = Matrix::GetNumElements( in_uNumChannelsIn, in_uNumChannelsOut );
-			AKASSERT( in_pVolumesDst || uNumElements == 0 );
-			for ( AkUInt32 uChan = 0; uChan < uNumElements; uChan++ )
+			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
+			for (AkUInt32 uChan = 0; uChan < uNumElements; uChan++)
 			{
 				in_pVolumesDst[uChan] *= in_fVol;
 			}
 		}
 
-		/// Add all elements of two volume matrices, independently.
 		AkForceInline void Add(MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
 			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
-			AKASSERT((in_pVolumesDst && in_pVolumesSrc) || uNumElements == 0);
 			for (AkUInt32 uChan = 0; uChan < uNumElements; uChan++)
 			{
 				in_pVolumesDst[uChan] += in_pVolumesSrc[uChan];
 			}
 		}
 
-		/// Pointwise Multiply-Add of all elements of two volume matrices.
 		AkForceInline void MAdd(MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut, AkReal32 in_fGain)
 		{
 			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
-			AKASSERT((in_pVolumesDst && in_pVolumesSrc) || uNumElements == 0);
 			for (AkUInt32 uChan = 0; uChan < uNumElements; uChan++)
 			{
 				in_pVolumesDst[uChan] += in_pVolumesSrc[uChan] * in_fGain;
 			}
 		}
-		
-		/// Get absolute max for all elements of two volume matrices, independently.
+
 		AkForceInline void AbsMax(MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
-			AkUInt32 uNumElements = Matrix::GetNumElements( in_uNumChannelsIn, in_uNumChannelsOut );
-			AKASSERT( ( in_pVolumesDst && in_pVolumesSrc ) || uNumElements == 0 );
-			for ( AkUInt32 uChan = 0; uChan < uNumElements; uChan++ )
+			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
+			for (AkUInt32 uChan = 0; uChan < uNumElements; uChan++)
 			{
 				in_pVolumesDst[uChan] = ((in_pVolumesDst[uChan] * in_pVolumesDst[uChan]) > (in_pVolumesSrc[uChan] * in_pVolumesSrc[uChan])) ? in_pVolumesDst[uChan] : in_pVolumesSrc[uChan];
 			}
 		}
 
-		/// Get max for all elements of two volume matrices, independently.
 		AkForceInline void Max(MatrixPtr in_pVolumesDst, ConstMatrixPtr in_pVolumesSrc, AkUInt32 in_uNumChannelsIn, AkUInt32 in_uNumChannelsOut)
 		{
 			AkUInt32 uNumElements = Matrix::GetNumElements(in_uNumChannelsIn, in_uNumChannelsOut);
-			AKASSERT((in_pVolumesDst && in_pVolumesSrc) || uNumElements == 0);
 			for (AkUInt32 uChan = 0; uChan < uNumElements; uChan++)
 			{
 				in_pVolumesDst[uChan] = (in_pVolumesDst[uChan] > in_pVolumesSrc[uChan]) ? in_pVolumesDst[uChan] : in_pVolumesSrc[uChan];
@@ -259,5 +390,6 @@ namespace SpeakerVolumes
 	}
 }
 }
+#endif // __cplusplus
 
 #endif  //_AK_SPEAKER_VOLUMES_H_

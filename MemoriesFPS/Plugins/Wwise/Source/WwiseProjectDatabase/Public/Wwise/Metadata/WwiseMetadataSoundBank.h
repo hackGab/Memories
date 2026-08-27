@@ -93,7 +93,11 @@ struct WwiseMetadataSoundBank : public WwiseMetadataSoundBankAttributes
 	{
 		return Media.ContainsByPredicate([](const WwiseMetadataMedia& MediaToTest)
 		{
-			return MediaToTest.Location == WwiseMetadataMediaLocation::Memory;
+			return
+#if WWISE_2025_1_OR_LATER
+				MediaToTest.bContainsPrefetch ||
+#endif
+				MediaToTest.Location == WwiseMetadataMediaLocation::Memory;
 		});
 	}
 

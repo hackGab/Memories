@@ -40,7 +40,6 @@ the specific language governing permissions and limitations under the License.
 #endif
 
 #include <AK/SoundEngine/Platforms/SSE/AkSimdAvx.h>
-#include <string.h>
 
 ////////////////////////////////////////////////////////////////////////
 /// @name AKSIMD arithmetic
@@ -118,8 +117,8 @@ static AkForceInline AKSIMD_V8F32 AKSIMD_COMPLEXMUL_AVX2(const AKSIMD_V8F32 cIn1
 /// Adds the eight integer values of a and b
 #define AKSIMD_ADD_V8I32( a, b ) _mm256_add_epi32( a, b )
 
-#define AKSIMD_CMPLT_V8I32( a, b ) _mm256_cmpgt_epi32( b, a )
-#define AKSIMD_CMPGT_V8I32( a, b ) _mm256_cmpgt_epi32( a, b )
+#define AKSIMD_CMPLT_V8I32( a, b ) _mm256_castsi256_ps(_mm256_cmpgt_epi32( b, a ))
+#define AKSIMD_CMPGT_V8I32( a, b ) _mm256_castsi256_ps(_mm256_cmpgt_epi32( a, b ))
 #define AKSIMD_OR_V8I32( a, b ) _mm256_or_si256(a,b)
 #define AKSIMD_XOR_V8I32( a, b ) _mm256_xor_si256(a,b)
 #define AKSIMD_SUB_V8I32( a, b ) _mm256_sub_epi32(a,b)
@@ -211,14 +210,13 @@ static AkForceInline AKSIMD_V8F32 AKSIMD_COMPLEXMUL_AVX2(const AKSIMD_V8F32 cIn1
 /// This tends to perform better than a native VGATHER on most CPUs
 
 template <typename T, typename Function>
-inline AKSIMD_V8I32 AKSIMD_GATHER_EPI32(const T* __restrict base_ptr, Function expr)
+static inline AKSIMD_V8I32 AKSIMD_GATHER_EPI32(const T* __restrict base_ptr, Function expr)
 {
 	__m256i vals = _mm256_setzero_si256();
 	__m128i valsTemp[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
 #define _GATHER_SIM_FETCH(_x) \
     {\
-        AkInt32 val;\
-        memcpy(&val, (base_ptr + expr(_x)), sizeof(val)); \
+        AkInt32 val = *(AkInt32*)(base_ptr + expr(_x)); \
         valsTemp[_x/4] = _mm_insert_epi32(valsTemp[_x/4],  val, _x%4);\
     }
 
@@ -236,14 +234,13 @@ inline AKSIMD_V8I32 AKSIMD_GATHER_EPI32(const T* __restrict base_ptr, Function e
 }
 
 template <typename T, typename Function>
-inline AKSIMD_V8I32 AKSIMD_GATHER_EPI64(const T* base_ptr, Function expr)
+static inline AKSIMD_V8I32 AKSIMD_GATHER_EPI64(const T* base_ptr, Function expr)
 {
 	__m256i vals = _mm256_setzero_si256();
 	__m128i valsTemp[2] = { _mm_setzero_si128(),_mm_setzero_si128() };
 #define _GATHER_SIM_FETCH(_x) \
     {\
-        AkInt64 val; \
-        memcpy(&val, (base_ptr + expr(_x)), sizeof(val)); \
+        AkInt64 val = *(AkInt64*)(base_ptr + expr(_x)); \
         valsTemp[_x/2] = _mm_insert_epi64(valsTemp[_x/2],  val, _x%2);\
     }
 
@@ -257,13 +254,13 @@ inline AKSIMD_V8I32 AKSIMD_GATHER_EPI64(const T* base_ptr, Function expr)
 }
 
 template <typename T, typename Function>
-inline AKSIMD_V8F32 AKSIMD_GATHER_PS(const T* base_ptr, Function expr)
+static inline AKSIMD_V8F32 AKSIMD_GATHER_PS(const T* base_ptr, Function expr)
 {
 	return _mm256_castsi256_ps(AKSIMD_GATHER_EPI32(base_ptr, expr));
 }
 
 template <typename T, typename Function>
-inline AKSIMD_V4F64 AKSIMD_GATHER_PD(const T* base_ptr, Function expr)
+static inline AKSIMD_V4F64 AKSIMD_GATHER_PD(const T* base_ptr, Function expr)
 {
 	return _mm256_castsi256_pd(AKSIMD_GATHER_EPI64(base_ptr, expr));
 }

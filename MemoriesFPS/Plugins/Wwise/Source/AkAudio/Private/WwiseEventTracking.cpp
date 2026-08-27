@@ -18,20 +18,25 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "WwiseEventTracking.h"
 #include "AkAudioEvent.h"
 
-void FWwiseEventTracker::PostEventCallbackHandler(AkCallbackType in_eType, AkCallbackInfo * in_pCallbackInfo)
+#if WWISE_2025_1_OR_LATER
+void FWwiseEventTracker::PostEventCallbackHandler(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo, void* in_pCookie)
 {
-	if (in_pCallbackInfo == nullptr)
-		return;
-
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::PostEventCallbackHandler"));
+	AkEventCallbackInfo* EventInfo = in_pEventInfo;
+	auto Tracker = (FWwiseEventTracker*)in_pCookie;
+#else
+void FWwiseEventTracker::PostEventCallbackHandler(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
+{
+	AkEventCallbackInfo* EventInfo = static_cast<AkEventCallbackInfo*>(in_pCallbackInfo);
 	auto Tracker = (FWwiseEventTracker*)in_pCallbackInfo->pCookie;
-	if (Tracker == nullptr)
+#endif
+	if (EventInfo == nullptr || Tracker == nullptr)
 		return;
 
 	/* Event end */
 	if (in_eType == AkCallbackType::AK_EndOfEvent)
 	{
-		const auto CBInfo = (AkEventCallbackInfo*)in_pCallbackInfo;
-		const auto IDToStop = CBInfo->playingID;
+		const auto IDToStop = EventInfo->playingID;
 		Tracker->RemovePlayingID(IDToStop);
 		Tracker->RemoveScheduledStop(IDToStop);
 	}/* Received close to the beginning of the event */
@@ -44,6 +49,7 @@ void FWwiseEventTracker::PostEventCallbackHandler(AkCallbackType in_eType, AkCal
 
 void FWwiseEventTracker::RemoveScheduledStop(AkPlayingID InID)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::RemoveScheduledStop"));
 	FScopeLock autoLock(&ScheduledStopsLock);
 
 	for (auto PlayingID : ScheduledStops)
@@ -59,12 +65,14 @@ void FWwiseEventTracker::RemoveScheduledStop(AkPlayingID InID)
 
 void FWwiseEventTracker::RemovePlayingID(AkPlayingID InID)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::RemovePlayingID"));
 	FScopeLock autoLock(&PlayingIDsLock);
 	PlayingIDs.Remove(InID);
 }
 
 void FWwiseEventTracker::TryAddPlayingID(const AkPlayingID & PlayingID)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::TryAddPlayingID"));
 	if (PlayingID != AK_INVALID_PLAYING_ID)
 	{
 		FScopeLock autoLock(&PlayingIDsLock);
@@ -74,18 +82,21 @@ void FWwiseEventTracker::TryAddPlayingID(const AkPlayingID & PlayingID)
 
 void FWwiseEventTracker::EmptyPlayingIDs()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::EmptyPlayingIDs"));
 	FScopeLock autoLock(&PlayingIDsLock);
 	PlayingIDs.Empty();
 }
 
 void FWwiseEventTracker::EmptyScheduledStops()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::EmptyScheduledStops"));
 	FScopeLock autoLock(&ScheduledStopsLock);
 	ScheduledStops.Empty();
 }
 
 bool FWwiseEventTracker::PlayingIDHasScheduledStop(AkPlayingID InID)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::PlayingIDHasScheduledStop"));
 	FScopeLock autoLock(&ScheduledStopsLock);
 
 	for (auto PlayingID : ScheduledStops)
@@ -101,6 +112,7 @@ bool FWwiseEventTracker::PlayingIDHasScheduledStop(AkPlayingID InID)
 
 void FWwiseEventTracker::AddScheduledStop(AkPlayingID InID)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FWwiseEventTracker::AddScheduledStop"));
 	FScopeLock autoLock(&ScheduledStopsLock);
 	ScheduledStops.Add(InID);
 }
@@ -120,6 +132,7 @@ namespace WwiseEventTriggering
 
 	void PausePlayingID(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker, AkPlayingID InPlayingID)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::PausePlayingID"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT("WwiseEventTriggering::PausePlayingID: Event Tracker: %p. Pausing Playing ID: %d."), &EventTracker,
 		       InPlayingID)
@@ -136,6 +149,7 @@ namespace WwiseEventTriggering
 
 	void PauseAllPlayingIDs(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::PauseAllPlayingIDs"));
 		UE_LOG(LogAkAudio, Verbose, TEXT("WwiseEventTriggering::PauseAllPlayingIDs: Event Tracker: %p. Pausing play on all Playing Events"), &EventTracker);
 		for (auto PlayingID : GetPlayingIds(EventTracker))
 		{
@@ -145,6 +159,7 @@ namespace WwiseEventTriggering
 
 	void ResumePlayingID(TObjectPtr<UObject> Object, FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker, AkReal32 ProportionalTime, AkPlayingID InPlayingID)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::ResumePlayingID"));
 		ensure(AudioDevice != nullptr);
 		checkf(AudioDevice, TEXT("No AudioDevice available!"))
 		if (AudioDevice)
@@ -173,6 +188,7 @@ namespace WwiseEventTriggering
 
 	void ResumeAllPlayingIDs(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker, AkReal32 ProportionalTime)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::ResumeAllPlayingIDs"));
 		UE_LOG(LogAkAudio, Verbose,
 		       TEXT(
 			       "WwiseEventTriggering::ResumePlayingID: EventTracker: %p, Resuming Play on all Playing IDs at proportional time %f"
@@ -185,6 +201,7 @@ namespace WwiseEventTriggering
 
 	void StopAllPlayingIDs(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::StopAllPlayingIDs"));
 		UE_LOG(LogAkAudio, Verbose,
 		       TEXT("WwiseEventTriggering::StopAllPlayingIDs: EventTracker: %p, Stopping play all Playing Events"),
 		       &EventTracker);
@@ -200,6 +217,7 @@ namespace WwiseEventTriggering
 
 	AkPlayingID PostEventOnDummyObject(FAkAudioDevice* AudioDevice, FWwiseEventTracker& EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::PostEventOnDummyObject"));
 		checkf(AudioDevice, TEXT("No AudioDevice available!"))
 		if (EventTracker.EventName.IsEmpty())
 		{
@@ -239,6 +257,7 @@ namespace WwiseEventTriggering
 
 	AkPlayingID PostEvent(TObjectPtr<UObject> Object, FAkAudioDevice* AudioDevice, FWwiseEventTracker& EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::PostEvent"));
 		if (EventTracker.EventName.IsEmpty())
 		{
 			UE_LOG(LogAkAudio, Warning,
@@ -292,6 +311,7 @@ namespace WwiseEventTriggering
 
 	void StopEvent(FAkAudioDevice * AudioDevice, AkPlayingID InPlayingID, FWwiseEventTracker * EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::StopEvent"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT("WwiseEventTriggering::StopEvent: EventTracker: %p. Stopping Event on PlayingID %d"), &EventTracker, InPlayingID);
 
@@ -302,6 +322,7 @@ namespace WwiseEventTriggering
 
 	void TriggerStopEvent(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker, AkPlayingID InPlayingID)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::TriggerStopEvent"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT("WwiseEventTriggering::TriggerStopEvent: EventTracker: %p. Stopping Event on PlayingID %d"),
 		       &EventTracker, InPlayingID);
@@ -311,6 +332,7 @@ namespace WwiseEventTriggering
 
 	void ScheduleStopEventsForCurrentlyPlayingIDs(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::ScheduleStopEventsForCurrentlyPlayingIDs"));
 		UE_LOG(LogAkAudio, Verbose,
 		       TEXT(
 			       "WwiseEventTriggering::ScheduleStopEventsForCurrentlyPlayingIDs:EventTracker: %p. Stopping currently Playing ID"
@@ -331,6 +353,7 @@ namespace WwiseEventTriggering
 
 	void TriggerScrubSnippetOnDummyObject(FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::TriggerScrubSnippetOnDummyObject"));
 		checkf(AudioDevice, TEXT("No AudioDevice available!"))
 		if (EventTracker.EventName.IsEmpty())
 		{
@@ -357,7 +380,7 @@ namespace WwiseEventTriggering
 
 	void TriggerScrubSnippet(TObjectPtr<UObject> Object, FAkAudioDevice * AudioDevice, FWwiseEventTracker & EventTracker)
 	{
-
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::TriggerScrubSnippet"));
 		checkf(AudioDevice, TEXT("No AudioDevice available!"))
 		if (EventTracker.EventName.IsEmpty())
 		{
@@ -398,6 +421,7 @@ namespace WwiseEventTriggering
 
 	void SeekOnEvent(TObjectPtr<UObject> Object, FAkAudioDevice * AudioDevice, AkReal32 in_fPercent, FWwiseEventTracker & EventTracker, AkPlayingID InPlayingID)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::SeekOnEvent"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT(
 			       "WwiseEventTriggering::SeekOnEvent: EventTracker: %p. Seeking to proportional time %f on %s Playing ID: %d"),
@@ -431,6 +455,7 @@ namespace WwiseEventTriggering
 
 	void SeekOnEvent(TObjectPtr<UObject> Object, FAkAudioDevice * AudioDevice, AkReal32 ProportionalTime, FWwiseEventTracker & EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::SeekOnEvent"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT(
 			       "WwiseEventTriggering::SeekOnEvent: EventTracker: %p. Seeking to proportional time %f on %s on all Playing IDs"
@@ -444,6 +469,7 @@ namespace WwiseEventTriggering
 
 	void SeekOnEventWithDummyObject(FAkAudioDevice * AudioDevice, AkReal32 ProportionalTime, FWwiseEventTracker & EventTracker, AkPlayingID InPlayingID)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::SeekOnEventWithDummyObject"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT(
 			       "WwiseEventTriggering::SeekOnEvent: EventTracker: %p. Seeking to proportional time %f on Playing ID %d"
@@ -472,6 +498,7 @@ namespace WwiseEventTriggering
 
 	void SeekOnEventWithDummyObject(FAkAudioDevice * AudioDevice, AkReal32 ProportionalTime, FWwiseEventTracker & EventTracker)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("WwiseEventTriggering::SeekOnEventWithDummyObject"));
 		UE_LOG(LogAkAudio, VeryVerbose,
 		       TEXT("WwiseEventTriggering::SeekOnEvent: EventTracker: %p. Seeking on all Playing IDs"), &EventTracker)
 

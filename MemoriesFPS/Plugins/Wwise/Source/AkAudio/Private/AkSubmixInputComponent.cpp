@@ -66,6 +66,7 @@ Audio::FMixerDevice* UDEPRECATED_UAkSubmixInputComponent::GetAudioMixerDevice()
 
 int32 UDEPRECATED_UAkSubmixInputComponent::PostAssociatedAudioInputEvent()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UDEPRECATED_UAkSubmixInputComponent::PostAssociatedAudioInputEvent"));
 	if (PlayingID == AK_INVALID_PLAYING_ID)
 	{
 		Audio::FMixerDevice* AudioMixerDevice = GetAudioMixerDevice();
@@ -107,6 +108,7 @@ int32 UDEPRECATED_UAkSubmixInputComponent::PostAssociatedAudioInputEvent()
 
 void UDEPRECATED_UAkSubmixInputComponent::Stop()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UDEPRECATED_UAkSubmixInputComponent::Stop"));
 	Audio::FMixerDevice* AudioMixerDevice = GetAudioMixerDevice();
 	if (AudioMixerDevice)
 	{
@@ -129,6 +131,7 @@ void UDEPRECATED_UAkSubmixInputComponent::Stop()
 
 bool UDEPRECATED_UAkSubmixInputComponent::FillSamplesBuffer(uint32 InNumChannels, uint32 InNumSamples, float** InOutBufferToFill)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UDEPRECATED_UAkSubmixInputComponent::FillSamplesBuffer"));
 	check(InNumChannels == SubmixListener->NumChannels);
 	if (SubmixListener->SampleBuffer.Num() >= (InNumChannels * InNumSamples))
 	{

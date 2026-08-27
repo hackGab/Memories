@@ -37,7 +37,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedAuxBusInfo
 
 		TArray<const FWwiseSoundBankCookedData*> LoadedSoundBanks;
 		TArray<const FWwiseMediaCookedData*> LoadedMedia;
-		int IsProcessing{0};
+		std::atomic<int> IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;

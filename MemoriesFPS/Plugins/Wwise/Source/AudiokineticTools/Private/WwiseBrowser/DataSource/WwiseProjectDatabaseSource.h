@@ -58,8 +58,8 @@ public:
 
 private:
 
-
 	void BuildEvents(const WwiseEventGlobalIdsMap& Events);
+	void BuildDialogueEvents(const WwiseDialogueEventGlobalIdsMap& DialogueEvents);
 	void BuildBusses(const WwiseBusGlobalIdsMap& Busses);
 	void BuildAuxBusses(const WwiseAuxBusGlobalIdsMap& AuxBusses);
 	void BuildAcousticTextures(const WwiseAcousticTextureGlobalIdsMap& AcousticTextures);

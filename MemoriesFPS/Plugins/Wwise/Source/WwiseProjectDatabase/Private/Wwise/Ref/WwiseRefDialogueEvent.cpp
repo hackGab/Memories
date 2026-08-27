@@ -19,6 +19,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include "Wwise/Ref/WwiseRefCollections.h"
 #include "Wwise/Ref/WwiseRefDialogueArgument.h"
+#include "Wwise/Ref/WwiseRefMedia.h"
 #include "Wwise/Metadata/WwiseMetadataDialogue.h"
 #include "Wwise/Metadata/WwiseMetadataSoundBank.h"
 
@@ -46,7 +47,7 @@ const WwiseMetadataDialogueEvent* WwiseRefDialogueEvent::GetDialogueEvent() cons
 	}
 }
 
-WwiseDialogueArgumentIdsMap WwiseRefDialogueEvent::GetDialogueArguments(const WwiseDialogueArgumentGlobalIdsMap& GlobalMap) const
+WwiseDialogueArgumentArray WwiseRefDialogueEvent::GetDialogueArguments(const WwiseDialogueArgumentGlobalIdsMap& GlobalMap) const
 {
 	const auto* DialogueEvent = GetDialogueEvent();
 	if (!DialogueEvent) [[unlikely]]
@@ -54,14 +55,14 @@ WwiseDialogueArgumentIdsMap WwiseRefDialogueEvent::GetDialogueArguments(const Ww
 		return {};
 	}
 	const auto& Arguments = DialogueEvent->Arguments;
-	WwiseDialogueArgumentIdsMap Result;
+	WwiseDialogueArgumentArray Result;
 	Result.Empty(Arguments.Size());
 	for (const auto& Elem : Arguments)
 	{
 		const auto* GlobalRef = GlobalMap.Find(WwiseDatabaseLocalizableIdKey(Elem.Id, LanguageId));
 		if (GlobalRef)
 		{
-			Result.Add(Elem.Id, *GlobalRef);
+			Result.Add(*GlobalRef);
 		}
 		else
 		{
@@ -69,6 +70,29 @@ WwiseDialogueArgumentIdsMap WwiseRefDialogueEvent::GetDialogueArguments(const Ww
 		}
 	}
 
+	return Result;
+}
+
+WwiseMediaIdsMap WwiseRefDialogueEvent::GetAllMedia(const WwiseMediaGlobalIdsMap& GlobalMap) const
+{
+	const auto* SoundBank = GetSoundBank();
+	const auto* Event = GetDialogueEvent();
+	if (!Event || !SoundBank) [[unlikely]]
+	{
+		return {};
+	}
+	WwiseMediaIdsMap Result;
+
+	const auto& SoundBankMedia = SoundBank->Media;
+	for (const auto& Elem : SoundBankMedia)
+	{
+		WwiseDatabaseLocalizableIdKey Id(Elem.Id, SoundBank->Id);
+		const WwiseRefMedia* GlobalRef = GlobalMap.Find(Id);
+		if (GlobalRef)
+		{
+			Result.Add(Elem.Id, *GlobalRef);
+		}
+	}
 	return Result;
 }
 

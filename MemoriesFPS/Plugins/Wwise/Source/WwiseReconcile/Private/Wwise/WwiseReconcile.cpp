@@ -25,6 +25,8 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Misc/App.h"
 #include "Misc/EngineBuildSettings.h"
 #include "Misc/ScopedSlowTask.h"
+#include "Misc/EnumClassFlags.h"
+#include "ObjectTools.h"
 
 #define LOCTEXT_NAMESPACE "AkAudio"
 
@@ -50,7 +52,7 @@ bool IWwiseReconcile::ReconcileAssets(EWwiseReconcileOperationFlags OperationFla
 	FScopedSlowTask ReconcileTask(GetNumberOfAssets(), LOCTEXT("ReconcileTask", "Reconciling Wwise Assets"));
 	if(FApp::CanEverRender())
 	{
-		ReconcileTask.MakeDialog(true);		
+		ReconcileTask.MakeDialog(true);
 	}
 	auto ProjectDatabase = FWwiseProjectDatabase::Get();
 	if (UNLIKELY(!ProjectDatabase))
@@ -72,7 +74,8 @@ bool IWwiseReconcile::ReconcileAssets(EWwiseReconcileOperationFlags OperationFla
 
 	if (AssetsToDelete.Num() != 0)
 	{
-		int NumberOfAssetsDeleted = DeleteAssets(ReconcileTask);
+		bool bForceDelete = (OperationFlags & EWwiseReconcileOperationFlags::ForceDelete) == EWwiseReconcileOperationFlags::ForceDelete;
+		int NumberOfAssetsDeleted = DeleteAssets(ReconcileTask, bForceDelete);
 		NumberOfOperationsCompleted += NumberOfAssetsDeleted;
 		if (NumberOfAssetsDeleted > 0 && !ReconcileTask.ShouldCancel())
 		{
@@ -157,3 +160,26 @@ bool IWwiseReconcile::ReconcileAssets(EWwiseReconcileOperationFlags OperationFla
 	return bSucceeded;
 }
 #undef LOCTEXT
+
+bool FWwiseReconcileItem::IsAssetReferenced() const
+{
+	// Check if the object is referenced in memory
+	if (EnumHasAllFlags(OperationRequired, EWwiseReconcileOperationFlags::Delete))
+	{
+		bool bReferenced = false;
+		bool bReferencedByUndo = false;
+		ObjectTools::GatherObjectReferencersForDeletion(Asset.GetAsset(), bReferenced, bReferencedByUndo);
+
+		if (bReferenced || bReferencedByUndo)
+		{
+			return true;
+		}
+	}
+
+	// If not, then check if referenced on disk
+	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+	TArray<FName> referencers;
+	AssetRegistry.GetReferencers(FName(Asset.PackageName), referencers);
+
+	return referencers.Num() > 0;
+}

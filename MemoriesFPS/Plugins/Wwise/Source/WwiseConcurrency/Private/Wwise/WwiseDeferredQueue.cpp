@@ -43,7 +43,7 @@ void FWwiseDeferredQueue::AsyncDefer(FFunction&& InFunction)
 {
 	if (!bClosing)
 	{
-		AsyncOpQueue.Enqueue(MoveTemp(InFunction));
+		AsyncOpQueue.Push(new FFunction( MoveTemp(InFunction) ));
 	}
 }
 
@@ -51,7 +51,7 @@ void FWwiseDeferredQueue::SyncDefer(FSyncFunction&& InFunction)
 {
 	if (!bClosing)
 	{
-		SyncOpQueue.Enqueue(MoveTemp(InFunction));
+		SyncOpQueue.Push(new FSyncFunction( MoveTemp(InFunction) ));
 	}
 }
 
@@ -59,7 +59,7 @@ void FWwiseDeferredQueue::GameDefer(FFunction&& InFunction)
 {
 	if (!bClosing)
 	{
-		GameOpQueue.Enqueue(MoveTemp(InFunction));
+		GameOpQueue.Push(new FFunction( MoveTemp(InFunction) ));
 	}
 }
 
@@ -96,7 +96,7 @@ void FWwiseDeferredQueue::Run(AK::IAkGlobalPluginContext* InContext)
 void FWwiseDeferredQueue::Wait()
 {
 	const bool bIsInGameThread = IsInGameThread();
-	SCOPED_WWISECONCURRENCY_EVENT_4(bIsInGameThread ? TEXT("FWwiseDeferredQueue::Wait GameThread") : TEXT("FWwiseDeferredQueue::Wait"));
+	SCOPED_WWISECONCURRENCY_EVENT_F_4(TEXT("FWwiseDeferredQueue::Wait"), TEXT("%s"), bIsInGameThread ? TEXT("GameThread") : TEXT(""));
 	CONDITIONAL_SCOPE_CYCLE_COUNTER(STAT_WwiseConcurrencyGameThreadWait, bIsInGameThread);
 	CONDITIONAL_SCOPE_CYCLE_COUNTER(STAT_WwiseConcurrencyWait, !bIsInGameThread);
 
@@ -114,32 +114,39 @@ void FWwiseDeferredQueue::Wait()
 		{
 			const bool bNeedToStartLoop = (GameThreadExecuting++ == 0);
 
-			GameOpQueue.Enqueue([this, &Done]() mutable
+			GameOpQueue.Push(new FFunction( [this, &Done]() mutable
 			{
 				Done->Trigger();
 				--GameThreadExecuting;
 				return EWwiseDeferredAsyncResult::Done;
-			});
+			} ));
 
 			if (bNeedToStartLoop)
 			{
-				FFunction Func;
-				while (GameThreadExecuting > 0 && GameOpQueue.Dequeue(Func))
+				while (GameThreadExecuting > 0)
 				{
-					if (Func() == EWwiseDeferredAsyncResult::KeepRunning)
+					if (FFunction* Func = GameOpQueue.Pop())
 					{
-						GameDefer(MoveTemp(Func));
+						if ((*Func)() == EWwiseDeferredAsyncResult::KeepRunning)
+						{
+							GameDefer(MoveTemp(*Func));
+						}
+						delete Func;
+					}
+					else
+					{
+						break;
 					}
 				}
 			}
 		}
 		else
 		{
-			GameOpQueue.Enqueue([&Done]() mutable
+			GameOpQueue.Push(new FFunction( [&Done]() mutable
 			{
 				Done->Trigger();
 				return EWwiseDeferredAsyncResult::Done;
-			});
+			} ));
 			GameThreadExec();
 		}
 		Done->Wait();
@@ -168,7 +175,7 @@ void FWwiseDeferredQueue::AsyncExec()
 		UE_LOG(LogWwiseConcurrency, Error, TEXT("FWwiseDeferredQueue::AsyncExec: AsyncState not Idle trying to set as Running for %s. Skipping."), AsyncExecutionQueue.DebugName);
 		return;
 	}
-	AsyncOpQueue.Enqueue([this]() mutable
+	AsyncOpQueue.Push(new FFunction( [this]() mutable
 	{
 		EWwiseDeferredAsyncState ExpectedAsyncState { EWwiseDeferredAsyncState::Running };
 		if (UNLIKELY(!AsyncState.compare_exchange_strong(ExpectedAsyncState, EWwiseDeferredAsyncState::Done)))
@@ -176,21 +183,20 @@ void FWwiseDeferredQueue::AsyncExec()
 			UE_LOG(LogWwiseConcurrency, Error, TEXT("FWwiseDeferredQueue::AsyncExec: AsyncState not Running trying to set as Done for %s. Skipping."), AsyncExecutionQueue.DebugName);
 		}		
 		return EWwiseDeferredAsyncResult::Done;
-	});
+	} ));
 
 	while (AsyncState == EWwiseDeferredAsyncState::Running)
 	{
-		FFunction Func;
-		const bool bResult = AsyncOpQueue.Dequeue(Func);
-		if (UNLIKELY(!bResult))
+		FFunction* Func = AsyncOpQueue.Pop();
+		if (!Func)
 		{
-			UE_LOG(LogWwiseConcurrency, Error, TEXT("FWwiseDeferredQueue::AsyncExec: No Result dequeuing Async Deferred Queue %s"), AsyncExecutionQueue.DebugName);
 			break;
 		}
-		if (Func() == EWwiseDeferredAsyncResult::KeepRunning)
+		if ((*Func)() == EWwiseDeferredAsyncResult::KeepRunning)
 		{
-			AsyncDefer(MoveTemp(Func));
+			AsyncDefer(MoveTemp(*Func));
 		}
+		delete Func;
 	}
 
 	ExpectedAsyncState = EWwiseDeferredAsyncState::Done;
@@ -203,23 +209,30 @@ void FWwiseDeferredQueue::AsyncExec()
 
 void FWwiseDeferredQueue::SyncExec()
 {
-	SyncOpQueue.Enqueue([this](AK::IAkGlobalPluginContext*) mutable
+	SyncOpQueue.Push(new FSyncFunction( [this](AK::IAkGlobalPluginContext*) mutable
 	{
 		bSyncThreadDone = true;
 		return EWwiseDeferredAsyncResult::Done;
-	});
+	} ));
 
 	SyncExecLoop();
 }
 
 void FWwiseDeferredQueue::SyncExecLoop()
 {
-	FSyncFunction Func;
-	while (!bSyncThreadDone && SyncOpQueue.Dequeue(Func))
+	while (!bSyncThreadDone)
 	{
-		if (!bClosing && Func(Context) == EWwiseDeferredAsyncResult::KeepRunning)
+		if (FSyncFunction* Func = SyncOpQueue.Pop())
 		{
-			SyncDefer(MoveTemp(Func));
+			if (!bClosing && (*Func)(Context) == EWwiseDeferredAsyncResult::KeepRunning)
+			{
+				SyncDefer(MoveTemp(*Func));
+			}
+			delete Func;
+		}
+		else
+		{
+			break;
 		}
 	}
 	OnSyncRunTS.Broadcast(Context);
@@ -230,11 +243,11 @@ void FWwiseDeferredQueue::GameThreadExec()
 {
 	const bool bNeedToStartLoop = (GameThreadExecuting++ == 0);
 
-	GameOpQueue.Enqueue([this]() mutable
+	GameOpQueue.Push(new FFunction( [this]() mutable
 	{
 		--GameThreadExecuting;
 		return EWwiseDeferredAsyncResult::Done;
-	});
+	} ));
 
 	if (bNeedToStartLoop)
 	{
@@ -249,12 +262,19 @@ void FWwiseDeferredQueue::GameThreadExecLoop()
 		SCOPED_WWISECONCURRENCY_EVENT_4(TEXT("FWwiseDeferredQueue::GameThreadExecLoop"));
 		SCOPE_CYCLE_COUNTER(STAT_WwiseConcurrencyGameThread);
 
-		FFunction Func;
-		while (GameThreadExecuting > 0 && GameOpQueue.Dequeue(Func))
+		while (GameThreadExecuting > 0)
 		{
-			if (Func() == EWwiseDeferredAsyncResult::KeepRunning)
+			if (FFunction* Func = GameOpQueue.Pop())
 			{
-				GameDefer(MoveTemp(Func));
+				if ((*Func)() == EWwiseDeferredAsyncResult::KeepRunning)
+				{
+					GameDefer(MoveTemp(*Func));
+				}
+				delete Func;
+			}
+			else
+			{
+				break;
 			}
 		}
 

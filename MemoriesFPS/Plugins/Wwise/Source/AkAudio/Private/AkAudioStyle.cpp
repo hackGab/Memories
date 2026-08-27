@@ -21,6 +21,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkAudioDevice.h"
 #include "AkAudioEvent.h"
 #include "AkAuxBus.h"
+#include "AkDialogueEvent.h"
 #include "AkEffectShareSet.h"
 #include "AkRtpc.h"
 #include "AkStateValue.h"
@@ -219,11 +220,12 @@ const FSlateBrush* FAkAudioStyle::GetBrush(EWwiseItemType::Type ItemType)
 	case EWwiseItemType::AcousticTexture: return Style->GetBrush(FWwisePluginStyle::AcousticTextureIconName);
 	case EWwiseItemType::AuxBus: return Style->GetBrush(FWwisePluginStyle::AuxBusIconName);
 	case EWwiseItemType::Bus: return Style->GetBrush(FWwisePluginStyle::BusIconName);
+	case EWwiseItemType::DialogueEvent: return Style->GetBrush(FWwisePluginStyle::DialogueEventIconName);
 	case EWwiseItemType::Folder: return Style->GetBrush(FWwisePluginStyle::FolderIconName);
 	case EWwiseItemType::Project: return Style->GetBrush(FWwisePluginStyle::ProjectIconName);
 	case EWwiseItemType::PhysicalFolder: return Style->GetBrush(FWwisePluginStyle::PhysicalFolderIconName);
 	case EWwiseItemType::StandaloneWorkUnit:
-	case EWwiseItemType::NestedWorkUnit: return Style->GetBrush(FWwisePluginStyle::WorkUnitIconName);
+	case EWwiseItemType::NestedWorkUnit: return Style->GetBrush(FWwisePluginStyle::FolderIconName);
 	case EWwiseItemType::ActorMixer: return Style->GetBrush(FWwisePluginStyle::ActorMixerIconName);
 	case EWwiseItemType::Sound: return Style->GetBrush(FWwisePluginStyle::SoundIconName);
 	case EWwiseItemType::SwitchContainer: return Style->GetBrush(FWwisePluginStyle::SwitchContainerIconName);
@@ -251,6 +253,9 @@ const FSlateBrush* FAkAudioStyle::GetBrush(WwiseRefType WwiseRefType)
 	{
 	case WwiseRefType::Event:
 		ItemType = EWwiseItemType::Event;
+		break;
+	case WwiseRefType::DialogueEvent:
+		ItemType = EWwiseItemType::DialogueEvent;
 		break;
 	case WwiseRefType::SwitchContainer:
 		ItemType = EWwiseItemType::SwitchContainer;
@@ -299,6 +304,10 @@ const FSlateBrush* FAkAudioStyle::GetBrush(UClass* Class)
 	{
 		ItemType = EWwiseItemType::Event;
 	}
+	if (Class == UAkDialogueEvent::StaticClass())
+	{
+		ItemType = EWwiseItemType::DialogueEvent;
+	}
 	if (Class == UAkAcousticTexture::StaticClass())
 	{
 		ItemType = EWwiseItemType::AcousticTexture;
@@ -333,10 +342,14 @@ const FSlateBrush* FAkAudioStyle::GetBrush(UClass* Class)
 	}
 	return GetBrush(ItemType);
 }
-#endif
 
 const FSlateBrush* FAkAudioStyle::GetBrush(FName PropertyName, const ANSICHAR* Specifier)
 {
+	auto Style = FWwisePluginStyle::Get();
+	if (Style != nullptr)
+	{
+		return Style->GetBrush(PropertyName, Specifier);
+	}
 	return Get().GetBrush(PropertyName, Specifier);
 }
 
@@ -344,6 +357,7 @@ const FSlateFontInfo FAkAudioStyle::GetFontStyle(FName PropertyName, const ANSIC
 {
 	return Get().GetFontStyle(PropertyName, Specifier);
 }
+#endif
 
 UMaterial* FAkAudioStyle::GetAkForegroundTextMaterial()
 {

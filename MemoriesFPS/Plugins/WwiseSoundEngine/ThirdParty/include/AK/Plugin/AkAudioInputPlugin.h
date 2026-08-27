@@ -35,7 +35,7 @@ the specific language governing permissions and limitations under the License.
 // API external to the plug-in, to be used by the game.
 
 /// Callback requesting for the AkAudioFormat to use for the plug-in instance.
-/// Refer to the Source Input plugin documentation to learn more about the valid formats.
+/// See the Source Input plugin documentation to learn more about the valid formats.
 /// \sa \ref soundengine_plugins_source
 AK_CALLBACK(void, AkAudioInputPluginGetFormatCallbackFunc)(
 	AkPlayingID		in_playingID,   ///< Playing ID (same that was returned from the PostEvent call).

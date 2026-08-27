@@ -34,6 +34,7 @@ enum class EWwiseReconcileOperationFlags
 	RenameExisting = 1 << 2,
 	Delete = 1 << 3,
 	Move = 1 << 4,
+	ForceDelete = 1 << 5,
 	All = Create | UpdateExisting | Delete | RenameExisting | Move
 };
 
@@ -52,6 +53,9 @@ struct FWwiseReconcileItem
 	FWwiseNewAsset WwiseAnyRef;
 	FGuid ItemId;
 	FString MovedPath;
+
+	bool IsAssetReferenced() const;
+
 	bool operator==(const FWwiseReconcileItem& Other) const
 	{
 		if(ItemId.IsValid())
@@ -150,7 +154,7 @@ public:
 	virtual void ConvertWwiseItemTypeToReconcileItem(const TArray<TSharedPtr<FWwiseTreeItem>>& InWwiseItems, TArray<FWwiseReconcileItem>& OutReconcileItems, EWwiseReconcileOperationFlags OperationFlags = EWwiseReconcileOperationFlags::All, bool bFirstLevel = true) = 0;
 	virtual bool RenameExistingAssets(FScopedSlowTask& SlowTask) = 0;
 	virtual int GetNumberOfAssets() = 0;
-	virtual int32 DeleteAssets(FScopedSlowTask& SlowTask) = 0;
+	virtual int32 DeleteAssets(FScopedSlowTask& SlowTask, bool bForceDelete = false) = 0;
 	virtual int32 MoveAssets(FScopedSlowTask& SlowTask) = 0;
 	virtual UClass* GetUClassFromWwiseRefType(WwiseRefType RefType) = 0;
 	virtual void GetAssetChanges(TArray<FWwiseReconcileItem>& ReconcileItems, EWwiseReconcileOperationFlags OperationFlags = EWwiseReconcileOperationFlags::All) = 0;

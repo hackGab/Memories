@@ -20,6 +20,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/Metadata/WwiseMetadataLoadable.h"
 #include "Wwise/AdapterTypes/WwiseDataTypesAdapter.h"
 #include "Wwise/WwiseDatabaseIdentifiers.h"
+#include "WwiseDefines.h"
 
 struct WwiseMetadataMediaReference : public WwiseMetadataLoadable
 {
@@ -71,6 +72,9 @@ struct WwiseMetadataMedia : public WwiseMetadataMediaAttributes
 	WwiseDBString Path;
 	WwiseDBString CachePath;
 	WwiseDBShortId PrefetchSize;
+#if WWISE_2025_1_OR_LATER
+	bool bContainsPrefetch;
+#endif
 
 	WwiseMetadataMedia(WwiseMetadataLoader& Loader);
 };

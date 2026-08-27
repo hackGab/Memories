@@ -208,6 +208,7 @@ UAkSurfaceReflectorSetComponent::UAkSurfaceReflectorSetComponent(const class FOb
 
 void UAkSurfaceReflectorSetComponent::BeginDestroy()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::BeginDestroy"));
 	Super::BeginDestroy();
 #if WITH_EDITOR
 	FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(PropertyChangedHandle);
@@ -216,6 +217,7 @@ void UAkSurfaceReflectorSetComponent::BeginDestroy()
 
 void UAkSurfaceReflectorSetComponent::OnRegister()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::OnRegister"));
 	Super::OnRegister();
 	InitializeParentBrush();
 	SendSurfaceReflectorSet();
@@ -258,6 +260,7 @@ void UAkSurfaceReflectorSetComponent::InitializeParentBrush(bool fromTick /* = f
 
 void UAkSurfaceReflectorSetComponent::OnUnregister()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::OnUnregister"));
 #if WITH_EDITOR
 	if (!HasAnyFlags(RF_Transient))
 	{
@@ -277,6 +280,7 @@ void UAkSurfaceReflectorSetComponent::UpdateAcousticProperties(TArray<FAkSurface
 
 void UAkSurfaceReflectorSetComponent::SetEnableDiffraction(bool bInEnableDiffraction, bool bInEnableDiffractionOnBoundaryEdges)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkSurfaceReflectorSetComponent::SetEnableDiffraction"));
 	bool bDiffractionChanged = false;
 	bool bBoundaryEdgeDiffractionChanged = false;
 
@@ -300,6 +304,7 @@ void UAkSurfaceReflectorSetComponent::SetEnableDiffraction(bool bInEnableDiffrac
 
 void UAkSurfaceReflectorSetComponent::ComputeAcousticPolySurfaceArea()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::ComputeAcousticPolySurfaceArea"));
 	int32 NumFaces = AcousticPolys.Num();
 	int32 NumBrushFaces = ParentBrush->Nodes.Num();
 
@@ -1102,6 +1107,7 @@ bool UAkSurfaceReflectorSetComponent::MoveComponentImpl(
 
 void UAkSurfaceReflectorSetComponent::OnUpdateTransform(EUpdateTransformFlags UpdateTransformFlags, ETeleportType Teleport)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::OnUpdateTransform"));
 	Super::OnUpdateTransform(UpdateTransformFlags, Teleport);
 	UpdateSurfaceReflectorSet();
 #if WITH_EDITOR
@@ -1159,6 +1165,7 @@ bool UAkSurfaceReflectorSetComponent::ShouldSendGeometry() const
 
 void UAkSurfaceReflectorSetComponent::SendSurfaceReflectorSet() 
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::SendSurfaceReflectorSet"));
 	if (GetWorld() && GetWorld()->bIsTearingDown)
 		return;
 
@@ -1287,16 +1294,19 @@ void UAkSurfaceReflectorSetComponent::SendSurfaceReflectorSet()
 
 void UAkSurfaceReflectorSetComponent::RemoveSurfaceReflectorSet()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::RemoveSurfaceReflectorSet"));
 	RemoveGeometryFromWwise();
 }
 
 void UAkSurfaceReflectorSetComponent::UpdateSurfaceReflectorSet()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSurfaceReflectorSetComponent::UpdateSurfaceReflectorSet"));
 	SendGeometryInstanceToWwise(GetOwner()->ActorToWorld().Rotator(), GetOwner()->GetActorLocation(), GetOwner()->ActorToWorld().GetScale3D(), bEnableSurfaceReflectors, bSolid, bBypassPortalSubtraction);
 }
 
 void UAkSurfaceReflectorSetComponent::SetEnable(bool bInEnable)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkSurfaceReflectorSetComponent::SetEnable"));
 	if (bEnableSurfaceReflectors == bInEnable)
 	{
 		return;
@@ -1317,6 +1327,7 @@ void UAkSurfaceReflectorSetComponent::SetEnable(bool bInEnable)
 
 void UAkSurfaceReflectorSetComponent::SetSurfaceProperties(TArray<int>& InSurfaceIndexesToEdit, FAkSurfacePoly InSurfaceProperties)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkSurfaceReflectorSetComponent::SetSurfaceProperties"));
 	for (int i = 0; i < InSurfaceIndexesToEdit.Num(); i++) 
 	{
 		if (AcousticPolys[InSurfaceIndexesToEdit[i]].Occlusion != InSurfaceProperties.Occlusion)
@@ -1341,6 +1352,7 @@ void UAkSurfaceReflectorSetComponent::SetSurfaceProperties(TArray<int>& InSurfac
 
 void UAkSurfaceReflectorSetComponent::SetEnableSurface(TArray<int>& InSurfaceIndexesToEdit, bool bInEnableSurface)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkSurfaceReflectorSetComponent::SetEnableSurface"));
 	for (int i = 0; i < InSurfaceIndexesToEdit.Num(); i++) 
 	{
 		if (AcousticPolys[InSurfaceIndexesToEdit[i]].EnableSurface != bInEnableSurface)
@@ -1354,6 +1366,7 @@ void UAkSurfaceReflectorSetComponent::SetEnableSurface(TArray<int>& InSurfaceInd
 
 void UAkSurfaceReflectorSetComponent::SetAcousticTexture(TArray<int>& InSurfaceIndexesToEdit, UAkAcousticTexture* InAcousticTexture, bool bInEnableSurface)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkSurfaceReflectorSetComponent::SetAcousticTexture"));
 	for (int i = 0; i < InSurfaceIndexesToEdit.Num(); i++) 
 	{
 		if (AcousticPolys[InSurfaceIndexesToEdit[i]].Texture != InAcousticTexture || AcousticPolys[InSurfaceIndexesToEdit[i]].EnableSurface != bInEnableSurface)
@@ -1368,6 +1381,7 @@ void UAkSurfaceReflectorSetComponent::SetAcousticTexture(TArray<int>& InSurfaceI
 
 void UAkSurfaceReflectorSetComponent::SetTransmissionLoss(TArray<int>& InSurfaceIndexesToEdit, float InTransmissionLoss, bool bInEnableSurface)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkSurfaceReflectorSetComponent::SetTransmissionLoss"));
 	for (int i = 0; i < InSurfaceIndexesToEdit.Num(); i++) 
 	{
 		if (AcousticPolys[InSurfaceIndexesToEdit[i]].Occlusion != InTransmissionLoss)

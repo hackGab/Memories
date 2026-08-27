@@ -58,7 +58,7 @@ extern "C" IMAGE_DOS_HEADER __ImageBase;
  * 
  * \param theID The resource ID of the control (checkbox or radio button)
  * \param theProp The name of the property, as defined in your plug-in's
- *        XML definition file (refer to \ref wwiseplugin_xml_properties_tag)
+ *        XML definition file (see \ref wwiseplugin_xml_properties_tag)
  * \sa
  * - \ref wwiseplugin_dialog_guide_poptable
  * - \ref wwiseplugin_xml_properties_tag

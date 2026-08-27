@@ -315,6 +315,7 @@ struct WWISEPROJECTDATABASE_API WwisePlatformDataStructure :
 	template <typename RequiredRef>
 	void AddRefToMap(WwiseDBMap<WwiseDatabaseLocalizableIdKey, RequiredRef>& OutMap, const RequiredRef& InRef, const WwiseDBShortId& InId, const WwiseDBString* InName, const WwiseDBString* InObjectPath, const WwiseDBGuid* InGuid);
 
+	void AddMediaCount(const WwiseDBArray<WwiseMetadataMedia>& InMedia);
 	void AddMediaRefsCount(const WwiseDBArray<WwiseMetadataMediaReference>& InMediaRefs);
 	void AddSoundBankCount(const uint32 InId, const uint32 InLanguageId, const uint32 InIncrement = 1);
 

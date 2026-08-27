@@ -31,10 +31,15 @@ the specific language governing permissions and limitations under the License.
 
 #pragma once
 
-#include <AK/SoundEngine/Common/AkTypes.h>
+#include <AK/AkPlatforms.h>
+#include <AK/SoundEngine/Common/AkNumeralTypes.h>
 
 #if defined (AK_XBOX)
 #include <AK/Tools/XboxGC/AkBitFuncs.h>
+#endif
+
+#if defined(_MSC_VER)
+#include <stdlib.h>
 #endif
 
 // some platforms will define their own optimized bitscan functions
@@ -220,5 +225,48 @@ namespace AK
 	AkForceInline AkUInt64 ROTL64(AkUInt64 x, AkUInt64 r)
 	{
 		return (x << r) | (x >> (64 - r));
+	}
+
+	// given an input x (with only lower 8 bits set) translate it into 8 byte-sized bools
+	// (PDEP but for bitfield->bool conversion)
+	AkForceInline AkUInt64 AkBitfieldToBytes64(AkUInt64 x)
+	{
+		AkUInt64 depBits = ((x * 0x8040201008040201) & 0x8080808080808080) >> 7;
+#if defined(__clang__) || defined (__GNUC__)
+		return __builtin_bswap64(depBits);
+#elif defined _MSC_VER
+		return _byteswap_uint64(depBits);
+#else
+		x = (x & 0x00000000FFFFFFFF) << 32 | (x & 0xFFFFFFFF00000000) >> 32;
+		x = (x & 0x0000FFFF0000FFFF) << 16 | (x & 0xFFFF0000FFFF0000) >> 16;
+		x = (x & 0x00FF00FF00FF00FF) << 8 | (x & 0xFF00FF00FF00FF00) >> 8;
+		return x;
+#endif
+	}
+
+	// given an input x (with only lower 4 bits set) translate it into 4 byte-sized bools
+	// (PDEP but for bitfield->bool conversion)
+	AkForceInline AkUInt32 AkBitfieldToBytes32(AkUInt32 x)
+	{
+		AkUInt32 depBits = ((x * 0x80402010) & 0x80808080) >> 7;
+#if defined(__clang__) || defined (__GNUC__)
+		return __builtin_bswap32(depBits);
+#elif defined _MSC_VER
+		return _byteswap_ulong(depBits);
+#else
+		return (((depBits & 0x000000FF) << 24) + ((depBits & 0x0000FF00) << 8) +
+			((depBits & 0x00FF0000) >> 8) + ((depBits & 0xFF000000) >> 24));
+#endif
+	}
+
+	// givesn an input x which is an array of bools with only the lowest bit set, compress it into a byte-sized bitfield
+	// (PEXT but for bool->bitfield conversion)
+	AkForceInline AkUInt64 AkBytesToBitfield64(AkUInt64 x)
+	{
+		return (x * 0x0102040810204080) >> 56;
+	}
+	AkForceInline AkUInt32 AkBytesToBitfield32(AkUInt32 x)
+	{
+		return (x * 0x01020408) >> 24;
 	}
 }

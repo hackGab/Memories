@@ -35,7 +35,9 @@ the specific language governing permissions and limitations under the License.
 /// Going through the free list can be slow when the object count is high.
 #define AK_OBJECT_POOL_EXTRA_SAFETY
 
+/// \cond DOXYGEN_SKIP
 namespace UnitTest { struct ObjectPoolHelper; }
+/// \endcond
 
 namespace AK
 {

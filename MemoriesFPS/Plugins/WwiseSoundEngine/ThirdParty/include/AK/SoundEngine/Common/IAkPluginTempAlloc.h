@@ -68,12 +68,6 @@ public:
 	// this interface is a no-op, and instead all memory is released at the end of the current audioRender tick.
 	virtual IAkPluginMemAlloc* GetTempAllocAudioRenderCurrent() = 0;
 
-	// Returns an IAkPluginMemAlloc interface to perform temp allocations for the current and next Audio Render tick
-	// This is static for the duration of the process, so it can be cached once during init.
-	// Note that this interface is provided only for convenience with other systems; the "Free" operation in
-	// this interface is a no-op, and instead all memory is released at the end of the next audioRender tick.
-	virtual IAkPluginMemAlloc* GetTempAllocAudioRenderDouble() = 0;
-
 	// Returns an IAkPluginMemAlloc interface to perform 'bookmark' allocations.
 	// This is static for the duration of the process, so it can be cached once during init.
 	// Note that this interface is provided only for convenience with other systems; the "Free" operation in

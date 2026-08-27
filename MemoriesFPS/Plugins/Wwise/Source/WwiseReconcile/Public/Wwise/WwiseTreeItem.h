@@ -113,6 +113,8 @@ public:
 
 	bool IsUAssetMissing() const;
 
+	bool IsInWAAPIAndUnreal() const;
+
 	bool IsUAssetOrphaned() const;
 
 	bool IsNotInSoundBankOrUnreal() const;
@@ -128,6 +130,14 @@ public:
 	bool IsItemUpToDate() const;
 
 	bool IsFolder() const;
+
+	bool IsInGroup() const;
+
+	bool IsUnusedEffect() const;
+
+	bool IsUnusedTrigger() const;
+
+	bool IsUnusedItem() const;
 
 	bool IsAuxBus() const;
 

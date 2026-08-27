@@ -26,7 +26,7 @@ the specific language governing permissions and limitations under the License.
 
 /**
  * \brief Wwise Authoring Plug-ins - Definition of a plug-in, as stored in a container.
- * \file AK/Wwise/Plugin/PluginMFCWindows.h
+ * \file AK/Wwise/Plugin/PluginInfo.h
  */
 
 #pragma once

@@ -18,6 +18,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkAssetTypeActions.h"
 #include "AkAudioDevice.h"
 #include "AkAudioEvent.h"
+#include "AkAudioNode.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "IAssetTools.h"
@@ -33,9 +34,14 @@ namespace FAkAssetTypeActions_Helpers
 	FCriticalSection CriticalSection;
 	TMap<FString, AkPlayingID> PlayingAkEvents;
 
+#if WWISE_2025_1_OR_LATER
+	void AkEventPreviewCallback(AkCallbackType in_eType, AkEventCallbackInfo * EventInfo, void * in_pCallbackInfo, void* in_pCookie)
+	{
+#else
 	void AkEventPreviewCallback(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
 	{
 		auto EventInfo = static_cast<AkEventCallbackInfo*>(in_pCallbackInfo);
+#endif
 		if (!EventInfo)
 			return;
 
@@ -47,6 +53,42 @@ namespace FAkAssetTypeActions_Helpers
 				PlayingAkEvents.Remove(PlayingEvent.Key);
 				return;
 			}
+		}
+	}
+
+	void PlayAudioNodes(const TArray<TWeakObjectPtr<UAkAudioNode>>& InObjects)
+	{
+		auto AudioDevice = FAkAudioDevice::Get();
+		if (!AudioDevice)
+			return;
+
+		for (auto& Obj : InObjects)
+		{
+			auto Node = Obj.Get();
+			if (!Node)
+				continue;
+
+			if(!Node->bAutoLoad)
+			{
+				Node->LoadAudioNodeDataForContentBrowserPreview();
+			}
+			Node->TogglePreview();
+		}
+	}
+
+	void PlayDialogueEvents(const TArray<TWeakObjectPtr<UAkDialogueEvent>>& InObjects)
+	{
+		auto AudioDevice = FAkAudioDevice::Get();
+		if (!AudioDevice)
+			return;
+
+		for (auto& Obj : InObjects)
+		{
+			auto Event = Obj.Get();
+			if (!Event)
+				continue;
+
+			Event->TogglePreview();
 		}
 	}
 
@@ -150,8 +192,19 @@ bool FAssetTypeActions_AkAudioEvent::AssetsActivatedOverride(const TArray<UObjec
 	}
 	else if (ActivationType == EAssetTypeActivationMethod::Previewed)
 	{
-		auto Events = GetTypedWeakObjectPtrs<UAkAudioEvent>(InObjects);
-		FAkAssetTypeActions_Helpers::PlayEvents<true>(Events);
+		TArray<UObject*> NonNullObjects;
+		for (auto& Obj : InObjects)
+		{
+			if (Obj != nullptr)
+			{
+				NonNullObjects.Add(Obj);
+			}
+		}
+		if (!NonNullObjects.IsEmpty())
+		{
+			auto Events = GetTypedWeakObjectPtrs<UAkAudioEvent>(NonNullObjects);
+			FAkAssetTypeActions_Helpers::PlayEvents<true>(Events);
+		}
 	}
 
 	return true;
@@ -168,6 +221,180 @@ void FAssetTypeActions_AkAudioEvent::StopEvent(TArray<TWeakObjectPtr<UAkAudioEve
 	if (AudioDevice)
 	{
 		AudioDevice->StopGameObject(nullptr);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// FAssetTypeActions_AkAudioNode
+
+void FAssetTypeActions_AkAudioNode::GetActions(const TArray<UObject*>& InObjects, FMenuBuilder& MenuBuilder)
+{
+	auto Nodes = GetTypedWeakObjectPtrs<UAkAudioNode>(InObjects);
+
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("AkAudioNode_PlayNode", "Play Audio Node"),
+		LOCTEXT("AkAudioNode_PlayNodeTooltip", "Plays the selected Audio Node."),
+		FSlateIcon(),
+		FUIAction(
+			FExecuteAction::CreateSP(this, &FAssetTypeActions_AkAudioNode::PlayNode, Nodes),
+			FCanExecuteAction()
+		)
+	);
+
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("AkAudioNode_StopNode", "Stop Audio Node"),
+		LOCTEXT("AkAudioNode_StopNodeTooltip", "Stops the selected Audio Node."),
+		FSlateIcon(),
+		FUIAction(
+			FExecuteAction::CreateSP(this, &FAssetTypeActions_AkAudioNode::StopNode, Nodes),
+			FCanExecuteAction()
+		)
+	);
+}
+
+void FAssetTypeActions_AkAudioNode::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+{
+	FSimpleAssetEditor::CreateEditor(EToolkitMode::Standalone, EditWithinLevelEditor, InObjects);
+}
+
+bool FAssetTypeActions_AkAudioNode::AssetsActivatedOverride(const TArray<UObject*>& InObjects, EAssetTypeActivationMethod::Type ActivationType)
+{
+	if (ActivationType == EAssetTypeActivationMethod::DoubleClicked || ActivationType == EAssetTypeActivationMethod::Opened)
+	{
+		if (InObjects.Num() == 1)
+		{
+			return GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(InObjects[0]);
+		}
+		else if (InObjects.Num() > 1)
+		{
+			return GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAssets(InObjects);
+		}
+	}
+	else if (ActivationType == EAssetTypeActivationMethod::Previewed)
+	{
+		TArray<UObject*> NonNullObjects;
+		for (auto& Obj : InObjects)
+		{
+			if (Obj != nullptr)
+			{
+				NonNullObjects.Add(Obj);
+			}
+		}
+		if (!NonNullObjects.IsEmpty())
+		{
+			auto Nodes = GetTypedWeakObjectPtrs<UAkAudioNode>(InObjects);
+			FAkAssetTypeActions_Helpers::PlayAudioNodes(Nodes);
+		}
+	}
+	return true;
+}
+
+void FAssetTypeActions_AkAudioNode::PlayNode(TArray<TWeakObjectPtr<UAkAudioNode>> Objects)
+{
+	for (const auto& Object : Objects)
+	{
+		if (auto Node = Object.Get())
+		{
+			Node->PlayPreview();
+		}
+	}
+}
+
+void FAssetTypeActions_AkAudioNode::StopNode(TArray<TWeakObjectPtr<UAkAudioNode>> Objects)
+{
+	for (const auto& Object : Objects)
+	{
+		if (auto Node = Object.Get())
+		{
+			Node->StopPreview();
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+// FAssetTypeActions_AkDialogueEvent
+
+void FAssetTypeActions_AkDialogueEvent::GetActions(const TArray<UObject*>& InObjects, FMenuBuilder& MenuBuilder)
+{
+	auto Events = GetTypedWeakObjectPtrs<UAkDialogueEvent>(InObjects);
+
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("AkDialogueEvent_PlayEvent", "Play Dialogue Event"),
+		LOCTEXT("AkDialogueEvent_PlayEventTooltip", "Plays the selected dialogue event using its preview arguments."),
+		FSlateIcon(),
+		FUIAction(
+			FExecuteAction::CreateSP(this, &FAssetTypeActions_AkDialogueEvent::PlayEvent, Events),
+			FCanExecuteAction()
+		)
+	);
+
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("AkDialogueEvent_StopEvent", "Stop Dialogue Event"),
+		LOCTEXT("AkDialogueEvent_StopEventTooltip", "Stops the selected dialogue event."),
+		FSlateIcon(),
+		FUIAction(
+			FExecuteAction::CreateSP(this, &FAssetTypeActions_AkDialogueEvent::StopEvent, Events),
+			FCanExecuteAction()
+		)
+	);
+}
+
+void FAssetTypeActions_AkDialogueEvent::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)
+{
+	FSimpleAssetEditor::CreateEditor(EToolkitMode::Standalone, EditWithinLevelEditor, InObjects);
+}
+
+bool FAssetTypeActions_AkDialogueEvent::AssetsActivatedOverride(const TArray<UObject*>& InObjects, EAssetTypeActivationMethod::Type ActivationType)
+{
+	if (ActivationType == EAssetTypeActivationMethod::DoubleClicked || ActivationType == EAssetTypeActivationMethod::Opened)
+	{
+		if (InObjects.Num() == 1)
+		{
+			return GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(InObjects[0]);
+		}
+		else if (InObjects.Num() > 1)
+		{
+			return GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAssets(InObjects);
+		}
+	}
+	else if (ActivationType == EAssetTypeActivationMethod::Previewed)
+	{
+		TArray<UObject*> NonNullObjects;
+		for (auto& Obj : InObjects)
+		{
+			if (Obj != nullptr)
+			{
+				NonNullObjects.Add(Obj);
+			}
+		}
+		if (!NonNullObjects.IsEmpty())
+		{
+			auto Events = GetTypedWeakObjectPtrs<UAkDialogueEvent>(InObjects);
+			FAkAssetTypeActions_Helpers::PlayDialogueEvents(Events);
+		}
+	}
+	return true;
+}
+
+void FAssetTypeActions_AkDialogueEvent::PlayEvent(TArray<TWeakObjectPtr<UAkDialogueEvent>> Objects)
+{
+	for (const auto& Object : Objects)
+	{
+		if (auto Event = Object.Get())
+		{
+			Event->PlayPreview();
+		}
+	}
+}
+
+void FAssetTypeActions_AkDialogueEvent::StopEvent(TArray<TWeakObjectPtr<UAkDialogueEvent>> Objects)
+{
+	for (const auto& Object : Objects)
+	{
+		if (auto Event = Object.Get())
+		{
+			Event->StopPreview();
+		}
 	}
 }
 

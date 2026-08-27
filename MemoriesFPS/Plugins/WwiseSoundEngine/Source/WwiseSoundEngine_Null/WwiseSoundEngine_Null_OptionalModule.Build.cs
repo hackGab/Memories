@@ -20,15 +20,13 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 
-public struct WwiseSoundEngine_Null
+public class WwiseSoundEngine_Null : WwiseSoundEngineVersionBase
 {
-	private static List<string> AkLibs = new List<string> 
-	{
-	};
+	public override List<string> AkLibs { get { return new List<string>(); } }
+	public override string VersionNumber { get { return "Null"; } }
 	
-	public static void Apply(WwiseSoundEngine SE, ReadOnlyTargetRules Target)
+	public override void Apply(WwiseSoundEngine SE, ReadOnlyTargetRules Target, bool Latest = false)
 	{
-		var VersionNumber = "Null";
 		var ModuleName = "WwiseSoundEngine_" + VersionNumber;
 		var ModuleDirectory = Path.Combine(SE.ModuleDirectory, "../" + ModuleName);
 
@@ -57,21 +55,4 @@ public struct WwiseSoundEngine_Null
 			}
 		}
     }
-	
-	private static List<string> GetAvailablePlatforms(string ModuleDir)
-	{
-		var FoundPlatforms = new List<string>();
-		const string StartPattern = "WwiseUEPlatform_";
-		const string EndPattern = ".Build.cs";
-		foreach (var BuildCsFile in System.IO.Directory.GetFiles(ModuleDir, "*" + EndPattern))
-		{
-			if (BuildCsFile.Contains(StartPattern) && BuildCsFile.EndsWith(EndPattern))
-			{
-				var Platform = BuildCsFile.Remove(BuildCsFile.Length - EndPattern.Length).Split('_').Last();
-				FoundPlatforms.Add(Platform);
-			}
-		}
-
-		return FoundPlatforms;
-	}
 }

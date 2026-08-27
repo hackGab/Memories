@@ -183,7 +183,12 @@ void FAudiokineticToolsModule::CreateAkViewportCommands()
 {
 	// Extend the viewport menu and add the Audiokinetic commands
 	{
+#ifdef UE_5_6_OR_LATER
+		UToolMenu* ViewportMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelViewportToolBar.Show");
+#else
 		UToolMenu* ViewportMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelViewportToolBar.Options");
+#endif
+
 		FToolMenuSection& AkSection = ViewportMenu->AddSection("Audiokinetic", LOCTEXT("AkLabel", "Audiokinetic"), FToolMenuInsert("Audiokinetic", EToolMenuInsertType::Default));
 
 		ToggleVizRoomsPortalsAction.ExecuteAction.BindStatic(&FAudiokineticToolsModule::ToggleVisualizeRoomsAndPortals);
@@ -538,9 +543,11 @@ void FAudiokineticToolsModule::StartupModule()
 		AkAssetTypeActionsArray =
 		{
 			MakeShared<FAssetTypeActions_AkAudioEvent>(AudiokineticAssetCategoryBit),
+			MakeShared<FAssetTypeActions_AkAudioNode>(AudiokineticAssetCategoryBit),
 			MakeShared<FAssetTypeActions_AkAcousticTexture>(AudiokineticAssetCategoryBit),
 			MakeShared<FAssetTypeActions_AkAuxBus>(AudiokineticAssetCategoryBit),
-			MakeShared<FAssetTypeActions_AkRtpc>(AudiokineticAssetCategoryBit),
+			MakeShared<FAssetTypeActions_AkDialogueEvent>(AudiokineticAssetCategoryBit),
+			MakeShared<FAssetTypeActions_AkGameParameter>(AudiokineticAssetCategoryBit),
 			MakeShared<FAssetTypeActions_AkTrigger>(AudiokineticAssetCategoryBit),
 			MakeShared<FAssetTypeActions_AkSwitchValue>(AudiokineticAssetCategoryBit),
 			MakeShared<FAssetTypeActions_AkStateValue>(AudiokineticAssetCategoryBit),
@@ -565,7 +572,7 @@ void FAudiokineticToolsModule::StartupModule()
 		.SetDisplayName(NSLOCTEXT("FAudiokineticToolsModule", "BrowserTabTitle", "Wwise Browser"))
 		.SetTooltipText(NSLOCTEXT("FAudiokineticToolsModule", "BrowserTooltipText", "Open the Wwise Browser tab."))
 		.SetGroup(WorkspaceMenu::GetMenuStructure().GetLevelEditorCategory())
-		.SetIcon(FSlateIcon(FWwisePluginStyle::Get()->GetStyleSetName(), FWwisePluginStyle::WwiseIconName));
+		.SetIcon(FSlateIcon(FWwisePluginStyle::Get()->GetWwisePluginStyleSetName(), FWwisePluginStyle::WwiseIconName));
 
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 	OnAssetRegistryFilesLoadedHandle = AssetRegistryModule.Get().OnFilesLoaded().AddRaw(this, &FAudiokineticToolsModule::OnAssetRegistryFilesLoaded);

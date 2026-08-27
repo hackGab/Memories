@@ -18,7 +18,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #pragma once
 
 #include "Wwise/WwiseUnrealVersion.h"
-
+#include "WwiseCookEventContext.h"
 #include "WwiseTriggerCookedData.generated.h"
 
 USTRUCT(BlueprintType)
@@ -39,7 +39,7 @@ struct WWISERESOURCELOADER_API FWwiseTriggerCookedData
 
 	void Serialize(FArchive& Ar);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
+	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
 #endif
 	
 	FString GetDebugString() const;

@@ -35,6 +35,11 @@ the specific language governing permissions and limitations under the License.
 #include <AK/SoundEngine/Common/AkTypes.h>
 #include <AK/SoundEngine/Common/AkAtomicTypes.h>
 
+namespace AK
+{
+    class IAkPluginMemAlloc;
+}
+
 // Uncomment the following to enable built-in platform profiler markers in the sound engine
 //#define AK_ENABLE_INSTRUMENT
 
@@ -102,23 +107,6 @@ struct AkThreadProperties {};
 #define AkZeroMemSmall(___Dest, ___Size) AKPLATFORM::AkMemSet(___Dest, 0, ___Size);
 #endif
 
-#ifndef AkAllocaSIMD
-#if defined (__clang__)
-#if __has_builtin( __builtin_alloca_with_align )
-#define AkAllocaSIMD( _size_ ) __builtin_alloca_with_align( _size_, 128 )
-#else
-// work around alloca alignment issues in versions of clang before 4.0
-#define AkAllocaSIMD( _size_ ) (void*)( ( ( uintptr_t )AkAlloca( _size_ + 16 ) + 0xF ) & ~0xF )
-#endif
-#else
-#define AkAllocaSIMD( _size_ ) AkAlloca( _size_ )
-#endif
-#endif
-
-#ifndef AkAllocaTypedArray
-#define AkAllocaTypedArray(_type_, _count_) ( (_type_*)AkAlloca(sizeof(_type_) * _count_) )
-#endif
-
 #ifndef AK_THREAD_INIT_CODE
 #define AK_THREAD_INIT_CODE(_threadProperties)
 #endif
@@ -148,12 +136,42 @@ namespace AKPLATFORM
 /// Platform-dependent helpers
 namespace AKPLATFORM
 {
-	inline void AkGetDefaultHighPriorityThreadProperties(AkThreadProperties& out_threadProperties)
-	{
-		AkGetDefaultThreadProperties(out_threadProperties);
-		out_threadProperties.nPriority = AK_THREAD_PRIORITY_ABOVE_NORMAL;
-	}
+	// Threads
+	// ------------------------------------------------------------------
 
+	// Returns true if in_pThread is in a valid state and executing
+	bool AkIsValidThread(AkThread* in_pThread);
+
+	// Destroys the internal thread object
+	//  (set the memalloc interface to nullptr to use the soundengine's built-in memalloc systems)
+	void AkCloseThread(AkThread* in_pThread, AK::IAkPluginMemAlloc* in_pMemAlloc);
+	// Resets the AkThread to an invalid/null-thread state
+	void AkClearThread(AkThread* in_pThread);
+
+	// Initializes a thread 
+	AKRESULT AkCreateThread(
+		AkThreadRoutine pStartRoutine,                 // Thread routine.
+		void* pParams,                                 // Routine params.
+		const AkThreadProperties& in_threadProperties, // Properties. NULL for default.
+		AkThread* out_pThread,                         // Returned thread handle.
+		const char* in_szThreadName,                   // thread name.
+		AK::IAkPluginMemAlloc* in_pMemAlloc            // Interface to memory allocator for thread creation (set to nullptr to use the soundengine's built-in memalloc systems)
+		);
+	
+	// Forces the current thread to yield for at least the specified # of milliseconds.
+	// Actual time that the thread is yielded for may be significantly higher that value specified on some platforms and operating environments
+	void AkSleep(AkUInt32 in_ulMilliseconds);
+
+	// Blocks execution until the provided thread has returned and completed execution
+	void AkWaitForSingleThread(AkThread* in_pThread);
+	
+	// Returns a platform-specific threadId for the current thread
+	AkThreadID CurrentThread();
+
+	// Sets the values in out_threadProperties to the normal soundengine defaults. Defaults may vary across platforms
+	void AkGetDefaultThreadProperties(AkThreadProperties& out_threadProperties);
+	// Sets the values in out_threadProperties to the normal soundengine defaults, except for priority which will be "High"
+	void AkGetDefaultHighPriorityThreadProperties(AkThreadProperties& out_threadProperties);
 }
 #endif
 

@@ -17,6 +17,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
+#include "WwiseCookEventContext.h"
 #include "Wwise/WwiseUnrealVersion.h"
 
 #include "WwiseGroupValueCookedData.generated.h"
@@ -89,7 +90,65 @@ struct WWISERESOURCELOADER_API FWwiseGroupValueCookedData
 
 	void Serialize(FArchive& Ar);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
+	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
+#endif
+
+	FString GetDebugString() const;
+};
+
+USTRUCT(BlueprintType)
+struct WWISERESOURCELOADER_API FWwiseGroupValueCookedDataSet
+{
+	GENERATED_BODY()
+
+	FWwiseGroupValueCookedDataSet() = default;
+	
+	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "Wwise")
+	TSet<FWwiseGroupValueCookedData> GroupValues;
+
+	friend bool operator==(const FWwiseGroupValueCookedDataSet& InLhs, const FWwiseGroupValueCookedDataSet& InRhs)
+	{
+		return InLhs.GroupValues.Difference(InRhs.GroupValues).IsEmpty();
+	}
+
+	friend bool operator!=(const FWwiseGroupValueCookedDataSet& InLhs, const FWwiseGroupValueCookedDataSet& InRhs)
+	{
+		return !InLhs.GroupValues.Difference(InRhs.GroupValues).IsEmpty();
+	}
+
+	friend bool operator<(const FWwiseGroupValueCookedDataSet& InLhs, const FWwiseGroupValueCookedDataSet& InRhs)
+	{
+		const auto Difference = InLhs.GroupValues.Difference(InRhs.GroupValues);
+		for (const auto& GroupValue : Difference)
+		{
+			return InLhs.GroupValues.Contains(GroupValue);
+		}
+		return false;
+	}
+
+	friend bool operator<=(const FWwiseGroupValueCookedDataSet& InLhs, const FWwiseGroupValueCookedDataSet& InRhs)
+	{
+		const auto Difference = InLhs.GroupValues.Difference(InRhs.GroupValues);
+		for (const auto& GroupValue : Difference)
+		{
+			return InLhs.GroupValues.Contains(GroupValue);
+		}
+		return true;
+	}
+
+	friend bool operator>(const FWwiseGroupValueCookedDataSet& InLhs, const FWwiseGroupValueCookedDataSet& InRhs)
+	{
+		return !(InLhs <= InRhs);
+	}
+
+	friend bool operator>=(const FWwiseGroupValueCookedDataSet& InLhs, const FWwiseGroupValueCookedDataSet& InRhs)
+	{
+		return !(InLhs < InRhs);
+	}
+
+	void Serialize(FArchive& Ar);
+#if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
+	void GetPlatformCookDependencies(FWwiseCookEventContext& SaveContext, FCbWriter& Writer) const;
 #endif
 
 	FString GetDebugString() const;
@@ -101,4 +160,14 @@ inline uint32 GetTypeHash(const FWwiseGroupValueCookedData& InCookedData)
 		GetTypeHash((uint8)InCookedData.Type),
 		GetTypeHash(InCookedData.GroupId)),
 		GetTypeHash(InCookedData.Id));
+}
+
+inline uint32 GetTypeHash(const FWwiseGroupValueCookedDataSet& InCookedData)
+{
+	uint32 Hash{ 0 };
+	for (const auto& GroupValue : InCookedData.GroupValues)
+	{
+		Hash = HashCombine(Hash, GetTypeHash(GroupValue));
+	}
+	return Hash;
 }

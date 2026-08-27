@@ -36,6 +36,10 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Serialization/CompactBinaryWriter.h"
 #endif
 
+#if UE_5_7_OR_LATER
+#include "Cooker/CookDependencyContext.h"
+#endif
+
 UWwiseAssetLibrary::~UWwiseAssetLibrary()
 {
 	SCOPED_WWISEPACKAGING_EVENT_3(TEXT("UWwiseAssetLibrary Dtor"));
@@ -189,19 +193,27 @@ void UWwiseAssetLibrary::UnloadData([[maybe_unused]] bool bAsync)
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
 UE_COOK_DEPENDENCY_FUNCTION(HashWwiseAssetLibraryDependenciesForCook, UWwiseAssetLibrary::HashDependenciesForCook);
 
-void UWwiseAssetLibrary::PreSave(FObjectPreSaveContext SaveContext)
+#if UE_5_6_OR_LATER
+void UWwiseAssetLibrary::OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context)
 {
 	ON_SCOPE_EXIT
 	{
-		Super::PreSave(SaveContext);
+		Super::OnCookEvent(CookEvent, Context);
 	};
-
-	if (!SaveContext.IsCooking())
+#else
+void UWwiseAssetLibrary::PreSave(FObjectPreSaveContext Context)
+{
+	ON_SCOPE_EXIT
+	{
+		Super::PreSave(Context);
+	};
+#endif
+	if (!Context.IsCooking())
 	{
 		return;
 	}
 
-	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(SaveContext.GetTargetPlatform());
+	auto* ResourceCooker = IWwiseResourceCooker::GetForPlatform(Context.GetTargetPlatform());
 	if (UNLIKELY(!ResourceCooker))
 	{
 		return;
@@ -212,10 +224,10 @@ void UWwiseAssetLibrary::PreSave(FObjectPreSaveContext SaveContext)
 
 	FCbWriter Writer;
 	Writer.BeginObject();
-	CookedDataToArchive.PreSave(SaveContext, Writer);
+	CookedDataToArchive.GetPlatformCookDependencies(Context, Writer);
 	Writer.EndObject();
 	
-	SaveContext.AddCookBuildDependency(
+	WwiseCookEventContext::AddLoadBuildDependency(Context,
 		UE::Cook::FCookDependency::Function(
 			UE_COOK_DEPENDENCY_FUNCTION_CALL(HashWwiseAssetLibraryDependenciesForCook), Writer.Save()));
 }

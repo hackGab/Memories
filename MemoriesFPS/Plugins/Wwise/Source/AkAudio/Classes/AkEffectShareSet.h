@@ -57,7 +57,12 @@ public:
 #endif
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
+public:
+#if UE_5_6_OR_LATER
+	virtual void OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context) override;
+#else
+	virtual void PreSave(FObjectPreSaveContext Context) override;
+#endif
 #endif
 
 private:

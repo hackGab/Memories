@@ -27,11 +27,35 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include <inttypes.h>
 
+FQueuedThreadPool* FWwiseExecutionQueue::DefaultWwiseThreadPool{ nullptr };
 const bool FWwiseExecutionQueue::Test::bExtremelyVerbose{ false };
 WWISE_EXECUTIONQUEUE_TEST_CONST bool FWwiseExecutionQueue::Test::bMockEngineDeletion{ false };
 WWISE_EXECUTIONQUEUE_TEST_CONST bool FWwiseExecutionQueue::Test::bMockEngineDeleted{ false };
 WWISE_EXECUTIONQUEUE_TEST_CONST bool FWwiseExecutionQueue::Test::bMockSleepOnStateUpdate{ false };
 WWISE_EXECUTIONQUEUE_TEST_CONST bool FWwiseExecutionQueue::Test::bReduceLogVerbosity{ false };
+
+class FWwiseExecutionQueue::ExecutionQueuePoolTask
+	: public IQueuedWork
+{
+public:
+	ExecutionQueuePoolTask(TUniqueFunction<void()>&& InFunction)
+		: Function(MoveTemp(InFunction))
+	{ }
+
+public:
+	virtual void DoThreadedWork() override
+	{
+		Function();
+		delete this;
+	}
+
+	virtual void Abandon() override
+	{
+	}
+
+private:
+	TUniqueFunction<void()> Function;
+};
 
 struct FWwiseExecutionQueue::TLS
 {
@@ -41,6 +65,8 @@ struct FWwiseExecutionQueue::TLS
 thread_local FWwiseExecutionQueue* FWwiseExecutionQueue::TLS::CurrentExecutionQueue{ nullptr };
 
 FWwiseExecutionQueue::FWwiseExecutionQueue(const TCHAR* InDebugName, EWwiseTaskPriority InTaskPriority) :
+	ThreadPool(DefaultWwiseThreadPool),
+	bOwnedPool(false),
 #if ENABLE_NAMED_EVENTS || !NO_LOGGING
 	DebugName(InDebugName),
 #else
@@ -52,11 +78,51 @@ FWwiseExecutionQueue::FWwiseExecutionQueue(const TCHAR* InDebugName, EWwiseTaskP
 	UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue (%p \"%s\") [%" PRIi32 "]: Creating with task priority %d"), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (int)InTaskPriority);
 }
 
+FWwiseExecutionQueue::FWwiseExecutionQueue(const TCHAR* InDebugName, FQueuedThreadPool* InThreadPool) :
+	ThreadPool(DefaultWwiseThreadPool ? InThreadPool : nullptr),
+	bOwnedPool(false),
+#if ENABLE_NAMED_EVENTS || !NO_LOGGING
+	DebugName(InDebugName),
+#else
+	DebugName(TEXT("")),
+#endif
+	TaskPriority(EWwiseTaskPriority::Default)
+{
+	ASYNC_INC_DWORD_STAT(STAT_WwiseExecutionQueues);
+	if (DefaultWwiseThreadPool)
+	{
+		checkf(ThreadPool, TEXT("You must have a Thread Pool to use this ctor."));
+	}
+	UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue (%p \"%s\") [%" PRIi32 "]: Creating with user thread pool %p"), this, DebugName, FPlatformTLS::GetCurrentThreadId(), ThreadPool);
+}
+
+FWwiseExecutionQueue::FWwiseExecutionQueue(const TCHAR* InDebugName, EThreadPriority InThreadPriority) :
+	ThreadPool(DefaultWwiseThreadPool ? FQueuedThreadPool::Allocate() : nullptr),
+	bOwnedPool(true),
+#if ENABLE_NAMED_EVENTS || !NO_LOGGING
+	DebugName(InDebugName),
+#else
+	DebugName(TEXT("")),
+#endif
+	TaskPriority(EWwiseTaskPriority::Default)
+{
+	ASYNC_INC_DWORD_STAT(STAT_WwiseExecutionQueues);
+	if (ThreadPool)
+	{
+		verify(ThreadPool->Create(1, (128*1024), InThreadPriority, DebugName));
+	}
+	UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue (%p \"%s\") [%" PRIi32 "]: Creating with owned thread pool %p"), this, DebugName, FPlatformTLS::GetCurrentThreadId(), ThreadPool);
+}
+
 FWwiseExecutionQueue::~FWwiseExecutionQueue()
 {
 	UE_CLOG(UNLIKELY(bDeleteOnceClosed && WorkerState.load(std::memory_order_seq_cst) != EWorkerState::Closed), LogWwiseConcurrency, Fatal, TEXT("Deleting FWwiseExectionQueue twice!"));
 
 	Close();
+	if (bOwnedPool)
+	{
+		delete ThreadPool;
+	}
 	ASYNC_DEC_DWORD_STAT(STAT_WwiseExecutionQueues);
 	UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::~FWwiseExecutionQueue(%p \"%s\") [%" PRIi32 "]: Deleted Execution Queue"), this, DebugName, FPlatformTLS::GetCurrentThreadId());
 }
@@ -64,20 +130,15 @@ FWwiseExecutionQueue::~FWwiseExecutionQueue()
 void FWwiseExecutionQueue::Async(const TCHAR* InDebugName, FBasicFunction&& InFunction)
 {
 	UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::Async(%p \"%s\") [%" PRIi32 "]: Enqueuing async function %" PRIu64), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (intptr_t&)InFunction);
-	if (UNLIKELY(IsBeingClosed() || !OpQueue.Enqueue(FOpQueueItem(InDebugName, MoveTemp(InFunction)))))
+	if (UNLIKELY(IsBeingClosed()))
 	{
-		if (auto* Module = IWwiseConcurrencyModule::GetModule())
-		{
-			if (auto* DefaultQueue = Module->GetDefaultQueue())
-			{
-				return DefaultQueue->Async(InDebugName, MoveTemp(InFunction));
-			}
-		}
 		ASYNC_INC_DWORD_STAT(STAT_WwiseExecutionQueueAsyncCalls);
 		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::Async(%p \"%s\") [%" PRIi32 "]: Executing async function %" PRIu64), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (intptr_t&)InFunction);
+
 		InFunction();
 		return;
 	}
+ 	OpQueue.Push(new FOpQueueItem(InDebugName, MoveTemp(InFunction)));
 	StartWorkerIfNeeded();
 }
 
@@ -95,7 +156,7 @@ void FWwiseExecutionQueue::AsyncAlways(const TCHAR* InDebugName, FSharedFunction
 		return false;
 	} };
 
-	if (FPlatformProcess::SupportsMultithreading())
+	if (FPlatformProcess::SupportsMultithreading() && LIKELY(!IsBeingClosed()))
 	{
 		std::ignore = Lambda(0);
 	}
@@ -110,25 +171,18 @@ void FWwiseExecutionQueue::AsyncWait(const TCHAR* InDebugName, FBasicFunction&& 
 	SCOPED_WWISECONCURRENCY_EVENT_4(TEXT("FWwiseExecutionQueue::AsyncWait"));
 	UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::AsyncWait(%p \"%s\") [%" PRIi32 "]: Enqueuing async wait function %" PRIu64), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (intptr_t&)InFunction);
 	FEventRef Event(EEventMode::ManualReset);
-	if (UNLIKELY(IsBeingClosed() || !OpQueue.Enqueue(FOpQueueItem(InDebugName, [this, &Event, &InFunction] {
-		ASYNC_INC_DWORD_STAT(STAT_WwiseExecutionQueueAsyncWaitCalls);
-		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::AsyncWait(%p \"%s\") [%" PRIi32 "]: Executing async wait function %" PRIu64), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (intptr_t&)InFunction);
-		InFunction();
-		Event->Trigger();
-	}))))
+	if (UNLIKELY(IsBeingClosed()))
 	{
-		if (auto* Module = IWwiseConcurrencyModule::GetModule())
-		{
-			if (auto* DefaultQueue = Module->GetDefaultQueue())
-			{
-				return DefaultQueue->AsyncWait(InDebugName, MoveTemp(InFunction));
-			}
-		}
-
 		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::AsyncWait(%p \"%s\") [%" PRIi32 "]: Executing async wait function %" PRIu64 " synchronously!"), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (intptr_t&)InFunction);
 		InFunction();
 		return;
 	}
+	OpQueue.Push(new FOpQueueItem(InDebugName, [this, &Event, &InFunction] {
+		ASYNC_INC_DWORD_STAT(STAT_WwiseExecutionQueueAsyncWaitCalls);
+		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose, TEXT("FWwiseExecutionQueue::AsyncWait(%p \"%s\") [%" PRIi32 "]: Executing async wait function %" PRIu64), this, DebugName, FPlatformTLS::GetCurrentThreadId(), (intptr_t&)InFunction);
+		InFunction();
+		Event->Trigger();
+	}));
 	StartWorkerIfNeeded();
 	Event->Wait();
 }
@@ -219,34 +273,56 @@ bool FWwiseExecutionQueue::IsRunningInThisThread() const
 
 void FWwiseExecutionQueue::StartWorkerIfNeeded()
 {
-	if (!TrySetRunningWorkerToAddOp() && TrySetStoppedWorkerToRunning())
+	// We are being closed (or already closed): do nothing.
+	if (UNLIKELY(IsBeingClosed()))
 	{
-		if (UNLIKELY(!IWwiseConcurrencyModule::GetModule() || Test::bMockEngineDeletion || Test::bMockEngineDeleted) &&
+		return;
+	}
+	// Already running or not able to move from stopped to running (order is important): do nothing.
+	else if (TrySetRunningWorkerToAddOp() || !TrySetStoppedWorkerToRunning())
+	{
+		return;
+	}
+	// Module is deleted / too early / too late for Task Graph
+	else if (UNLIKELY(!IWwiseConcurrencyModule::GetModule() || Test::bMockEngineDeletion || Test::bMockEngineDeleted) &&
 			UNLIKELY(!FTaskGraphInterface::IsRunning() || Test::bMockEngineDeleted))
+	{
+		UE_CLOG(!Test::bMockEngineDeleted, LogWwiseConcurrency, VeryVerbose,
+			TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: No Task Graph. Do tasks now"),
+			this, DebugName, FPlatformTLS::GetCurrentThreadId());
+		Work();
+	}
+	// No Multithreading
+	else if (!FPlatformProcess::SupportsMultithreading())
+	{
+		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose,
+			TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: Starting worker immediately (No multithreading)"),
+			this, DebugName, FPlatformTLS::GetCurrentThreadId());
+		Work();
+	}
+	// Uses a Thread Pool
+	else if (ThreadPool)
+	{
+		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose,
+			TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: Starting new worker in thread pool %p"),
+			this, DebugName, FPlatformTLS::GetCurrentThreadId(), ThreadPool);
+		ThreadPool->AddQueuedWork((new ExecutionQueuePoolTask([this]
 		{
-			UE_CLOG(!Test::bMockEngineDeleted, LogWwiseConcurrency, VeryVerbose,
-				TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: No Task Graph. Do tasks now"),
-				this, DebugName, FPlatformTLS::GetCurrentThreadId());
+			SCOPED_NAMED_EVENT_TCHAR_CONDITIONAL(DebugName, WwiseNamedEvents::Color3, DebugName != nullptr);
 			Work();
-		}
-		else if (FPlatformProcess::SupportsMultithreading())
+		})));
+	}
+	// Use Task Graph
+	else
+	{
+		UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose,
+			TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: Starting new worker task with priority %d"),
+			this, DebugName, FPlatformTLS::GetCurrentThreadId(), (int)TaskPriority);
+		LaunchWwiseTask(WWISECONCURRENCY_ASYNC_NAME("FWwiseExecutionQueue::StartWorkerIfNeeded"),
+			TaskPriority, EWwiseTaskFlags::DoNotRunInsideBusyWait, [this]
 		{
-			UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose,
-				TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: Starting new worker task with priority %d"),
-				this, DebugName, FPlatformTLS::GetCurrentThreadId(), (int)TaskPriority);
-			LaunchWwiseTask(WWISECONCURRENCY_ASYNC_NAME("FWwiseExecutionQueue::StartWorkerIfNeeded"),
-				TaskPriority, EWwiseTaskFlags::DoNotRunInsideBusyWait, [this]
-			{
-				Work();
-			});
-		}
-		else
-		{
-			UE_CLOG(Test::IsExtremelyVerbose(), LogWwiseConcurrency, VeryVerbose,
-				TEXT("FWwiseExecutionQueue::StartWorkerIfNeeded(%p \"%s\") [%" PRIi32 "]: Starting worker immediately (No multithreading)"),
-				this, DebugName, FPlatformTLS::GetCurrentThreadId());
 			Work();
-		}
+		});
 	}
 }
 
@@ -327,12 +403,13 @@ void FWwiseExecutionQueue::ProcessWork()
 	auto* PreviousExecutionQueue = TLS::CurrentExecutionQueue;
 	TLS::CurrentExecutionQueue = this;
 
-	for (const FOpQueueItem* Op; (Op = OpQueue.Peek()) != nullptr; OpQueue.Pop())
+	while (auto* Op = OpQueue.Pop())
 	{
 #if ENABLE_NAMED_EVENTS
 		SCOPED_NAMED_EVENT_TCHAR_CONDITIONAL(Op->DebugName, WwiseNamedEvents::Color3, Op->DebugName != nullptr);
 #endif
 		Op->Function();
+		delete Op;
 	}
 
 	TLS::CurrentExecutionQueue = PreviousExecutionQueue;

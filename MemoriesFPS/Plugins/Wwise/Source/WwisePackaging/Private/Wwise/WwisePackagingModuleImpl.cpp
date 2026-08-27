@@ -17,6 +17,9 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include "Wwise/WwisePackagingModuleImpl.h"
 
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/IAssetRegistry.h"
+#include "Wwise/Packaging/WwiseAssetLibrary.h"
 #include "Wwise/Packaging/WwisePackagingSettings.h"
 
 #if WITH_EDITOR
@@ -54,6 +57,25 @@ void FWwisePackagingModule::StartupModule()
 			GetMutableDefault<UWwisePackagingSettings>());
 	}
 #endif
+	//WG-79498 To avoid getting hidden dependency, load the Asset Libraries on AkAudio module startup
+	if (IsRunningCommandlet())
+	{
+		IAssetRegistry& AssetRegistry = IAssetRegistry::GetChecked();
+	
+		FARFilter Filter;
+		Filter.ClassPaths.Add(UWwiseAssetLibrary::StaticClass()->GetClassPathName());
+		Filter.bRecursivePaths = true;
+	
+		TArray<FAssetData> AssetDataArray;
+	    
+		AssetRegistry.GetAssets(Filter, AssetDataArray);
+		for (auto assetLibrary : AssetDataArray)
+		{
+			TSoftObjectPtr<UWwiseAssetLibrary> WwiseAssetPtr;
+			WwiseAssetPtr = assetLibrary.ToSoftObjectPath();
+			LoadedWwiseAssetLibraries.Add(WwiseAssetPtr.LoadSynchronous());
+		}
+	}
 }
 
 void FWwisePackagingModule::ShutdownModule()
@@ -66,6 +88,11 @@ void FWwisePackagingModule::ShutdownModule()
 		SettingsModule->UnregisterSettings("Project", "Wwise", "Wwise Packaging");
 	}
 #endif
+	//WG-79498 Make sure to free the ptr so that the Garbage Collector can free the memory
+	if (IsRunningCommandlet())
+	{
+		LoadedWwiseAssetLibraries.Empty();
+	}
 }
 
 #if WITH_EDITORONLY_DATA 

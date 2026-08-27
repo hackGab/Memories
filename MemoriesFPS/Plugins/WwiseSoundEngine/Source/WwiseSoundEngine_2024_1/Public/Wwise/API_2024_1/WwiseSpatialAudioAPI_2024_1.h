@@ -53,13 +53,14 @@ public:
 		AkGameObjectID in_gameObjectID				///< Game object ID
 		) override;
 
-	/// Define a inner and outer radius around each sound position for a specified game object. 
-	/// The radii are used in spread and distance calculations, simulating a radial sound source.
+	/// Define an inner and outer radius around each sound position for a specified game object.
+	/// If the radii are set to 0, the game object is a point source. Non-zero radii create a Radial Emitter.
+	/// The radii are used in spread and distance calculations that simulates sound emitting from a spherical volume of space.
 	/// When applying attenuation curves, the distance between the listener and the inner sphere (defined by the sound position and \c in_innerRadius) is used. 
 	/// The spread for each sound position is calculated as follows:
-	/// - If the listener is outside the outer radius, then the spread is defined by the area that the sphere takes in the listener field of view. Specifically, this angle is calculated as 2.0*asinf( \c in_outerRadius / distance ), where distance is the distance between the listener and the sound position.
+	/// - If the listener is outside the outer radius, the spread is defined by the area that the sphere occupies in the listener field of view. Specifically, this angle is calculated as 2.0*asinf( \c in_outerRadius / distance ), where distance is the distance between the listener and the sound position.
 	///	- When the listener intersects the outer radius (the listener is exactly \c in_outerRadius units away from the sound position), the spread is exactly 50%.
-	/// - When the listener is in between the inner and outer radius, the spread interpolates linearly from 50% to 100% as the listener transitions from the outer radius towards the inner radius.
+	/// - When the listener is between the inner and outer radii, the spread interpolates linearly from 50% to 100% as the listener transitions from the outer radius towards the inner radius.
 	/// - If the listener is inside the inner radius, the spread is 100%.
 	/// \aknote Transmission and diffraction calculations in Spatial Audio always use the center of the sphere (the position(s) passed into \c AK::SoundEngine::SetPosition or \c AK::SoundEngine::SetMultiplePositions) for raycasting. 
 	/// To obtain accurate diffraction and transmission calculations for radial sources, where different parts of the volume may take different paths through or around geometry,
@@ -303,6 +304,19 @@ public:
 		AkGameObjectID in_gameObjectID ///< Game object ID
 		) override;
 
+	/// Set a global scaling factor that manipulates reverb send values. AK::SpatialAudio::SetAdjacentRoomBleed affects the proportion of audio sent to adjacent rooms 
+	/// versus the proportion sent to the emitter's current room. It updates the initialization setting specified in AkSpatialAudioInitSettings::fAdjacentRoomBleed.
+	/// This value is multiplied by AkPortalParams::AdjacentRoomBleed, which is used to scale reverb bleed for individual portals.
+	/// When calculating reverb send amounts, each portal's aperture is multiplied by fAdjacentRoomBleed, altering its perceived size:
+	///	- 1.0 (default): Maintain portals at its true geometric size (no scaling).
+	///	- > 1.0: Increases the perceived size of all portals, allowing more bleed into adjacent rooms.
+	///	- < 1.0: Decreases the perceived size of all portals, reducing bleed into adjacent rooms.
+	/// Valid range: (0.0 - infinity)
+	/// Note: Values approaching 0 may result in abrupt portal transitions.
+	virtual AKRESULT SetAdjacentRoomBleed(
+		AkReal32 in_fAdjacentRoomBleed
+		) override;
+
 	/// Set the early reflections order for reflection calculation. The reflections order indicates the number of times sound can bounce off of a surface. 
 	/// A higher number requires more CPU resources but results in denser early reflections. Set to 0 to globally disable reflections processing.
 	virtual AKRESULT SetReflectionsOrder(
@@ -317,6 +331,24 @@ public:
 	virtual AKRESULT SetDiffractionOrder(
 		AkUInt32 in_uDiffractionOrder,	///< Number of diffraction edges to consider in path calculations. Valid range [0,8]
 		bool in_bUpdatePaths			///< Set to true to clear existing diffraction paths and to force the re-computation of new paths. If false, existing paths will remain and new paths will be computed when the emitter or listener moves.
+		) override;
+
+	/// Set the maximum number of computed reflection paths
+	///
+	virtual AKRESULT SetMaxGlobalReflectionPaths(
+		AkUInt32 in_uMaxGlobalReflectionPaths	///< Maximum number of reflection paths. Valid range [0..[
+		) override;
+
+	/// Set the maximum number of computed diffraction paths. 
+	/// Pass a valid Game Object ID to to \c in_gameObjectID to affect a specific game object and override the value set in AkSpatialAudioInitSettings::uMaxDiffractionPaths. 
+	/// Pass \c AK_INVALID_GAME_OBJECT to apply the same limit to all Game Objects (that have not previously been passed to SetMaxDiffractionPaths), 
+	/// updating the value set for AkSpatialAudioInitSettings::uMaxDiffractionPaths.
+	///
+	/// \sa
+	/// - \ref AkSpatialAudioInitSettings::uMaxDiffractionPaths
+	virtual AKRESULT SetMaxDiffractionPaths(
+		AkUInt32 in_uMaxDiffractionPaths,						///< Maximum number of reflection paths. Valid range [0..32]
+		AkGameObjectID in_gameObjectID = AK_INVALID_GAME_OBJECT	///< Game Object ID. Pass AK_INVALID_GAME_OBJECT to affect all Game Objects, effectivly updating AkSpatialAudioInitSettings::uMaxDiffractionPaths. Pass a valid Game Object ID to override the init setting for a specific Game Object.
 		) override;
 
 	/// Set the maximum number of game-defined auxiliary sends that can originate from a single emitter. 
@@ -341,13 +373,21 @@ public:
 		AkUInt32 in_uNbFrames		///< Number of spread frames
 		) override;
 
+	/// [\ref spatial_audio_experimental "Experimental"]  Enable parameter smoothing on the diffraction paths output from the Acoustics Engine, either globally or for a specific game object. Set fSmoothingConstantMs to a value greater than 0 to define the time constant (in milliseconds) for parameter smoothing. 
+	/// \sa
+	/// - \ref AkSpatialAudioInitSettings::fSmoothingConstantMs
+	virtual AKRESULT SetSmoothingConstant(
+		AkReal32 in_fSmoothingConstantMs,								///< Smoothing constant (ms)
+		AkGameObjectID in_gameObjectID = AK_INVALID_GAME_OBJECT			///< Game Object ID. Pass AK_INVALID_GAME_OBJECT to set the global smoothing constant, affecting all Spatial Audio Emitters and Rooms.
+		) override;
+
 	/// Set an early reflections auxiliary bus for a particular game object. 
 	/// Geometrical reflection calculation inside spatial audio is enabled for a game object if any sound playing on the game object has a valid early reflections aux bus specified in the authoring tool,
 	/// or if an aux bus is specified via \c SetEarlyReflectionsAuxSend.
 	/// The \c in_auxBusID parameter of SetEarlyReflectionsAuxSend applies to sounds playing on the game object \c in_gameObjectID which have not specified an early reflection bus in the authoring tool -
 	/// the parameter specified on individual sounds' reflection bus takes priority over the value passed in to \c SetEarlyReflectionsAuxSend.
 	/// \aknote 
-	/// Users may apply this function to avoid duplicating sounds in the actor-mixer hierarchy solely for the sake of specifying a unique early reflection bus, or in any situation where the same 
+	/// Users may apply this function to avoid duplicating sounds in the Containers hierarchy solely for the sake of specifying a unique early reflection bus, or in any situation where the same 
 	/// sound should be played on different game objects with different early reflection aux buses (the early reflection bus must be left blank in the authoring tool if the user intends to specify it through the API). \endaknote
 	virtual AKRESULT SetEarlyReflectionsAuxSend(
 		AkGameObjectID in_gameObjectID, ///< Game object ID 
@@ -366,12 +406,16 @@ public:
 	/// Set the obstruction and occlusion value for a portal that has been registered with Spatial Audio.
 	/// Portal obstruction simulates objects that block the direct sound path between the portal and the listener, but
 	/// allows indirect sound to pass around the obstacle. For example, use portal obstruction 
-	/// when a piece of furniture is blocking the line of sight of the portal opening.
-	/// Portal obstruction is applied on the connection between the emitter and the listener, and only affects the dry signal path.
+	/// when a piece of furniture blocks the line of sight of the portal opening.
+	/// Portal obstruction is applied to the connection between the emitter and the listener, and only affects the dry signal path.
 	/// Portal occlusion simulates a complete blockage of both the direct and indirect sound through a portal. For example, use portal occlusion for 
 	/// opening or closing a door or window.
-	/// Portal occlusion is applied on the connection between the emitter and the first room in the chain, as well as the connection between the emitter and listener.
+	/// Portal occlusion is applied to the connection between the emitter and the first room in the chain, as well as the connection between the emitter and listener.
 	/// Portal occlusion affects both the dry and wet (reverberant) signal paths.
+	/// If you are using built-in game parameters to drive RTPCs, the obstruction and occlusion values set here 
+	/// do not affect the RTPC values. This behavior is intentional and occurs because RTPCs only provide one 
+	/// value per game object, but a single game object can have multiple paths through different Portals, 
+	/// each with different obstruction and occlusion values.
 	/// To apply detailed obstruction to specific sound paths but not others, use \c AK::SpatialAudio::SetGameObjectToPortalObstruction and \c AK::SpatialAudio::SetPortalToPortalObstruction.
 	/// To apply occlusion and obstruction to the direct line of sight between the emitter and listener use \c AK::SoundEngine::SetObjectObstructionAndOcclusion.
 	/// \sa
@@ -381,7 +425,8 @@ public:
 	virtual AKRESULT SetPortalObstructionAndOcclusion(
 		AkPortalID in_PortalID,				///< Portal ID.
 		AkReal32 in_fObstruction,			///< Obstruction value.  Valid range 0.f-1.f
-		AkReal32 in_fOcclusion				///< Occlusion value.  Valid range 0.f-1.f
+		AkReal32 in_fOcclusion,				///< Occlusion value.  Valid range 0.f-1.f
+		bool in_bTransition = false			///< Transition obstruction and occlusion through portals.  Default false
 		) override;
 
 	/// Set the obstruction value of the path between a game object and a portal that has been created by Spatial Audio.
@@ -442,21 +487,15 @@ public:
 		AkUInt32& io_uArraySize				///< The number of slots in \c out_aPaths, after returning the number of valid elements written.
 		) override;
 
-	virtual AKRESULT SetTransmissionOperation(AkTransmissionOperation in_operation);
-
-	virtual AKRESULT SetSmoothingConstant(AkReal32 in_smoothingConstant, AkGameObjectID in_gameObject);
+	/// Set the operation used to calculate transmission loss on a direct path between emitter and listener.
+	/// 
+	virtual AKRESULT SetTransmissionOperation(
+		AkTransmissionOperation in_eOperation		///< The operation to be used on all transmission paths.
+		) override;
 
 	/// Reset the stochastic engine state by re-initializing the random seeds.
 	///
 	virtual AKRESULT ResetStochasticEngine() override;
-
-	/// Set the maximum of validated reflection paths
-	///
-	virtual AKRESULT SetMaxGlobalReflectionPaths(AkUInt32 in_maxNumberOfReflectionPaths) override;
-
-	/// Set the maximum number of computed diffraction paths, either for a particular Game Object or for all Game Objects.
-	///
-	virtual AKRESULT SetMaxDiffractionPaths(AkUInt32 in_maxNumberOfDiffractionPaths, AkGameObjectID in_gameObject) override;
 
 	//@}
 

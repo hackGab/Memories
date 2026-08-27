@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WwiseDocument Type="WorkUnit" ID="{72D1845E-CC61-488F-9E22-C52D007C5B69}" SchemaVersion="133">
+	<Containers>
+		<WorkUnit Name="Default Work Unit" ID="{72D1845E-CC61-488F-9E22-C52D007C5B69}" PersistMode="Standalone">
+			<ChildrenList>
+				<Sound Name="Debug" ID="{1D6D178F-5A19-4618-AB15-9C3E377BEC13}" ShortID="728555884">
+					<ReferenceList>
+						<Reference Name="Conversion">
+							<ObjectRef Name="Default Conversion Settings" ID="{6D1B890C-9826-4384-BF07-C15223E9FB56}" WorkUnitID="{9AF7148D-F8A8-48E6-9005-FA1CCB52BA19}"/>
+						</Reference>
+						<Reference Name="OutputBus">
+							<ObjectRef Name="Master Audio Bus" ID="{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}" WorkUnitID="{BFD9E733-8A4C-4E6D-8E3D-7ADC32FF000E}"/>
+						</Reference>
+					</ReferenceList>
+					<ChildrenList>
+						<SourcePlugin Name="Tone Generator" ID="{74C3D5BD-7281-46AE-A60E-6C64B2F45179}" ShortID="868265036" PluginName="Wwise Tone Generator" CompanyID="0" PluginID="102">
+							<PropertyList>
+								<Property Name="FixDur" Type="Real32" Value="0.1"/>
+							</PropertyList>
+							<Language>SFX</Language>
+						</SourcePlugin>
+					</ChildrenList>
+					<ActiveSourceList>
+						<ActiveSource Name="Tone Generator" ID="{74C3D5BD-7281-46AE-A60E-6C64B2F45179}" Platform="Linked"/>
+					</ActiveSourceList>
+				</Sound>
+			</ChildrenList>
+		</WorkUnit>
+	</Containers>
+</WwiseDocument>

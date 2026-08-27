@@ -91,6 +91,15 @@ typedef AKSIMD_V8I32 AKSIMD_V8ICOND;
 /// r0 := *p; r1...r7 := 0.0 (see _mm_load_ss)
 #define AKSIMD_LOAD_SS_V8F32( __addr__ ) _mm256_zextps128_ps256(_mm_load_ss( (__addr__) ))
 
+/// Performs a masked load of the target address, where if the high-bit is set on the mask (should be AKSIMD_V4COND)
+/// then value will be loaded from the address. Otherwise, value will be set to zero
+#define AKSIMD_MASKLOAD_V4F32( __addr__, __mask__ ) _mm_maskload_ps( __addr__, _mm_castps_si128(__mask__) )
+
+/// Performs a masked load of the target address, where if the high-bit is set on the mask (should be AKSIMD_V8COND)
+/// then value will be loaded from the address. Otherwise, value will be set to zero
+#define AKSIMD_MASKLOAD_V8F32( __addr__, __mask__ ) _mm256_maskload_ps( __addr__, _mm256_castps_si256(__mask__) )
+
+
 /// Loads the two m128i's provided into the output m256i a
 /// Note that this should be utilized instead of, e.g. adding & utilizing a macro "AKSIMD_INSERT_V8I32(m, i, idx)"
 /// Because there is no direct corresponding instruction for an insert into 256. You should load into 128s
@@ -120,6 +129,14 @@ typedef AKSIMD_V8I32 AKSIMD_V8ICOND;
 /// Stores the lower single-precision, floating-point value.
 /// *p := a0 (see _mm_store_ss)
 #define AKSIMD_STORE1_V8F32( __addr__, __vec__ ) _mm_store_ss( (AkReal32*)(__addr__), _mm256_castps256_ps128( (__vec__) ) )
+
+/// Performs a masked store of the target address, where if the high-bit is set on the mask (should be AKSIMD_V4COND)
+/// then value will be stored to the address. Otherwise, destination memory is not modified
+#define AKSIMD_MASKSTORE_V4F32( __addr__, __mask__, __vec__ ) _mm_maskstore_ps( __addr__, _mm_castps_si128(__mask__), __vec__ )
+
+/// Performs a masked load of the target address, where if the high-bit is set on the mask (should be AKSIMD_V8COND)
+/// then value will be stored to the address. Otherwise, destination memory is not modified
+#define AKSIMD_MASKSTORE_V8F32( __addr__, __mask__, __vec__  ) _mm256_maskstore_ps( __addr__, _mm256_castps_si256(__mask__), __vec__ )
 
 //@}
 ////////////////////////////////////////////////////////////////////////
@@ -177,7 +194,7 @@ typedef AKSIMD_V8I32 AKSIMD_V8ICOND;
 ///  B[7:0] = D[5] C[5] B[5] A[5] D[1] C[1] B[1] A[1]
 ///  C[7:0] = D[6] C[6] B[6] A[6] D[2] C[2] B[2] A[2]
 ///  D[7:0] = D[7] C[7] B[7] A[7] D[3] C[3] B[3] A[3]
-AkForceInline void AKSIMD_TRANSPOSE8X4_V8F32(AKSIMD_V8F32& A, AKSIMD_V8F32& B, AKSIMD_V8F32& C, AKSIMD_V8F32& D)
+static AkForceInline void AKSIMD_TRANSPOSE8X4_V8F32(AKSIMD_V8F32& A, AKSIMD_V8F32& B, AKSIMD_V8F32& C, AKSIMD_V8F32& D)
 {
 	AKSIMD_V8F32 tmp1, tmp2, tmp3, tmp4;
 	tmp1 = AKSIMD_SHUFFLE_V8F32(A, B, AKSIMD_SHUFFLE(1,0,1,0));

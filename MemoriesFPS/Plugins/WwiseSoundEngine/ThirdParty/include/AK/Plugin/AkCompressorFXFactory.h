@@ -26,10 +26,12 @@ the specific language governing permissions and limitations under the License.
 
 #pragma once
 /// \file
-/// Registers the Compressor plugin automatically.
+/// Registers the Compressor and Expander plugins automatically.
 /// This file should be included once in a .CPP (not a .h, really).  The simple inclusion of this file and the linking of the library is enough to use the plugin.
 /// <b>WARNING</b>: Include this file only if you wish to link statically with the plugins.  Dynamic Libaries (DLL, so, etc) are automatically detected and do not need this include file.
-/// <br><b>Wwise plugin name:</b> Compressor
+/// <br><b>Wwise plugin name:</b> AK Compressor and AK Expander
 /// <br><b>Library file:</b> AkCompressorFX.lib
 
 AK_STATIC_LINK_PLUGIN(AkCompressorFX)
+AK_STATIC_LINK_PLUGIN(AkExpanderFX)
+

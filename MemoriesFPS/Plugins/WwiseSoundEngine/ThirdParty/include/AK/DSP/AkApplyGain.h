@@ -128,7 +128,7 @@ namespace AK
 
 		/// Single channel, out-of-place interpolating gain helper (do not call directly) use ApplyGain instead.
 		static inline void ApplyGainRamp(	
-			AkSampleType * AK_RESTRICT in_pfBufferIn, 
+			const AkSampleType * AK_RESTRICT in_pfBufferIn, 
 			AkSampleType * AK_RESTRICT out_pfBufferOut, 
 			AkReal32 in_fCurGain,
 			AkReal32 in_fTargetGain,
@@ -256,7 +256,7 @@ namespace AK
 
 		/// Single channel, Out-of-place static gain.
 		static inline void ApplyGain(	
-			AkSampleType * AK_RESTRICT in_pfBufferIn, 
+			const AkSampleType * AK_RESTRICT in_pfBufferIn, 
 			AkSampleType * AK_RESTRICT out_pfBufferOut, 
 			AkReal32 in_fGain,
 			AkUInt32 in_uNumFrames )
@@ -342,7 +342,7 @@ namespace AK
 
 		/// Single channel, Out-of-place (possibly interpolating) gain.
 		static inline void ApplyGain(	
-			AkSampleType * AK_RESTRICT in_pfBufferIn, 
+			const AkSampleType * AK_RESTRICT in_pfBufferIn, 
 			AkSampleType * AK_RESTRICT out_pfBufferOut, 
 			AkReal32 in_fCurGain,
 			AkReal32 in_fTargetGain,

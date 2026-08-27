@@ -46,4 +46,7 @@ public:
 
 	virtual void SetMedia(AkSourceSettings& InSource, FLoadMediaCallback&& InCallback) = 0;
 	virtual void UnsetMedia(AkSourceSettings& InSource, FLoadMediaCallback&& InCallback) = 0;
+
+	virtual void DoTerm() = 0;
+	virtual void DoPostTerm() = 0;
 };

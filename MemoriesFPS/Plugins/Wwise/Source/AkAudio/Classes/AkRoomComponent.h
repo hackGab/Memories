@@ -23,6 +23,13 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 class UAkLateReverbComponent;
 
+UENUM()
+enum class EAkRoomDistanceBehavior : uint32
+{
+	Subtract UMETA(ToolTip = "This room is subtracted from the shape of parents and overlapping rooms of lower priority."),
+	Exclude UMETA(ToolTip = "[Experimental] This room does not participate in the distance calculation of other rooms.")
+};
+
 UCLASS(ClassGroup = Audiokinetic, BlueprintType, hidecategories = (Transform, Rendering, Mobility, LOD, Component, Activation, Tags), meta = (BlueprintSpawnableComponent))
 class AKAUDIO_API UAkRoomComponent : public UAkGameObject
 {
@@ -66,6 +73,13 @@ public:
 	float Priority = .0f;
 
 	/**
+	* Determines how a room interacts with the distance calculation of other rooms that it overlaps or is nested within.
+	* Default is Subtract.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Room")
+	EAkRoomDistanceBehavior DistanceBehavior = EAkRoomDistanceBehavior::Subtract;
+
+	/**
 	* Used to set the transmission loss value in wwise, on emitters in the Room, when no audio paths to the 
 	* listener are found via sound propagation in Wwise Spatial Audio. This value can be thought of as 
 	* 'thickness', as it relates to how much sound energy is transmitted through the wall. Valid range 0.0f-1.0f.
@@ -106,9 +120,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintSetter = SetEnableReverbZone, Category = "ReverbZone")
 	bool bEnableReverbZone = false;
 
+	/**
+	* Automatically set this Reverb Zone's Parent Room.
+	* When true, the Parent Room Actor is automatically chosen to be the Room that contains this Room, with the next lowest Priority.
+	* When false, Parent Room Actor must be set manually.
+	*/
+	UPROPERTY(EditAnywhere, BlueprintSetter = SetAutoParent, Category = "ReverbZone", meta = (EditCondition = "bEnableReverbZone"))
+	bool bAutoParent = false;
+
 	/** Set bEnableReverbZone to a new value and set or remove the Reverb Zone in Wwise. */
 	UFUNCTION(BlueprintSetter, Category = "Audiokinetic|AkRoomComponent")
 	void SetEnableReverbZone(bool bInEnableReverbZone);
+
+	/** Set bAutoParent to a new value and select a Parent Room. */
+	UFUNCTION(BlueprintSetter, Category = "Audiokinetic|AkRoomComponent")
+	void SetAutoParent(bool bInAutoParent);
 
 	/**
 	* Establishes a parent-child relationship between two Rooms and allows for sound propagation between them
@@ -274,15 +300,21 @@ private:
 	void OnSetEnableReverbZone();
 	bool CanBecomeReverbZone() const;
 	
+	void AutoParentRoom();
 	void UpdateParentRoom();
 	void ResetParentRoom();
 	bool IsAParentOf(TWeakObjectPtr<const UAkRoomComponent> InRoom) const;
-	void SetParentRoom(TWeakObjectPtr<const UAkRoomComponent> InParentRoom);
+	void SetParentRoom(TWeakObjectPtr<UAkRoomComponent> InParentRoom);
+
+	void AddChildRoom(TWeakObjectPtr<UAkRoomComponent> InChildRoom);
+	UPROPERTY()
+	TArray<TWeakObjectPtr<UAkRoomComponent>> ChildrenRooms;
 
 	UPROPERTY()
 	TWeakObjectPtr<const UAkRoomComponent> ParentRoom;
 	bool bIsAReverbZoneInWwise = false;
 	bool bReverbZoneNeedsUpdate = false;
+	bool bAutoParentNeedsUpdate = false;
 
 #if WITH_EDITOR
 	void HandleObjectsReplaced(const TMap<UObject*, UObject*>& ReplacementMap);

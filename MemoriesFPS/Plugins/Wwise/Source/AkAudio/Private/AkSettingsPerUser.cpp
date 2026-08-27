@@ -19,6 +19,8 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include "AkAudioDevice.h"
 
+#include "Misc/ConfigCacheIni.h"
+
 #if WITH_EDITOR
 #include "AkUnrealEditorHelper.h"
 #endif
@@ -33,11 +35,17 @@ UAkSettingsPerUser::UAkSettingsPerUser(const FObjectInitializer& ObjectInitializ
 	VisualizeRoomsAndPortals = false;
 	bShowReverbInfo = true;
 #endif
+	// "bAutoConnectToWAAPI" is not read correctly when using the config UProperty. Explicitly load it here.
+	if (!GConfig->GetBool(TEXT("/Script/AkAudio.AkSettingsPerUser"), TEXT("bAutoConnectToWAAPI"), AutoConnectToWAAPI, GEditorPerProjectIni))
+	{
+		GConfig->GetBool(TEXT("/Script/AkAudio.AkSettingsPerUser"), TEXT("AutoConnectToWAAPI"), AutoConnectToWAAPI, GEditorPerProjectIni);
+	}
 }
 
 #if WITH_EDITOR
 void UAkSettingsPerUser::PreEditChange(FProperty* PropertyAboutToChange)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSettingsPerUser::PreEditChange"));
 	PreviousWwiseWindowsInstallationPath = WwiseWindowsInstallationPath.Path;
 	PreviousWwiseMacInstallationPath = WwiseMacInstallationPath.FilePath;
 	PreviousGeneratedSoundBanksFolder = RootOutputPathOverride.Path;
@@ -47,6 +55,7 @@ void UAkSettingsPerUser::PreEditChange(FProperty* PropertyAboutToChange)
 
 void UAkSettingsPerUser::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSettingsPerUser::PostEditChangeProperty"));
 	const FName PropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
 	const FName MemberPropertyName = (PropertyChangedEvent.Property != nullptr) ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 
@@ -58,7 +67,7 @@ void UAkSettingsPerUser::PostEditChangeProperty(FPropertyChangedEvent& PropertyC
 	{
 		AkUnrealEditorHelper::SanitizePath(WwiseMacInstallationPath.FilePath, PreviousWwiseMacInstallationPath, FText::FromString("Please enter a valid Wwise Authoring Mac executable path"));
 	}
-	else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UAkSettingsPerUser, bAutoConnectToWAAPI))
+	else if (MemberPropertyName == GET_MEMBER_NAME_CHECKED(UAkSettingsPerUser, AutoConnectToWAAPI))
 	{
 		OnAutoConnectToWaapiChanged.Broadcast();
 	}

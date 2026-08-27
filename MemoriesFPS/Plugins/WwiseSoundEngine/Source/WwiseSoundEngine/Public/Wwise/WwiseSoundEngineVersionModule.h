@@ -20,7 +20,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 class IWwiseStreamMgrAPI;
 class IWwiseSpatialAudioAPI;
 class IWwiseSoundEngineAPI;
-class IWwiseMusicEngineAPI;
 class IWwiseMonitorAPI;
 class IWwiseMemoryMgrAPI;
 class IWwiseCommAPI;
@@ -34,7 +33,6 @@ public:
 	virtual IWwiseCommAPI* GetComm() = 0;
 	virtual IWwiseMemoryMgrAPI* GetMemoryMgr() = 0;
 	virtual IWwiseMonitorAPI* GetMonitor() = 0;
-	virtual IWwiseMusicEngineAPI* GetMusicEngine() = 0;
 	virtual IWwiseSoundEngineAPI* GetSoundEngine() = 0;
 	virtual IWwiseSpatialAudioAPI* GetSpatialAudio() = 0;
 	virtual IWwiseStreamMgrAPI* GetStreamMgr() = 0;

@@ -32,7 +32,9 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #include <inttypes.h>
 
+
 #if WITH_EDITORONLY_DATA
+#include "EditorReimportHandler.h"
 #include "Wwise/WwiseResourceCooker.h"
 #include "Wwise/WwiseProjectDatabase.h"
 #endif
@@ -42,6 +44,7 @@ FWwiseSimpleExtSrcManager::FWwiseSimpleExtSrcManager()
 {
 	SCOPED_WWISESIMPLEEXTERNALSOURCE_EVENT(TEXT("FWwiseSimpleExtSrcManager::FWwiseSimpleExtSrcManager"));
 #if WITH_EDITOR
+	PreReimportDelegateHandle = FReimportManager::Instance()->OnPreReimport().AddRaw(this, &FWwiseSimpleExtSrcManager::OnObjectReimported);
 	auto* ExtSettings = GetMutableDefault<UWwiseExternalSourceSettings>();
 	// When these settings change we will want to reset the External source manager and reload all external sources
 	ExtSettingsTableChangedDelegate = ExtSettings->OnTablesChanged.AddRaw(this, &FWwiseSimpleExtSrcManager::OnTablesChanged);
@@ -51,6 +54,23 @@ FWwiseSimpleExtSrcManager::FWwiseSimpleExtSrcManager()
 
 FWwiseSimpleExtSrcManager::~FWwiseSimpleExtSrcManager()
 {
+#if WITH_EDITOR
+	FReimportManager::Instance()->OnPreReimport().Remove(PreReimportDelegateHandle);
+#endif
+}
+
+void FWwiseSimpleExtSrcManager::OnObjectReimported(UObject* ReimportedObject)
+{
+#if WITH_EDITOR
+	if (ReimportedObject && ReimportedObject == MediaInfoTable.Get())
+	{
+		MediaInfoTable.Reset();
+	}
+	else if (ReimportedObject && ReimportedObject == ExternalSourceDefaultMedia.Get())
+	{
+		ExternalSourceDefaultMedia.Reset();
+	}
+#endif
 }
 
 void FWwiseSimpleExtSrcManager::LoadMediaTables()
@@ -508,6 +528,13 @@ void FWwiseSimpleExtSrcManager::SetExternalSourceMedia(const uint32 ExternalSour
 			return;
 		}
 
+		if (!SharedSimpleExtSrcManager->MediaInfoTable.IsValid())
+		{
+			UE_LOG(LogWwiseSimpleExtSrc, Error, TEXT("Invalid MediaInfoTable. Make sure to set it in the Project Settings"));
+			Completed->Trigger();
+			return;
+		}
+		
 		FString LogExternalSourceName = ExternalSourceName.ToString();
 
 		const FWwiseExternalSourceMediaInfo* ExternalSourceMediaInfo;

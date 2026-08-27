@@ -88,8 +88,8 @@ void UDrawPortalComponent::DrawPortalOutline(const FSceneView* View, FPrimitiveD
 		if (world != nullptr)
 		{
 			EWorldType::Type worldType = world->WorldType;
-			if ((!(worldType == EWorldType::Game || worldType == EWorldType::PIE) && PortalComponent->InitialState == AkAcousticPortalState::Closed) ||
-				((worldType == EWorldType::Game || worldType == EWorldType::PIE) && PortalComponent->GetCurrentState() == AkAcousticPortalState::Closed))
+			if ((!(worldType == EWorldType::Game || worldType == EWorldType::PIE) && PortalComponent->InitialState == EAkAcousticPortalState::Closed) ||
+				((worldType == EWorldType::Game || worldType == EWorldType::PIE) && PortalComponent->GetCurrentState() == EAkAcousticPortalState::Closed))
 			{
 				PDI->DrawLine(DrawBounds.FRU(), DrawBounds.BRD(), FrontDrawColor, SDPG_MAX, Thickness);
 				PDI->DrawLine(DrawBounds.FLD(), DrawBounds.BLU(), BackDrawColor, SDPG_MAX, Thickness);

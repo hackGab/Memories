@@ -64,5 +64,8 @@
 			"Name": "InterchangeAssets",
 			"Enabled": false
 		}
+	],
+	"TargetPlatforms": [
+		"Windows"
 	]
 }

@@ -134,6 +134,18 @@ void UWwiseAudioLinkSettings::RequestLoad() const
 	});
 }
 
+void UWwiseAudioLinkSettings::CastLoadedAsset(UObject* LoadedAsset)
+{
+	if (LoadedAsset == nullptr)
+	{
+		UE_LOG(LogWwiseAudioLink, Warning, TEXT("Could not load asset for Settings '%s' StartEvent. Make sure its reference is valid."), *GetName());
+	}
+	else
+	{
+		StartEventResolved = CastChecked<UAkAudioEvent>(LoadedAsset);
+	}
+}
+
 void UWwiseAudioLinkSettings::OnLoadCompleteCallback()
 {
 	TArray<UObject*> LoadedAssets;
@@ -145,12 +157,13 @@ void UWwiseAudioLinkSettings::OnLoadCompleteCallback()
 	else if (UNLIKELY(LoadedAssets.Num() > 1))
 	{
 		UE_LOG(LogWwiseAudioLink, Warning, TEXT("UWwiseAudioLinkSettings::OnLoadCompleteCallback: Loaded more than one (%d) asset for Settings '%s' StartEvent '%s'. Using first one."), LoadedAssets.Num(), *GetName(), *StartEvent.ToSoftObjectPath().GetAssetName());
-		StartEventResolved = CastChecked<UAkAudioEvent>(LoadedAssets[0]);
+		CastLoadedAsset(LoadedAssets[0]);
+
 	}
 	else
 	{
 		UE_LOG(LogWwiseAudioLink, Verbose, TEXT("UWwiseAudioLinkSettings::OnLoadCompleteCallback: Asset loaded for Settings '%s' StartEvent '%s'"), *GetName(), *StartEvent.ToSoftObjectPath().GetAssetName());
-		StartEventResolved = CastChecked<UAkAudioEvent>(LoadedAssets[0]);
+		CastLoadedAsset(LoadedAssets[0]);
 	}
 
 	if (IsValid(StartEventResolved))

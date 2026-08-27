@@ -36,6 +36,7 @@ public:
 	}
 
 	static void ExecuteForEditorPlatform();
+	static void ExecuteForAllPlatforms();
 	static void CreateAndExecuteTask(const AkSoundBankGenerationManager::FInitParameters& InitParameters);
 
 private:

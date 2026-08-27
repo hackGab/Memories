@@ -61,7 +61,7 @@ public:
 	/// - <tt>AK::SoundEngine::GetDefaultInitSettings()</tt>
 	/// - <tt>AK::SoundEngine::GetDefaultPlatformInitSettings()</tt>
 	virtual AKRESULT Init(
-		AkInitSettings *			in_pSettings,   		///< Initialization settings (can be NULL, to use the default values)
+		WwiseInitSettings *			in_pSettings,   		///< Initialization settings (can be NULL, to use the default values)
 		AkPlatformInitSettings *	in_pPlatformSettings  	///< Platform-specific settings (can be NULL, to use the default values)
 		) override;
 
@@ -72,17 +72,10 @@ public:
 	/// - <tt>AK::SoundEngine::Init()</tt>
 	/// - <tt>AK::SoundEngine::GetDefaultPlatformInitSettings()</tt>
 	virtual void GetDefaultInitSettings(
-		AkInitSettings &			out_settings   			///< Returned default platform-independent sound engine settings
+		WwiseInitSettings &			out_settings   			///< Returned default platform-independent sound engine settings
 		) override;
 
 	/// Gets the default values of the platform-specific initialization settings.
-	///
-	/// Windows Specific:
-	///		HWND is the handle of the window associated with the audio. 
-	///		Each game must specify the HWND of the application for device detection purposes. 
-	///		The value returned by GetDefaultPlatformInitSettings is the foreground HWND at
-	///		the moment of the initialization of the sound engine and might not be the correct one for your game.
-	///		Each game must provide the correct HWND to use.
 	///
 	/// \warning This function is not thread-safe.
 	/// \sa 
@@ -201,9 +194,9 @@ public:
 	/// If io_pfSpeakerAngles is not NULL, the array is filled with up to io_uNumAngles.
 	/// Typical usage:
 	/// - AkUInt32 uNumAngles;
-	/// - GetSpeakerAngles( NULL, uNumAngles, AkOutput_Main ) override;
-	/// - AkReal32 * pfSpeakerAngles = AkAlloca( uNumAngles * sizeof(AkReal32) ) override;
-	/// - GetSpeakerAngles( pfSpeakerAngles, uNumAngles, AkOutput_Main ) override;
+	/// - GetSpeakerAngles( NULL, uNumAngles, AkOutput_Main );
+	/// - AkReal32 * pfSpeakerAngles = AkAlloca( uNumAngles * sizeof(AkReal32) );
+	/// - GetSpeakerAngles( pfSpeakerAngles, uNumAngles, AkOutput_Main );
 	/// \aknote 
 	///	On most platforms, the angle set on the plane consists of 3 angles, to account for 7.1. 
 	/// - When panning to stereo (speaker mode, see <tt>AK::SoundEngine::SetPanningRule()</tt>), only angle[0] is used, and 3D sounds in the back of the listener are mirrored to the front. 
@@ -238,12 +231,12 @@ public:
 	/// - \c AK_Success if successful.
 	/// - \c AK_InvalidFloatValue if the value specified was NaN or Inf
 	/// - \c AK_InsufficientMemory if there wasn't enough memory in the message queue
-	/// - \c AK_InvalidParameter one of the parameter is invalid, check the debug log.
+	/// - \c AK_InvalidParameter one of the parameter is invalid, check the debug log. Speaker angles must be [0, 180] and height angle must be [-90, 90]. Height angle must not be 0, regardless if height channels are used.
 	/// \sa GetSpeakerAngles()
 	virtual AKRESULT SetSpeakerAngles(
-		const AkReal32 *	in_pfSpeakerAngles,			///< Array of loudspeaker pair angles, in degrees relative to azimuth [0,180].
+		const AkReal32 *	in_pfSpeakerAngles,			///< Array of loudspeaker pair angles, in degrees relative to azimuth ]0,180].
 		AkUInt32			in_uNumAngles,				///< Number of elements in in_pfSpeakerAngles. It must correspond to AK::GetNumberOfAnglesForConfig( AK_SPEAKER_SETUP_DEFAULT_PLANE ) (the value returned by GetSpeakerAngles()).
-		AkReal32 			in_fHeightAngle,			///< Elevation of the height layer, in degrees relative to the plane  [-90,90].
+		AkReal32 			in_fHeightAngle = AK_DEFAULT_HEIGHT_ANGLE,	///< Elevation of the height layer, in degrees relative to the plane [-90,90], but it cannot be 0.
 		AkOutputDeviceID	in_idOutput = 0				///< Output ID to set the bus on.  As returned from AddOutput or GetOutputID.  You can pass 0 for the main (default) output			
 		) override;
 
@@ -287,7 +280,7 @@ public:
 	//@{
 
 	/// Processes all commands in the sound engine's command queue.
-	/// This method has to be called periodically (usually once per game frame).
+	/// This method has to be called periodically (once per game frame).
 	/// \sa 
 	/// - \ref concept_events
 	/// - \ref soundengine_events
@@ -385,7 +378,7 @@ public:
 	/// location specified by in_eLocation. This function will also be called from the thread calling 			
 	/// AK::SoundEngine::Term with in_eLocation set to AkGlobalCallbackLocation_Term.
 	/// For example, in order to be called at every audio rendering pass, and once during teardown for releasing resources, you would call 
-	/// RegisterGlobalCallback(myCallback, AkGlobalCallbackLocation_BeginRender  | AkGlobalCallbackLocation_Term, myCookie, AkPluginTypeNone, 0, 0) override;  
+	/// RegisterGlobalCallback(myCallback, AkGlobalCallbackLocation_BeginRender  | AkGlobalCallbackLocation_Term, myCookie, AkPluginTypeNone, 0, 0) = 0;  
 	/// \remarks
 	/// A Plugin Type, Company ID and Plugin ID can be provided to this function to enable timing in the performance monitor.
 	/// If the callback is being timed, it will contribute to the Total Plug-in CPU measurement, and also appear in the Plug-ins tab of the Advanced Profiler by plug-in type and ID. 
@@ -617,10 +610,10 @@ public:
 	/// - \c AK_Success if the action was successfully queued.
 	/// - \c AK_IDNotFound if the Event was not found (not loaded or there is a typo in the ID)
 	/// \sa
-	/// - <tt>AK::SoundEngine::AkActionOnEventType</tt>
+	/// - <tt>AkActionOnEventType</tt>
 	virtual AKRESULT ExecuteActionOnEvent(
 		AkUniqueID in_eventID,												///< Unique ID of the event
-		AK::SoundEngine::AkActionOnEventType in_ActionType,									///< Action to execute on all the elements that were played using the specified event.
+		AkActionOnEventType in_ActionType,									///< Action to execute on all the elements that were played using the specified event.
 		AkGameObjectID in_gameObjectID = AK_INVALID_GAME_OBJECT,			///< Associated game object ID
 		AkTimeMs in_uTransitionDuration = 0,								///< Fade duration
 		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the transition
@@ -633,10 +626,10 @@ public:
 	/// - \c AK_Success if the action was successfully queued.
 	/// - \c AK_IDNotFound if the Event was not found (not loaded or there is a typo in the ID)
 	/// \sa
-	/// - <tt>AK::SoundEngine::AkActionOnEventType</tt>
+	/// - <tt>AkActionOnEventType</tt>
 	virtual AKRESULT ExecuteActionOnEvent(
 		const wchar_t* in_pszEventName,										///< Name of the event
-		AK::SoundEngine::AkActionOnEventType in_ActionType,									///< Action to execute on all the elements that were played using the specified event.
+		AkActionOnEventType in_ActionType,									///< Action to execute on all the elements that were played using the specified event.
 		AkGameObjectID in_gameObjectID = AK_INVALID_GAME_OBJECT,			///< Associated game object ID
 		AkTimeMs in_uTransitionDuration = 0,								///< Fade duration
 		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the transition
@@ -649,10 +642,10 @@ public:
 	/// - \c AK_Success if the action was successfully queued.
 	/// - \c AK_IDNotFound if the Event was not found (not loaded or there is a typo in the ID)
 	/// \sa
-	/// - <tt>AK::SoundEngine::AkActionOnEventType</tt>
+	/// - <tt>AkActionOnEventType</tt>
 	virtual AKRESULT ExecuteActionOnEvent(
 		const char* in_pszEventName,										///< Name of the event
-		AK::SoundEngine::AkActionOnEventType in_ActionType,									///< Action to execute on all the elements that were played using the specified event.
+		AkActionOnEventType in_ActionType,									///< Action to execute on all the elements that were played using the specified event.
 		AkGameObjectID in_gameObjectID = AK_INVALID_GAME_OBJECT,			///< Associated game object ID
 		AkTimeMs in_uTransitionDuration = 0,								///< Fade duration
 		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the transition
@@ -873,7 +866,7 @@ public:
 	/// Seeks inside all playing objects that are referenced in Play Actions of the specified Event.
 	///
 	/// Notes:
-	///		- This works with all objects of the actor-mixer hierarchy, and also with Music Segments and Music Switch Containers. 
+	///		- This works with all objects of the Containers hierarchy, including Music Segments and Music Switch Containers. 
 	///		- There is a restriction with sounds that play within a continuous sequence. Seeking is ignored 
 	///			if one of their ancestors is a continuous (random or sequence) container with crossfade or 
 	///			trigger rate transitions. Seeking is also ignored with sample-accurate transitions, unless
@@ -882,10 +875,10 @@ public:
 	///		- Sounds/segments are stopped if in_iPosition is greater than their duration.
 	///		- in_iPosition is clamped internally to the beginning of the sound/segment.
 	///		- If the option "Seek to nearest marker" is used, the seeking position snaps to the nearest marker.
-	///			With objects of the actor-mixer hierarchy, markers are embedded in wave files by an external wave editor.
+	///			With objects of the Containers hierarchy, markers are embedded in wave files by an external wave editor.
 	///			Note that looping regions ("sampler loop") are not considered as markers. Also, the "add file name marker" of the 
 	///			conversion settings dialog adds a marker at the beginning of the file, which is considered when seeking
-	///			to nearest marker. In the case of objects of the interactive music hierarchy, user (wave) markers are ignored:
+	///			to nearest marker. In the case of interactive music objects (Music Segments, Music Switch Containers, and Music Playlist Containers), user (wave) markers are ignored:
 	///			seeking occurs to the nearest segment cue (authored in the segment editor), including the Entry Cue, but excluding the Exit Cue.
 	///		- This method posts a command in the sound engine queue, thus seeking will not occur before 
 	///			the audio thread consumes it (after a call to RenderAudio()). 
@@ -898,9 +891,9 @@ public:
 	///		- In order to restart at the correct location, with all their tracks synchronized, Music Segments 
 	///			take the "look-ahead time" property of their streamed tracks into account for seeking. 
 	///			Consequently, the resulting position after a call to SeekOnEvent() might be earlier than the 
-	///			value that was passed to the method. Use <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> to query 
+	///			value that was passed to the method. Use <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> to query 
 	///			the exact position of a segment. Also, the segment will be silent during that time
-	///			(so that it restarts precisely at the position that you specified). <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> 
+	///			(so that it restarts precisely at the position that you specified). <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> 
 	///			also informs you about the remaining look-ahead time.  
 	///
 	/// Notes specific to Music Switch Containers:
@@ -917,7 +910,7 @@ public:
 	/// - <tt>AK::SoundEngine::RenderAudio()</tt>
 	/// - <tt>AK::SoundEngine::PostEvent()</tt>
 	/// - <tt>AK::SoundEngine::GetSourcePlayPosition()</tt>
-	/// - <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt>
+	/// - <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt>
 	virtual AKRESULT SeekOnEvent( 
 		AkUniqueID in_eventID,										///< Unique ID of the event
 		AkGameObjectID in_gameObjectID,								///< Associated game object ID; use AK_INVALID_GAME_OBJECT to affect all game objects
@@ -930,7 +923,7 @@ public:
 	/// Seeks inside all playing objects that are referenced in Play Actions of the specified Event.
 	///
 	/// Notes:
-	///		- This works with all objects of the actor-mixer hierarchy, and also with Music Segments and Music Switch Containers. 
+	///		- This works with all objects of the Containers hierarchy, and also with Music Segments and Music Switch Containers. 
 	///		- There is a restriction with sounds that play within a continuous sequence. Seeking is ignored 
 	///			if one of their ancestors is a continuous (random or sequence) container with crossfade or 
 	///			trigger rate transitions. Seeking is also ignored with sample-accurate transitions, unless
@@ -941,10 +934,10 @@ public:
 	///		- Sounds/segments are stopped if in_iPosition is greater than their duration.
 	///		- in_iPosition is clamped internally to the beginning of the sound/segment.
 	///		- If the option "Seek to nearest marker" is used, the seeking position snaps to the nearest marker.
-	///			With objects of the actor-mixer hierarchy, markers are embedded in wave files by an external wave editor.
+	///			With objects of the Containers hierarchy, markers are embedded in wave files by an external wave editor.
 	///			Note that looping regions ("sampler loop") are not considered as markers. Also, the "add file name marker" of the 
 	///			conversion settings dialog adds a marker at the beginning of the file, which is considered when seeking
-	///			to nearest marker. In the case of objects of the interactive music hierarchy, user (wave) markers are ignored:
+	///			to nearest marker. In the case of interactive music objects (Music Segments, Music Switch Containers, and Music Playlist Containers), user (wave) markers are ignored:
 	///			seeking occurs to the nearest segment cue (authored in the segment editor), including the Entry Cue, but excluding the Exit Cue.
 	///		- This method posts a command in the sound engine queue, thus seeking will not occur before 
 	///			the audio thread consumes it (after a call to RenderAudio()). 
@@ -957,9 +950,9 @@ public:
 	///		- In order to restart at the correct location, with all their tracks synchronized, Music Segments 
 	///			take the "look-ahead time" property of their streamed tracks into account for seeking. 
 	///			Consequently, the resulting position after a call to SeekOnEvent() might be earlier than the 
-	///			value that was passed to the method. Use <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> to query 
+	///			value that was passed to the method. Use <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> to query 
 	///			the exact position of a segment. Also, the segment will be silent during that time
-	///			(so that it restarts precisely at the position that you specified). <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> 
+	///			(so that it restarts precisely at the position that you specified). <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> 
 	///			also informs you about the remaining look-ahead time. 
 	///
 	/// Notes specific to Music Switch Containers:
@@ -975,7 +968,7 @@ public:
 	/// - <tt>AK::SoundEngine::RenderAudio()</tt>
 	/// - <tt>AK::SoundEngine::PostEvent()</tt>
 	/// - <tt>AK::SoundEngine::GetSourcePlayPosition()</tt>
-	/// - <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt>
+	/// - <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt>
 	virtual AKRESULT SeekOnEvent( 
 		const wchar_t* in_pszEventName,								///< Name of the event
 		AkGameObjectID in_gameObjectID,								///< Associated game object ID; use AK_INVALID_GAME_OBJECT to affect all game objects
@@ -988,7 +981,7 @@ public:
 	/// Seeks inside all playing objects that are referenced in Play Actions of the specified Event.
 	///
 	/// Notes:
-	///		- This works with all objects of the actor-mixer hierarchy, and also with Music Segments and Music Switch Containers. 
+	///		- This works with all objects of the Containers hierarchy, and also with Music Segments and Music Switch Containers. 
 	///		- There is a restriction with sounds that play within a continuous sequence. Seeking is ignored 
 	///			if one of their ancestors is a continuous (random or sequence) container with crossfade or 
 	///			trigger rate transitions. Seeking is also ignored with sample-accurate transitions, unless
@@ -999,10 +992,10 @@ public:
 	///		- Sounds/segments are stopped if in_iPosition is greater than their duration.
 	///		- in_iPosition is clamped internally to the beginning of the sound/segment.
 	///		- If the option "Seek to nearest marker" is used, the seeking position snaps to the nearest marker.
-	///			With objects of the actor-mixer hierarchy, markers are embedded in wave files by an external wave editor.
+	///			With objects of the Containers hierarchy, markers are embedded in wave files by an external wave editor.
 	///			Note that looping regions ("sampler loop") are not considered as markers. Also, the "add file name marker" of the 
 	///			conversion settings dialog adds a marker at the beginning of the file, which is considered when seeking
-	///			to nearest marker. In the case of objects of the interactive music hierarchy, user (wave) markers are ignored:
+	///			to nearest marker. In the case of interactive music objects (Music Segments, Music Switch Containers, and Music Playlist Containers), user (wave) markers are ignored:
 	///			seeking occurs to the nearest segment cue (authored in the segment editor), including the Entry Cue, but excluding the Exit Cue.
 	///		- This method posts a command in the sound engine queue, thus seeking will not occur before 
 	///			the audio thread consumes it (after a call to RenderAudio()). 
@@ -1015,9 +1008,9 @@ public:
 	///		- In order to restart at the correct location, with all their tracks synchronized, Music Segments 
 	///			take the "look-ahead time" property of their streamed tracks into account for seeking. 
 	///			Consequently, the resulting position after a call to SeekOnEvent() might be earlier than the 
-	///			value that was passed to the method. Use <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> to query 
+	///			value that was passed to the method. Use <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> to query 
 	///			the exact position of a segment. Also, the segment will be silent during that time
-	///			(so that it restarts precisely at the position that you specified). <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> 
+	///			(so that it restarts precisely at the position that you specified). <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> 
 	///			also informs you about the remaining look-ahead time. 
 	///
 	/// Notes specific to Music Switch Containers:
@@ -1034,7 +1027,7 @@ public:
 	/// - <tt>AK::SoundEngine::RenderAudio()</tt>
 	/// - <tt>AK::SoundEngine::PostEvent()</tt>
 	/// - <tt>AK::SoundEngine::GetSourcePlayPosition()</tt>
-	/// - <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt>
+	/// - <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt>
 	virtual AKRESULT SeekOnEvent( 
 		const char* in_pszEventName,								///< Name of the event
 		AkGameObjectID in_gameObjectID,								///< Associated game object ID; use AK_INVALID_GAME_OBJECT to affect all game objects
@@ -1047,7 +1040,7 @@ public:
 	/// Seek position is specified as a percentage of the sound's total duration, and takes looping into account. 
 	///
 	/// Notes:
-	///		- This works with all objects of the actor-mixer hierarchy, and also with Music Segments and Music Switch Containers. 
+	///		- This works with all objects of the Containers hierarchy, and also with Music Segments and Music Switch Containers. 
 	///		- There is a restriction with sounds that play within a continuous sequence. Seeking is ignored 
 	///			if one of their ancestors is a continuous (random or sequence) container with crossfade or 
 	///			trigger rate transitions. Seeking is also ignored with sample-accurate transitions, unless
@@ -1055,10 +1048,10 @@ public:
 	///		- Seeking is also ignored with voices that can go virtual with "From Beginning" behavior. 
 	///		- in_iPosition is clamped internally to the beginning of the sound/segment.
 	///		- If the option "Seek to nearest marker" is used, the seeking position snaps to the nearest marker.
-	///			With objects of the actor-mixer hierarchy, markers are embedded in wave files by an external wave editor.
+	///			With objects of the Containers hierarchy, markers are embedded in wave files by an external wave editor.
 	///			Note that looping regions ("sampler loop") are not considered as markers. Also, the "add file name marker" of the 
 	///			conversion settings dialog adds a marker at the beginning of the file, which is considered when seeking
-	///			to nearest marker. In the case of objects of the interactive music hierarchy, user (wave) markers are ignored:
+	///			to nearest marker. In the case of interactive music objects (Music Segments, Music Switch Containers, and Music Playlist Containers), user (wave) markers are ignored:
 	///			seeking occurs to the nearest segment cue (authored in the segment editor), including the Entry Cue, but excluding the Exit Cue.
 	///		- This method posts a command in the sound engine queue, thus seeking will not occur before 
 	///			the audio thread consumes it (after a call to RenderAudio()). 
@@ -1072,9 +1065,9 @@ public:
 	///		- In order to restart at the correct location, with all their tracks synchronized, Music Segments 
 	///			take the "look-ahead time" property of their streamed tracks into account for seeking. 
 	///			Consequently, the resulting position after a call to SeekOnEvent() might be earlier than the 
-	///			value that was passed to the method. Use <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> to query 
+	///			value that was passed to the method. Use <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> to query 
 	///			the exact position of a segment. Also, the segment will be silent during the time that period
-	///			(so that it restarts precisely at the position that you specified). <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> 
+	///			(so that it restarts precisely at the position that you specified). <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> 
 	///			also informs you about the remaining look-ahead time. 
 	///
 	/// Notes specific to Music Switch Containers:
@@ -1088,7 +1081,7 @@ public:
 	/// - <tt>AK::SoundEngine::RenderAudio()</tt>
 	/// - <tt>AK::SoundEngine::PostEvent()</tt>
 	/// - <tt>AK::SoundEngine::GetSourcePlayPosition()</tt>
-	/// - <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt>
+	/// - <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt>
 	virtual AKRESULT SeekOnEvent( 
 		AkUniqueID in_eventID,										///< Unique ID of the event
 		AkGameObjectID in_gameObjectID ,							///< Associated game object ID; use AK_INVALID_GAME_OBJECT to affect all game objects
@@ -1102,17 +1095,17 @@ public:
 	/// Seek position is specified as a percentage of the sound's total duration, and takes looping into account. 
 	///
 	/// Notes:
-	///		- This works with all objects of the actor-mixer hierarchy, and also with Music Segments and Music Switch Containers. 
+	///		- This works with all objects of the Containers hierarchy, and also with Music Segments and Music Switch Containers. 
 	///		- There is a restriction with sounds that play within a continuous sequence. Seeking is ignored 
 	///			if one of their ancestors is a continuous (random or sequence) container with crossfade or 
 	///			trigger rate transitions. Seeking is also ignored with sample-accurate transitions, unless
 	///			the sound that is currently playing is the first sound of the sequence.
 	///		- Seeking is also ignored with voices that can go virtual with "From Beginning" behavior. 
 	///		- If the option "Seek to nearest marker" is used, the seeking position snaps to the nearest marker.
-	///			With objects of the actor-mixer hierarchy, markers are embedded in wave files by an external wave editor.
+	///			With objects of the Containers hierarchy, markers are embedded in wave files by an external wave editor.
 	///			Note that looping regions ("sampler loop") are not considered as markers. Also, the "add file name marker" of the 
 	///			conversion settings dialog adds a marker at the beginning of the file, which is considered when seeking
-	///			to nearest marker. In the case of objects of the interactive music hierarchy, user (wave) markers are ignored:
+	///			to nearest marker. In the case of interactive music objects (Music Segments, Music Switch Containers, and Music Playlist Containers), user (wave) markers are ignored:
 	///			seeking occurs to the nearest segment cue (authored in the segment editor), including the Entry Cue, but excluding the Exit Cue.
 	///		- This method posts a command in the sound engine queue, thus seeking will not occur before 
 	///			the audio thread consumes it (after a call to RenderAudio()). 
@@ -1126,9 +1119,9 @@ public:
 	///		- In order to restart at the correct location, with all their tracks synchronized, Music Segments 
 	///			take the "look-ahead time" property of their streamed tracks into account for seeking. 
 	///			Consequently, the resulting position after a call to SeekOnEvent() might be earlier than the 
-	///			value that was passed to the method. Use <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> to query 
+	///			value that was passed to the method. Use <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> to query 
 	///			the exact position of a segment. Also, the segment will be silent during the time that period
-	///			(so that it restarts precisely at the position that you specified). <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> 
+	///			(so that it restarts precisely at the position that you specified). <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> 
 	///			also informs you about the remaining look-ahead time. 
 	///
 	/// Notes specific to Music Switch Containers:
@@ -1142,7 +1135,7 @@ public:
 	/// - <tt>AK::SoundEngine::RenderAudio()</tt>
 	/// - <tt>AK::SoundEngine::PostEvent()</tt>
 	/// - <tt>AK::SoundEngine::GetSourcePlayPosition()</tt>
-	/// - <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt>
+	/// - <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt>
 	virtual AKRESULT SeekOnEvent( 
 		const wchar_t* in_pszEventName,								///< Name of the event
 		AkGameObjectID in_gameObjectID ,							///< Associated game object ID; use AK_INVALID_GAME_OBJECT to affect all game objects
@@ -1156,17 +1149,17 @@ public:
 	/// Seek position is specified as a percentage of the sound's total duration, and takes looping into account. 
 	///
 	/// Notes:
-	///		- This works with all objects of the actor-mixer hierarchy, and also with Music Segments and Music Switch Containers. 
+	///		- This works with all objects of the Containers hierarchy, and also with Music Segments and Music Switch Containers. 
 	///		- There is a restriction with sounds that play within a continuous sequence. Seeking is ignored 
 	///			if one of their ancestors is a continuous (random or sequence) container with crossfade or 
 	///			trigger rate transitions. Seeking is also ignored with sample-accurate transitions, unless
 	///			the sound that is currently playing is the first sound of the sequence.
 	///		- Seeking is also ignored with voices that can go virtual with "From Beginning" behavior. 
 	///		- If the option "Seek to nearest marker" is used, the seeking position snaps to the nearest marker.
-	///			With objects of the actor-mixer hierarchy, markers are embedded in wave files by an external wave editor.
+	///			With objects of the Containers hierarchy, markers are embedded in wave files by an external wave editor.
 	///			Note that looping regions ("sampler loop") are not considered as markers. Also, the "add file name marker" of the 
 	///			conversion settings dialog adds a marker at the beginning of the file, which is considered when seeking
-	///			to nearest marker. In the case of objects of the interactive music hierarchy, user (wave) markers are ignored:
+	///			to nearest marker. In the case of interactive music objects (Music Segments, Music Switch Containers, and Music Playlist Containers), user (wave) markers are ignored:
 	///			seeking occurs to the nearest segment cue (authored in the segment editor), including the Entry Cue, but excluding the Exit Cue.
 	///		- This method posts a command in the sound engine queue, thus seeking will not occur before 
 	///			the audio thread consumes it (after a call to RenderAudio()). 
@@ -1180,9 +1173,9 @@ public:
 	///		- In order to restart at the correct location, with all their tracks synchronized, Music Segments 
 	///			take the "look-ahead time" property of their streamed tracks into account for seeking. 
 	///			Consequently, the resulting position after a call to SeekOnEvent() might be earlier than the 
-	///			value that was passed to the method. Use <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> to query 
+	///			value that was passed to the method. Use <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> to query 
 	///			the exact position of a segment. Also, the segment will be silent during the time that period
-	///			(so that it restarts precisely at the position that you specified). <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt> 
+	///			(so that it restarts precisely at the position that you specified). <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt> 
 	///			also informs you about the remaining look-ahead time. 
 	///
 	/// Notes specific to Music Switch Containers:
@@ -1196,7 +1189,7 @@ public:
 	/// - <tt>AK::SoundEngine::RenderAudio()</tt>
 	/// - <tt>AK::SoundEngine::PostEvent()</tt>
 	/// - <tt>AK::SoundEngine::GetSourcePlayPosition()</tt>
-	/// - <tt>AK::MusicEngine::GetPlayingSegmentInfo()</tt>
+	/// - <tt>AK::SoundEngine::GetPlayingSegmentInfo()</tt>
 	virtual AKRESULT SeekOnEvent( 
 		const char* in_pszEventName,								///< Name of the event
 		AkGameObjectID in_gameObjectID,								///< Associated game object ID; use AK_INVALID_GAME_OBJECT to affect all game objects
@@ -1229,8 +1222,6 @@ public:
 	/// Gets the current position of the source associated with this playing ID, obtained from PostEvent(). If more than one source is playing,
 	/// the first to play is returned.
 	/// Notes:
-	/// - You need to pass AK_EnableGetSourcePlayPosition to PostEvent() in order to use this function, otherwise
-	/// 	it returns AK_Fail, even if the playing ID is valid.
 	/// - The source's position is updated at every audio frame, and the time at which this occurs is stored. 
 	///		When you call this function from your thread, you therefore query the position that was updated in the previous audio frame.
 	///		If in_bExtrapolate is true (default), the returned position is extrapolated using the elapsed time since last 
@@ -1250,8 +1241,6 @@ public:
 
 	/// Gets the current position of the sources associated with this playing ID, obtained from PostEvent().
 	/// Notes:
-	/// - You need to pass AK_EnableGetSourcePlayPosition to PostEvent() in order to use this function, otherwise
-	/// 	it returns AK_Fail, even if the playing ID is valid.
 	/// - The source's position is updated at every audio frame, and the time at which this occurs is stored. 
 	///		When you call this function from your thread, you therefore query the position that was updated in the previous audio frame.
 	///		If in_bExtrapolate is true (default), the returned position is extrapolated using the elapsed time since last 
@@ -1274,10 +1263,35 @@ public:
 		bool			in_bExtrapolate = true		///< Position is extrapolated based on time elapsed since last sound engine update
 		) override;
 
+	/// Query information on the active segment of a music object that is playing. Use the playing ID 
+	/// that was returned from AK::SoundEngine::PostEvent(), provided that the event contained a play
+	/// action that was targeting a music object. For any interactive music object (Music Segments, Music Switch Containers, and Music Playlist Containers), 
+	/// there is only one segment that is active at a time. 
+	/// To be able to query segment information, you must pass the AK_EnableGetMusicPlayPosition flag 
+	/// to the AK::SoundEngine::PostEvent() method. This informs the sound engine that the source associated 
+	/// with this event should be given special consideration because GetPlayingSegmentInfo() can be called 
+	/// at any time for this AkPlayingID.
+	/// Notes:
+	/// - If the music object is a single segment, you will get negative values for AkSegmentInfo::iCurrentPosition
+	///		during the pre-entry. This will never occur with other types of music objects because the 
+	///		pre-entry of a segment always overlaps another active segment.
+	///	- The active segment during the pre-entry of the first segment of a Playlist Container or a Music Switch 
+	///		Container is "nothing", as well as during the post-exit of the last segment of a Playlist (and beyond).
+	///	- When the active segment is "nothing", out_uSegmentInfo is filled with zeros.
+	/// - If in_bExtrapolate is true (default), AkSegmentInfo::iCurrentPosition is corrected by the amount of time elapsed
+	///		since the beginning of the audio frame. It is thus possible that it slightly overshoots the total segment length.
+	/// \return AK_Success if there is a playing music structure associated with the specified playing ID.
+	/// \sa
+	/// - AK::SoundEngine::PostEvent
+	/// - AkSegmentInfo
+	virtual AKRESULT GetPlayingSegmentInfo(
+		AkPlayingID		in_PlayingID,			///< Playing ID returned by AK::SoundEngine::PostEvent().
+		AkSegmentInfo& out_segmentInfo,		///< Structure containing information about the active segment of the music structure that is playing.
+		bool			in_bExtrapolate = true	///< Position is extrapolated based on time elapsed since last sound engine update.
+		) override;
+
 	/// Gets the stream buffering of the sources associated with this playing ID, obtained from PostEvent().
 	/// Notes:
-	/// - You need to pass AK_EnableGetSourceStreamBuffering to PostEvent() in order to use this function, otherwise
-	/// 	it returns AK_Fail, even if the playing ID is valid.
 	/// - The sources stream buffering is updated at every audio frame. If there are multiple sources associated with this playing ID,
 	///		the value returned corresponds to the least buffered source. 
 	/// - The returned buffering status out_bIsBuffering will be true If any of the sources associated with the playing ID are actively being buffered.
@@ -1304,7 +1318,9 @@ public:
 
 	/// Stop the current content playing associated to the specified playing ID.
 	/// \aknote 
-	///	This function is deprecated. Please use ExecuteActionOnPlayingID() in its place.
+	///	This function is deprecated. It is functionally identical to ExecuteActionOnPlayingID() using AkActionOnEventType_Stop.
+	/// API call in Wwise Capture Log will show ExecuteActionOnPlayingID when calling this function.
+	/// Use ExecuteActionOnPlayingID() instead.
 	/// \endaknote
 	/// \sa
 	///  - <tt>AK::SoundEngine::ExecuteActionOnPlayingID()</tt>
@@ -1316,9 +1332,9 @@ public:
 
 	/// Executes an Action on the content associated to the specified playing ID.
 	/// \sa
-	/// - <tt>AK::SoundEngine::AkActionOnEventType</tt>
+	/// - <tt>AkActionOnEventType</tt>
 	virtual void ExecuteActionOnPlayingID(
-		AK::SoundEngine::AkActionOnEventType in_ActionType,					///< Action to execute on the specified playing ID.
+		AkActionOnEventType in_ActionType,					///< Action to execute on the specified playing ID.
 		AkPlayingID in_playingID,											///< Playing ID on which to execute the action.
 		AkTimeMs in_uTransitionDuration = 0,								///< Fade duration
 		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear	///< Curve type to be used for the transition
@@ -1351,16 +1367,17 @@ public:
 	//@}
 
 
-	/// Sends custom game data to a plug-in that resides on a bus (insert Effect or mixer plug-in).
+	/// Sends custom game data to a plug-in that resides on a bus (effect plug-in) or a voice (source plug-in).
 	/// Data will be copied and stored into a separate list.
 	/// Previous entry is deleted when a new one is sent.
 	/// Sets the data pointer to NULL to clear item from the list.
 	/// \aknote The plug-in type and ID are passed and matched with plugins set on the desired bus. 
-	/// This means that you cannot send different data to various instances of a plug-in on the same bus.\endaknote
+	/// This means that multiple instances of the same plug-in on a given bus' effect chain will always receive the same data.
+	/// \endaknote
 	/// \return AK_Success if data was sent successfully.
 	virtual AKRESULT SendPluginCustomGameData (
-		AkUniqueID in_busID,			///< Bus ID
-		AkGameObjectID in_busObjectID,	///< Bus Object ID. Pass AK_INVALID_GAME_OBJECT to send custom data with global scope. Game object scope supersedes global scope, as with RTPCs. 
+		AkUniqueID in_busID,			///< Bus ID. For source plug-ins, specify AK_INVALID_UNIQUE_ID.
+		AkGameObjectID in_gameObjectID,	///< Game Object ID. Pass AK_INVALID_GAME_OBJECT to send custom data with global scope. Game object scope supersedes global scope, as with RTPCs. 
 		AkPluginType in_eType,			///< Plug-in type (for example, source or effect)
 		AkUInt32 in_uCompanyID,		///< Company identifier (as declared in the plug-in description XML file)
 		AkUInt32 in_uPluginID,			///< Plug-in identifier (as declared in the plug-in description XML file)
@@ -1458,7 +1475,7 @@ public:
 	/// This can be used to simulate wall openings, area sounds, or multiple objects emitting the same sound in the same area.
 	/// \aknote
 	/// - Calling <tt>AK::SoundEngine::SetMultiplePositions()</tt> with only one position is the same as calling <tt>AK::SoundEngine::SetPosition()</tt> 
-	/// - If a sound has diffraction enabled, it is treated as <tt>MultiPositionType_MultiDirections</tt>. <tt>MultiPositionType_MultiSources</tt> is not supported in this case.
+	/// - If a sound has diffraction enabled, it is treated as  <tt>AkMultiPositionType_MultiDirections</tt>. <tt>AkMultiPositionType_MultiSources</tt> is not supported in this case.
 	/// \endaknote
 	/// \return 
 	/// - \c AK_Success when successful
@@ -1470,12 +1487,12 @@ public:
 	/// \sa 
 	/// - \ref soundengine_3dpositions
 	/// - \ref soundengine_3dpositions_multiplepos
-	/// - \ref AK::SoundEngine::MultiPositionType
+	/// - \ref AkMultiPositionType
 	virtual AKRESULT SetMultiplePositions( 
 		AkGameObjectID in_GameObjectID,						///< Game Object identifier.
 		const AkSoundPosition * in_pPositions,				///< Array of positions to apply.
 		AkUInt16 in_NumPositions,							///< Number of positions specified in the provided array.
-		AK::SoundEngine::MultiPositionType in_eMultiPositionType = AK::SoundEngine::MultiPositionType_MultiDirections, ///< \ref AK::SoundEngine::MultiPositionType
+		AkMultiPositionType in_eMultiPositionType = AkMultiPositionType_MultiDirections, ///< \ref AkMultiPositionType
 		AkSetPositionFlags in_eFlags = AkSetPositionFlags_Default ///< Optional flags to independently set the position of the emitter or listener component.
 		) override;
 
@@ -1490,12 +1507,12 @@ public:
 	/// \sa 
 	/// - \ref soundengine_3dpositions
 	/// - \ref soundengine_3dpositions_multiplepos
-	/// - \ref AK::SoundEngine::MultiPositionType
+	/// - \ref AkMultiPositionType
 	virtual AKRESULT SetMultiplePositions( 
 		AkGameObjectID in_GameObjectID,						///< Game Object identifier.
 		const AkChannelEmitter * in_pPositions,			///< Array of positions to apply, each using its own channel mask.
 		AkUInt16 in_NumPositions,							///< Number of positions specified in the provided array.
-		AK::SoundEngine::MultiPositionType in_eMultiPositionType = AK::SoundEngine::MultiPositionType_MultiDirections, ///< \ref AK::SoundEngine::MultiPositionType
+		AkMultiPositionType in_eMultiPositionType = AkMultiPositionType_MultiDirections, ///< \ref AkMultiPositionType
 		AkSetPositionFlags in_eFlags = AkSetPositionFlags_Default ///< Optional flags to independently set the position of the emitter or listener component.
 		) override;
 
@@ -1535,6 +1552,25 @@ public:
 	/// @name Bank Management
 	//@{
 
+	/// Processes all pending asynchronous bank operations.
+	/// This function must be called periodically (once per game frame, for example) when using asynchronous bank-loading functions. Its purpose is to 
+	/// process all queued asynchronous LoadBank, UnloadBank, PrepareBank, etc (functions using a callback). The work done in this function can be slow or blocking.
+	/// Therefore, the calling thread must not be a critical thread. It is recommended to have a dedicated thread for this, or a job/task if such a system exists.
+	/// 
+	/// When <tt>AkInitSettings::bUseSoundBankMgrThread</tt> is <tt>false</tt>, this function processes all pending operations immediately on the calling thread.
+	/// 
+	/// \akcaution
+	/// Do not call this function from multiple different threads.
+	/// Synchronous Bank and Prepare (functions without callbacks) calls implicitly call this function. Therefore, synchronous Bank and Prepare
+	/// calls should always be called from the same thread that is calling <tt>AK::SoundEngine::ProcessBanks</tt>.
+	/// \endakcaution
+	/// 
+	/// \sa
+	/// - <tt>AK::SoundEngine::LoadBank</tt>
+	/// - <tt>AK::SoundEngine::PrepareEvent</tt>
+	/// - \ref goingfurther_eventmgrthread
+	virtual void ProcessBanks() override;
+
 	/// Unload all currently loaded banks.
 	/// It also internally calls ClearPreparedEvents() since at least one bank must have been loaded to allow preparing events.
 	/// \return 
@@ -1564,7 +1600,7 @@ public:
 #ifdef AK_SUPPORT_WCHAR
 	/// Load a bank synchronously (by Unicode string).\n
 	/// The bank name and type are passed to the Stream Manager.
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// A bank load request will be posted, and consumed by the Bank Manager thread.
 	/// The function returns when the request has been completely processed.
 	/// \return 
@@ -1620,7 +1656,7 @@ public:
 
 	/// Loads a bank synchronously.\n
 	/// The bank name and type are passed to the Stream Manager.
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// A bank load request will be posted, and consumed by the Bank Manager thread.
 	/// The function returns when the request has been completely processed.
 	/// \return 
@@ -1676,7 +1712,7 @@ public:
 	/// Loads a bank synchronously (by ID).\n
 	/// \aknote Requires that the "Use SoundBank names" option be unchecked in the Wwise Project Settings. \endaknote
 	/// The bank ID is passed to the Stream Manager.
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// A bank load request will be posted, and consumed by the Bank Manager thread.
 	/// The function returns when the request has been completely processed.
 	/// \return 
@@ -1937,7 +1973,7 @@ public:
 #ifdef AK_SUPPORT_WCHAR
 	/// Loads a bank asynchronously (by Unicode string).\n
 	/// The bank name is passed to the Stream Manager.
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// A bank load request will be posted to the Bank Manager consumer thread.
 	/// The function returns immediately.
 	/// \return 
@@ -1989,7 +2025,7 @@ public:
 
 	/// Loads a bank asynchronously.\n
 	/// The bank name is passed to the Stream Manager.
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// A bank load request will be posted to the Bank Manager consumer thread.
 	/// The function returns immediately.
 	/// \return 
@@ -2042,7 +2078,7 @@ public:
 	/// Loads a bank asynchronously (by ID).\n
 	/// \aknote Requires that the "Use SoundBank names" option be unchecked in the Wwise Project Settings. \endaknote
 	/// The bank ID is passed to the Stream Manager.
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// A bank load request will be posted to the Bank Manager consumer thread.
 	/// The function returns immediately.
 	/// \return 
@@ -2271,7 +2307,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Unloads a bank synchronously (by Unicode string).\n
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// \return AK_Success if successful, AK_Fail otherwise. AK_Success is returned when the bank was not loaded.
 	/// \remarks
 	/// - The sound engine internally calls GetIDFromString(in_pszString) to retrieve the bank ID, 
@@ -2292,7 +2328,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 	/// Unloads a bank synchronously.\n
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// \return AK_Success if successful, AK_Fail otherwise. AK_Success is returned when the bank was not loaded.
 	/// \remarks
 	/// - The sound engine internally calls GetIDFromString(in_pszString) to retrieve the bank ID, 
@@ -2328,7 +2364,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Unloads a bank asynchronously (by Unicode string).\n
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// \return AK_Success if scheduling successful (use a callback to be notified when completed)
 	/// \remarks
 	/// The sound engine internally calls GetIDFromString(in_pszString) to retrieve the bank ID, 
@@ -2352,7 +2388,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 	/// Unloads a bank asynchronously.\n
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// \return AK_Success if scheduling successful (use a callback to be notified when completed)
 	/// \remarks
 	/// The sound engine internally calls GetIDFromString(in_pszString) to retrieve the bank ID, 
@@ -2375,7 +2411,7 @@ public:
 		) override;
 
 	/// Unloads a bank asynchronously (by ID and memory pointer).\n
-	/// Refer to \ref soundengine_banks_general for a discussion on using strings and IDs.
+	/// See \ref soundengine_banks_general for a discussion on using strings and IDs.
 	/// \return AK_Success if scheduling successful (use a callback to be notified when completed)
 	/// \remarks
 	/// - In order to force the memory deallocation of the bank, sounds that use media from this bank will be stopped. 
@@ -2543,14 +2579,14 @@ public:
 	/// \remarks
 	/// The function \c ClearBanks() also clears all prepared events.
 	/// \sa
-	/// - \c <tt>AK::SoundEngine::PrepareEvent()</tt>
-	/// - \c <tt>AK::SoundEngine::ClearBanks()</tt>
+	/// - <tt>AK::SoundEngine::PrepareEvent()</tt>
+	/// - <tt>AK::SoundEngine::ClearBanks()</tt>
 	virtual AKRESULT ClearPreparedEvents() override;
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Prepares or unprepares Events synchronously (by Unicode string).\n
 	/// The Events are identified by strings, and converted to IDs internally
-	/// (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking \c PrepareEvent(), use \c LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Events and structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will resolve all dependencies needed to 
@@ -2589,7 +2625,7 @@ public:
 
 	/// Prepares or unprepares events synchronously.\n
 	/// The Events are identified by strings and converted to IDs internally
-	/// (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareEvent(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Events and structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will resolve all dependencies needed to 
@@ -2628,7 +2664,7 @@ public:
 		) override;
 
 	/// Prepares or unprepares events synchronously (by ID).
-	/// The Events are identified by their ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Events are identified by their ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareEvent(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Events and structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will resolve all dependencies needed to 
@@ -2666,7 +2702,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Prepares or unprepares an event asynchronously (by Unicode string).
-	/// The Events are identified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Events are identified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareEvent(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Events and structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will resolve all dependencies needed to 
@@ -2698,7 +2734,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 	/// Prepares or unprepares an event asynchronously.
-	/// The Events are identified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Events are identified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareEvent(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Events and structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will resolve all dependencies needed to 
@@ -2729,7 +2765,7 @@ public:
 		) override;
 
 	/// Prepares or unprepares events asynchronously (by ID).\n
-	/// The Events are identified by their ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Events are identified by their ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareEvent(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Events and structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will resolve all dependencies needed to 
@@ -2762,7 +2798,7 @@ public:
 #ifdef AK_SUPPORT_WCHAR
 	/// Prepares or unprepares busses synchronously (by Unicode string).\n
 	/// The Busses are identified by strings and converted to IDs internally
-	/// (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareBus(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Bus structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will load the required loose media files for effects 
@@ -2797,7 +2833,7 @@ public:
 
 	/// Prepares or unprepares busses synchronously.\n
 	/// The Busses are identified by strings and converted to IDs internally
-	/// (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareBus(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Bus structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will load the required loose media files for effects 
@@ -2830,7 +2866,7 @@ public:
 		) override;
 
 	/// Prepares or unprepares busses synchronously (by ID).\n
-	/// The Busses are identified by their ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Busses are identified by their ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareBus(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Bus structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will load the required loose media files for effects 
@@ -2864,7 +2900,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Prepares or unprepares busses asynchronously (by Unicode string).\n
-	/// The Busses are identified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Busses are identified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareBus(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Bus structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will load the required loose media files for effects 
@@ -2891,7 +2927,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 	/// Prepares or unprepares busses asynchronously.\n
-	/// The Busses are identified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Busses are identified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareBus(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Bus structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will load the required loose media files for effects 
@@ -2917,7 +2953,7 @@ public:
 		) override;
 
 	/// Prepares or unprepares busses asynchronously (by ID).\n
-	/// The Busses are identified by their ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The Busses are identified by their ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// Before invoking PrepareBus(), use LoadBank() to explicitly load the SoundBank(s) 
 	/// that contain the Bus structures. When a request is posted to the
 	/// Bank Manager consumer thread, it will load the required loose media files for effects 
@@ -2943,7 +2979,7 @@ public:
 		) override;
 
 	/// Indicates the location of a specific Media ID in memory
-	/// The sources are identified by their ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The sources are identified by their ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// \return AK_Success if operation was successful, AK_InvalidParameter if in_pSourceSettings is invalid or media sizes are 0.
 	virtual AKRESULT SetMedia( 
 		AkSourceSettings *	in_pSourceSettings,		///< Array of Source Settings
@@ -2951,7 +2987,7 @@ public:
 		) override;
 
 	/// Removes the specified source from the list of loaded media, only if this media is not already in use.
-	/// The sources are identified by their ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The sources are identified by their ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// \aknote Media that is still in use by the sound engine should not be unset. It is marked for removal to prevent additional use.
 	/// If this function returns AK_ResourceInUse, then the client must not release memory for this media.
 	/// Instead, the client should retry the TryUnsetMedia operation later with the same parameters and check for AK_Success.
@@ -2970,7 +3006,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Prepares or unprepares game syncs synchronously (by Unicode string).\n
-	/// The group and game syncs are specified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The group and game syncs are specified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// The game syncs definitions must already exist in the sound engine by having
 	/// explicitly loaded the bank(s) that contain them (with LoadBank()).
 	/// A request is posted to the Bank Manager consumer thread. It will resolve all 
@@ -3008,7 +3044,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 	/// Prepares or unprepares game syncs synchronously.\n
-	/// The group and game syncs are specified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The group and game syncs are specified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// The game syncs definitions must already exist in the sound engine by having
 	/// explicitly loaded the bank(s) that contain them (with LoadBank()).
 	/// A request is posted to the Bank Manager consumer thread. It will resolve all 
@@ -3045,7 +3081,7 @@ public:
 		) override;
 
 	/// Prepares or unprepares game syncs synchronously (by ID).\n
-	/// The group and game syncs are specified by ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The group and game syncs are specified by ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// The game syncs definitions must already exist in the sound engine by having
 	/// explicitly loaded the bank(s) that contain them (with LoadBank()).
 	/// A request is posted to the Bank Manager consumer thread. It will resolve all 
@@ -3083,7 +3119,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 	/// Prepares or unprepares game syncs asynchronously (by Unicode string).\n
-	/// The group and game syncs are specified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The group and game syncs are specified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// The game syncs definitions must already exist in the sound engine by having
 	/// explicitly loaded the bank(s) that contain them (with <tt>LoadBank()</tt>).
 	/// A request is posted to the Bank Manager consumer thread. It will resolve all 
@@ -3115,7 +3151,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 	/// Prepares or unprepares game syncs asynchronously.\n
-	/// The group and game syncs are specified by string (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The group and game syncs are specified by string (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// The game syncs definitions must already exist in the sound engine by having
 	/// explicitly loaded the bank(s) that contain them (with LoadBank()).
 	/// A request is posted to the Bank Manager consumer thread. It will resolve all 
@@ -3146,7 +3182,7 @@ public:
 		) override;
 
 	/// Prepares or un-prepare game syncs asynchronously (by ID).\n
-	/// The group and game syncs are specified by ID (refer to \ref soundengine_banks_general for a discussion on using strings and IDs).
+	/// The group and game syncs are specified by ID (see \ref soundengine_banks_general for a discussion on using strings and IDs).
 	/// The game syncs definitions must already exist in the sound engine by having
 	/// explicitly loaded the bank(s) that contain them (with LoadBank()).
 	/// A request is posted to the Bank Manager consumer thread. It will resolve all 
@@ -3305,10 +3341,10 @@ public:
 	/// To set a game parameter value with global scope, pass \c AK_INVALID_GAME_OBJECT as the game object. 
 	/// With this function, you may also change the value of a game parameter over time. To do so, specify a non-zero 
 	/// value for \c in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
-	/// according to the interpolation curve. If you call \c <tt><tt>SetRTPCValue()</tt></tt> with <tt>in_uValueChangeDuration = 0</tt> in the 
+	/// according to the interpolation curve. If you call \c <tt>SetRTPCValue()</tt> with <tt>in_uValueChangeDuration = 0</tt> in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. Thus, if you call this 
 	/// function at every game frame, you should not use \c in_uValueChangeDuration, as it would have no effect and it is less efficient.
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// \return 
 	/// - \c AK_Success if the value was successfully set
@@ -3337,7 +3373,7 @@ public:
 	/// according to the interpolation curve. If you call SetRTPCValue() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. Thus, if you call this 
 	/// function at every game frame, you should not use in_uValueChangeDuration, as it would have no effect and it is less efficient.
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// \return 
 	/// - \c AK_Success if the value was successfully set
@@ -3366,7 +3402,7 @@ public:
 	/// according to the interpolation curve. If you call SetRTPCValue() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. Thus, if you call this 
 	/// function at every game frame, you should not use in_uValueChangeDuration, as it would have no effect and it is less efficient.
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// \return 
 	/// - \c AK_Success if the value was successfully set
@@ -3392,7 +3428,7 @@ public:
 	/// according to the interpolation curve. If you call SetRTPCValueByPlayingID() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. Thus, if you call this 
 	/// function at every game frame, you should not use in_uValueChangeDuration, as it would have no effect and it is less efficient.
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// - \c AK_Success if successful
 	/// - \c AK_PlayingIDNotFound if in_playingID is not found.
@@ -3419,7 +3455,7 @@ public:
 	/// according to the interpolation curve. If you call SetRTPCValueByPlayingID() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. Thus, if you call this 
 	/// function at every game frame, you should not use in_uValueChangeDuration, as it would have no effect and it is less efficient.
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// - \c AK_Success if successful
 	/// - \c AK_PlayingIDNotFound if in_playingID is not found.
@@ -3446,7 +3482,7 @@ public:
 	/// according to the interpolation curve. If you call SetRTPCValueByPlayingID() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. Thus, if you call this 
 	/// function at every game frame, you should not use in_uValueChangeDuration, as it would have no effect and it is less efficient.
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// - \c AK_Success if successful
 	/// - \c AK_PlayingIDNotFound if in_playingID is not found.
@@ -3473,7 +3509,7 @@ public:
 	/// value for in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
 	/// according to the interpolation curve. If you call SetRTPCValue() or ResetRTPCValue() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. 
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// \return 
 	/// - \c AK_Success when successful
@@ -3500,7 +3536,7 @@ public:
 	/// value for in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
 	/// according to the interpolation curve. If you call SetRTPCValue() or ResetRTPCValue() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. 
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// \return 
 	/// - \c AK_Success if successful
@@ -3527,7 +3563,7 @@ public:
 	/// value for in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
 	/// according to the interpolation curve. If you call SetRTPCValue() or ResetRTPCValue() with in_uValueChangeDuration = 0 in the 
 	/// middle of an interpolation, the interpolation stops and the new value is set directly. 
-	/// Refer to \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
 	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
 	/// \return 
 	/// - \c AK_Success if successful
@@ -3539,6 +3575,84 @@ public:
 	virtual AKRESULT ResetRTPCValue(
 		const char* in_pszRtpcName,								///< Name of the game parameter
 		AkGameObjectID in_gameObjectID = AK_INVALID_GAME_OBJECT,///< Associated game object ID
+		AkTimeMs in_uValueChangeDuration = 0,					///< Duration during which the game parameter is interpolated towards its default value
+		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the game parameter interpolation
+		bool in_bBypassInternalValueInterpolation = false		///< True if you want to bypass the internal "slew rate" or "over time filtering" specified by the sound designer. This is meant to be used when for example loading a level and you dont want the values to interpolate.
+		) override;
+
+	/// Resets the value of the game parameter to its default value, as specified in the Wwise project.
+	/// With this function, you may reset a game parameter to its default value on playing id scope.
+	/// Playing id scope supersedes both game object scope and global scope. 
+	/// With this function, you may also reset the value of a game parameter over time. To do so, specify a non-zero 
+	/// value for in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
+	/// according to the interpolation curve.
+	///  If you call SetRTPCValueByPlayingID() or ReetRTPCValueByPlayingID() with in_uValueChangeDuration = 0 in the 
+	/// middle of an interpolation, the interpolation stops and the new value is set directly. 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
+	/// \return 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_playingID is AK_INVALID_PLAYING_ID (0)
+	/// \sa 
+	/// - \ref soundengine_rtpc
+	/// - <tt>AK::SoundEngine::SetRTPCValueByPlayingID()</tt>
+	virtual AKRESULT ResetRTPCValueByPlayingID(
+		AkRtpcID in_rtpcID, 									///< ID of the game parameter
+		AkPlayingID in_playingID,								///< Associated playing ID
+		AkTimeMs in_uValueChangeDuration = 0,					///< Duration during which the game parameter is interpolated towards its default value
+		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the game parameter interpolation
+		bool in_bBypassInternalValueInterpolation = false		///< True if you want to bypass the internal "slew rate" or "over time filtering" specified by the sound designer. This is meant to be used when for example loading a level and you dont want the values to interpolate.
+		) override;
+
+#ifdef AK_SUPPORT_WCHAR
+	/// Resets the value of the game parameter to its default value, as specified in the Wwise project.
+	/// With this function, you may reset a game parameter to its default value on playing id scope.
+	/// Playing id scope supersedes both game object scope and global scope. 
+	/// With this function, you may also reset the value of a game parameter over time. To do so, specify a non-zero 
+	/// value for in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
+	/// according to the interpolation curve.
+	///  If you call SetRTPCValueByPlayingID() or ReetRTPCValueByPlayingID() with in_uValueChangeDuration = 0 in the 
+	/// middle of an interpolation, the interpolation stops and the new value is set directly. 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
+	/// \return 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_playingID is AK_INVALID_PLAYING_ID (0) or if if in_pszParamName is NULL.
+	/// \aknote Strings are case-insensitive. \endaknote
+	/// \sa 
+	/// - \ref soundengine_rtpc
+	/// - <tt>AK::SoundEngine::SetRTPCValueByPlayingID()</tt>
+	/// - <tt>AK::SoundEngine::GetIDFromString()</tt>
+	virtual AKRESULT ResetRTPCValueByPlayingID(
+		const wchar_t* in_pszRtpcName,							///< Name of the game parameter
+		AkPlayingID in_playingID,								///< Associated playing ID
+		AkTimeMs in_uValueChangeDuration = 0,					///< Duration during which the game parameter is interpolated towards in_value
+		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the game parameter interpolation
+		bool in_bBypassInternalValueInterpolation = false		///< True if you want to bypass the internal "slew rate" or "over time filtering" specified by the sound designer. This is meant to be used when for example loading a level and you dont want the values to interpolate.
+		) override;
+#endif //AK_SUPPORT_WCHAR
+
+	/// Resets the value of the game parameter to its default value, as specified in the Wwise project.
+	/// With this function, you may reset a game parameter to its default value on playing id scope.
+	/// Playing id scope supersedes both game object scope and global scope. 
+	/// With this function, you may also reset the value of a game parameter over time. To do so, specify a non-zero 
+	/// value for in_uValueChangeDuration. At each audio frame, the game parameter value will be updated internally 
+	/// according to the interpolation curve.
+	///  If you call SetRTPCValueByPlayingID() or ReetRTPCValueByPlayingID() with in_uValueChangeDuration = 0 in the 
+	/// middle of an interpolation, the interpolation stops and the new value is set directly. 
+	/// See \ref soundengine_rtpc_pergameobject, \ref soundengine_rtpc_buses and 
+	/// \ref soundengine_rtpc_effects for more details on RTPC scope.
+	/// \return 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_playingID is AK_INVALID_PLAYING_ID (0) or if if in_pszParamName is NULL.
+	/// \aknote Strings are case-insensitive. \endaknote
+	/// \sa 
+	/// - \ref soundengine_rtpc
+	/// - <tt>AK::SoundEngine::SetRTPCValueByPlayingID()</tt>
+	/// - <tt>AK::SoundEngine::GetIDFromString()</tt> 
+	virtual AKRESULT ResetRTPCValueByPlayingID(
+		const char* in_pszRtpcName,								///< Name of the game parameter
+		AkPlayingID in_playingID,								///< Associated playing ID
 		AkTimeMs in_uValueChangeDuration = 0,					///< Duration during which the game parameter is interpolated towards its default value
 		AkCurveInterpolation in_eFadeCurve = AkCurveInterpolation_Linear,	///< Curve type to be used for the game parameter interpolation
 		bool in_bBypassInternalValueInterpolation = false		///< True if you want to bypass the internal "slew rate" or "over time filtering" specified by the sound designer. This is meant to be used when for example loading a level and you dont want the values to interpolate.
@@ -3692,7 +3806,7 @@ public:
 	/// The callback must be registered once per bus ID.
 	/// Call with <tt>in_pfnCallback = NULL</tt> to unregister.
 	/// \aknote The bus in_busID needs to be a mixing bus.\endaknote
-	/// \aknote The callback function will not be called for the Master Audio Bus, since the output of this bus is not a bus, but is instead an Audio Device.\endaknote
+	/// \aknote The callback function will not be called for the Main Audio Bus, since the output of this bus is not a bus, but is instead an Audio Device.\endaknote
 	/// \sa 
 	/// - \ref goingfurther_speakermatrixcallback
 	/// - \ref soundengine_environments
@@ -3713,7 +3827,7 @@ public:
 	/// Registers a callback to be called to allow the game to access metering data from any mixing bus. You may use this to monitor loudness at any point of the mixing hierarchy 
 	/// by accessing the peak, RMS, True Peak and K-weighted power (according to loudness standard ITU BS.1770). See \ref goingfurther_speakermatrixcallback for an example.
 	/// The callback must be registered once per bus ID.
-	/// Call with in_pfnCallback = NULL to unregister.
+	/// Call with in_pfnCallback = NULL or in_eMeteringFlags = AK_NoMetering to unregister.
 	/// \aknote The bus in_busID needs to be a mixing bus.\endaknote
 	/// \sa 
 	/// - \ref goingfurther_speakermatrixcallback
@@ -3733,8 +3847,8 @@ public:
 
 	/// Registers a callback to be called to allow the game to access metering data from any output device. You may use this to monitor loudness as sound leaves the Wwise sound engine 
 	/// by accessing the peak, RMS, True Peak and K-weighted power (according to loudness standard ITU BS.1770). See \ref goingfurther_speakermatrixcallback for an example.
-	/// The callback must be registered once per device ShareSet ID.
-	/// Call with in_pfnCallback = NULL to unregister.
+	/// The callback must be registered once per device shareset ID.
+	/// Call with in_pfnCallback = NULL or in_eMeteringFlags = AK_NoMetering to unregister.
 	/// \sa 
 	/// - \ref goingfurther_speakermatrixcallback
 	/// - AkOutputDeviceMeteringCallbackFunc
@@ -3766,7 +3880,7 @@ public:
 	virtual AKRESULT SetGameObjectOutputBusVolume( 
 		AkGameObjectID		in_emitterObjID,		///< Associated emitter game object ID
 		AkGameObjectID		in_listenerObjID,		///< Associated listener game object ID. Pass AK_INVALID_GAME_OBJECT to set the Output Bus Volume for all connected listeners.
-		AkReal32			in_fControlValue		///< A multiplier in the range [0.0f:16.0f] ( -inf dB to +24 dB).																			
+		AkReal32			in_fControlValue		///< A multiplier in the range [0.0f:16.0f] ( -8 dB to +24 dB).																			
 													///< A value greater than 1.0f will amplify the sound. 
 		) override;
 
@@ -3777,11 +3891,31 @@ public:
 	/// The target node cannot be a Bus, to set effects on a bus, use SetBusEffect() instead.
 	/// \aknote The option "Override Parent" in 
 	/// the Effect section in Wwise must be enabled for this node, otherwise the parent's effect will 
+	/// still be the one in use and the call to SetContainerEffect will have no impact.
+	/// \endaknote
+	/// \return Always returns AK_Success
+	virtual AKRESULT SetContainerEffect(
+		AkUniqueID in_audioNodeID,					///< Can be a member of the Containers Hierarchy (not a bus).
+		AkUInt32 in_uFXIndex,						///< Effect slot index (0-254)
+		AkUniqueID in_shareSetID					///< ShareSets ID; pass AK_INVALID_UNIQUE_ID to clear the effect slot
+		) override;
+
+
+	/// Sets an Effect ShareSet at the specified audio node and Effect slot index.
+	/// \aknote 
+	///	This function is deprecated. Use SetContainerEffect instead.
+	/// \endaknote
+	/// \aknote
+	/// Replacing effects is preferably done through a Set Effect Event Action.
+	/// \endaknote
+	/// The target node cannot be a Bus, to set effects on a bus, use SetBusEffect() instead.
+	/// \aknote The option "Override Parent" in 
+	/// the Effect section in Wwise must be enabled for this node, otherwise the parent's effect will 
 	/// still be the one in use and the call to SetActorMixerEffect will have no impact.
 	/// \endaknote
 	/// \return Always returns AK_Success
 	virtual AKRESULT SetActorMixerEffect( 
-		AkUniqueID in_audioNodeID,					///< Can be a member of the Actor-Mixer or Interactive Music Hierarchy (not a bus).
+		AkUniqueID in_audioNodeID,					///< Can be a member of the Containers Hierarchy (not a bus).
 		AkUInt32 in_uFXIndex,						///< Effect slot index (0-254)
 		AkUniqueID in_shareSetID					///< ShareSets ID; pass AK_INVALID_UNIQUE_ID to clear the effect slot
 		) override;
@@ -3796,7 +3930,7 @@ public:
 	/// Bus which does not have any Effects, or removing the last Effect on a currently playing bus.
 	/// \endaknote
 	/// \aknote This function will replace existing Effects on the node. If the target node is not at 
-	/// the top of the hierarchy and is in the actor-mixer hierarchy, the option "Override Parent" in 
+	/// the top of the hierarchy and is in the Containers hierarchy, the option "Override Parent" in 
 	/// the Effect section in Wwise must be enabled for this node, otherwise the parent's Effect will 
 	/// still be the one in use and the call to SetBusEffect will have no impact.
 	/// \endaknote
@@ -3821,7 +3955,7 @@ public:
 	/// bus which does not have any Effects, or removing the last Effect on a currently playing Bus.
 	/// \endaknote
 	/// \aknote This function will replace existing Effects on the node. If the target node is not at 
-	/// the top of the hierarchy and is in the Actor-Mixer Hierarchy, the option "Override Parent" in 
+	/// the top of the hierarchy and is in the Containers, the option "Override Parent" in 
 	/// the Effect section in Wwise must be enabled for this node, otherwise the parent's Effect will 
 	/// still be the one in use and the call to \c SetBusEffect will have no impact.
 	/// \endaknote
@@ -3848,7 +3982,7 @@ public:
 	/// \endaknote
 	/// \aknote Make sure the new effect ShareSet is included in a soundbank, and that sound bank is loaded. Otherwise you will see errors in the Capture Log.\endaknote
 	/// \aknote This function will replace existing Effects on the node. If the target node is not at 
-	/// the top of the hierarchy and is in the Actor-Mixer Hierarchy, the option "Override Parent" in 
+	/// the top of the hierarchy and is in the Containers, the option "Override Parent" in 
 	/// the Effect section in Wwise must be enabled for this node, otherwise the parent's Effect will 
 	/// still be the one in use and the call to SetBusEffect will have no impact.
 	/// \endaknote
@@ -3909,6 +4043,90 @@ public:
 	/// - \c AK_InvalidID if in_pszBusName is null
 	virtual AKRESULT SetBusConfig(
 		const char* in_pszBusName,					///< Bus name
+		AkChannelConfig in_channelConfig			///< Desired channel configuration. An invalid configuration (from default constructor) means "as parent".
+		) override;
+
+	/// Resets the channel configuration for the specified bus back to the value loaded from soundbanks.
+	/// Useful to clear any value set by AK::SoundEngine::SetBusConfig.
+	/// \aknote You cannot change the configuration of the master bus.\endaknote
+	/// 
+	/// \return Always returns AK_Success
+	virtual AKRESULT ResetBusConfig(
+		AkUniqueID in_audioNodeID					///< Bus Short ID.
+		) override;
+
+#ifdef AK_SUPPORT_WCHAR
+	/// Resets the channel configuration for the specified bus back to the value loaded from soundbanks.
+	/// Useful to clear any value set by AK::SoundEngine::SetBusConfig.
+	/// \aknote You cannot change the configuration of the master bus.\endaknote
+	/// 
+	/// \returns 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_pszBusName is null
+	virtual AKRESULT ResetBusConfig(
+		const wchar_t* in_pszBusName				///< Bus name
+		) override;
+#endif //AK_SUPPORT_WCHAR
+
+	/// Resets the channel configuration for the specified bus back to the value loaded from soundbanks.
+	/// Useful to clear any value set by AK::SoundEngine::SetBusConfig.
+	/// \aknote You cannot change the configuration of the master bus.\endaknote
+	/// 
+	/// \returns 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_pszBusName is null
+	virtual AKRESULT ResetBusConfig(
+		const char* in_pszBusName					///< Bus name
+		) override;
+		
+	/// Forces channel configuration for the specified Sidechain Mix at run-time.
+	///  
+	/// Standard, ambisonic, and anonymous channel configs are supported.
+	/// If a channel config of type AK_ChannelConfigType_UseDeviceMain or AK_ChannelConfigType_UseDevicePassthrough are specified,
+	/// then the Primary Device's channel config for its Main Mix or Passthrough Mix is used, as appropriate.
+	/// Audio Object channel configs are not supported for Sidechain Mixes.
+	/// 
+	/// An invalid channel configuration (from default constructor) can be used to clear any previously-set config set via the soundengine API, and revert to what was loaded from soundbanks.
+	/// 
+	/// \return Always returns AK_Success
+	virtual AKRESULT SetSidechainMixConfig(
+		AkUniqueID in_sidechainMixId,				///< SidechainMix Short ID.
+		AkChannelConfig in_channelConfig			///< Desired channel configuration. 
+		) override;
+
+#ifdef AK_SUPPORT_WCHAR
+	/// Forces channel configuration for the specified Sidechain Mix at run-time.
+	///  
+	/// Standard, ambisonic, and anonymous channel configs are supported.
+	/// If a channel config of type AK_ChannelConfigType_UseDeviceMain or AK_ChannelConfigType_UseDevicePassthrough are specified,
+	/// then the Primary Device's channel config for its Main Mix or Passthrough Mix is used, as appropriate.
+	/// Audio Object channel configs are not supported for Sidechain Mixes.
+	/// 
+	/// An invalid channel configuration (from default constructor) can be used to clear any previously-set config set via the soundengine API, and revert to what was loaded from soundbanks.
+	/// 
+	/// \returns 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_pszSidechainMixName is null
+	virtual AKRESULT SetSidechainMixConfig(
+		const wchar_t* in_pszSidechainMixName,		///< SidechainMix name
+		AkChannelConfig in_channelConfig			///< Desired channel configuration. An invalid configuration (from default constructor) means "as parent".
+		) override;
+#endif //AK_SUPPORT_WCHAR
+
+	/// Forces channel configuration for the specified Sidechain Mix at run-time.
+	///  
+	/// Standard, ambisonic, and anonymous channel configs are supported.
+	/// If a channel config of type AK_ChannelConfigType_UseDeviceMain or AK_ChannelConfigType_UseDevicePassthrough are specified,
+	/// then the Primary Device's channel config for its Main Mix or Passthrough Mix is used, as appropriate.
+	/// Audio Object channel configs are not supported for Sidechain Mixes.
+	/// 
+	/// An invalid channel configuration (from default constructor) can be used to clear any previously-set config set via the soundengine API, and revert to what was loaded from soundbanks.
+	/// 
+	/// \returns 
+	/// - \c AK_Success when successful
+	/// - \c AK_InvalidID if in_pszSidechainMixName is null
+	virtual AKRESULT SetSidechainMixConfig(
+		const char* in_pszSidechainMixName,			///< SidechainMix name
 		AkChannelConfig in_channelConfig			///< Desired channel configuration. An invalid configuration (from default constructor) means "as parent".
 		) override;
 
@@ -4029,7 +4247,8 @@ public:
 	/// \sa
 	/// - <tt>AK::SoundEngine::StartOutputCapture()</tt>
 	virtual AKRESULT AddOutputCaptureMarker(
-		const char* in_MarkerText							///< Text of the marker
+		const char* in_MarkerText,							///< Text of the marker
+		AkUInt32 in_uSamplePos = AK_INVALID_SAMPLE_POS		///< Sample to attach the marker to. If set to AK_INVALID_SAMPLE_POS, marker is added at the current recording time.
 		) override;
 
 	/// Adds binary data to a marker in audio output file.
@@ -4041,7 +4260,8 @@ public:
 	/// - <tt>AK::SoundEngine::StartOutputCapture()</tt>
 	virtual AKRESULT AddOutputCaptureBinaryMarker(
 		void* in_pMarkerData,								///< Marker data
-		AkUInt32 in_uMarkerDataSize							///< Size of the marker data
+		AkUInt32 in_uMarkerDataSize,						///< Size of the marker data
+		AkUInt32 in_uSamplePos = AK_INVALID_SAMPLE_POS		///< Sample to attach the marker to. If set to AK_INVALID_SAMPLE_POS, marker is added at the current recording time.
 		) override;
 
 	/// Gets the system sample rate.
@@ -4106,12 +4326,16 @@ public:
 
 	/// Sets the offline rendering frame time in seconds.
 	/// When offline rendering is enabled, every call to \ref RenderAudio() will generate sample data as if this much time has elapsed. If the frame time argument is less than or equal to zero, every call to RenderAudio() will generate one audio buffer.
+	/// 
+	/// \sa \ref goingfurther_offlinerendering
 	/// \return Always returns AK_Success
 	virtual AKRESULT SetOfflineRenderingFrameTime(
 		AkReal32 in_fFrameTimeInSeconds					///< frame time in seconds used during offline rendering
 		) override;
 
 	/// Enables/disables offline rendering. 
+	/// 
+	/// \sa \ref goingfurther_offlinerendering
 	/// \return Always returns AK_Success
 	virtual AKRESULT SetOfflineRendering(
 		bool in_bEnableOfflineRendering					///< enables/disables offline rendering
@@ -4358,6 +4582,30 @@ public:
 	/// \return Sample count.
 	virtual AkUInt64 GetSampleTick() override;
 
+	/// Resets all global changes made to the sound engine.
+	/// This includes:
+	/// - States
+	/// - RTPCs in the global scope
+	/// - Changes made on sound object by Event Actions like Set Volume, Set Pitch, etc or equivalent API calls.
+	/// - Mute/solo status
+	/// - Effects set dynamically through SetEffect or a Set Effect Action.
+	/// - Random and Sequence containers histories (last played, etc)
+	/// \note
+	/// To reset Game Object specific values, use AK::SoundEngine::UnregisterGameObj or AK::SoundEngine::UnregisterAllGameObj
+	/// then AK::SoundEngine::RegisterGameObj if the game object is still needed.
+	virtual AKRESULT ResetGlobalValues() override;
+	
+	/// Sets the assertion handling function that the Sound Engine and other modules use.
+	/// The assertion hook can be set via this function prior to Sound Engine initialization in order to catch early initialization assertion failures.
+	/// However, during Sound Engine initialization, the assertion handler is replaced with the value of <tt>AkInitSettings:pfnAssertHook</tt>.
+	/// After Sound Engine initialization, the assertion handler cannot be replaced.
+	/// 
+	/// \aknote
+	/// This function has no effect on Release builds.
+	/// \endaknote
+	/// 
+	/// \return AK_Success when called before Sound Engine initialization, or AK_AlreadyInitialized if Sound Engine was already initialized
+	virtual AKRESULT SetAssertHook(AkAssertHook in_pfnAssertHook) override;
 
 	/// Query namespace
 	/// \remarks The functions in this namespace are thread-safe, unless stated otherwise. We recommend that you use these functions in development builds only, because they can cause CPU spikes.
@@ -4442,8 +4690,13 @@ public:
 		///		When looking up RTPC values via playing ID (ie. io_rValueType is RTPC_PlayingID), in_gameObjectID can be set to a specific game object (if it is available to the caller) to use as a fall back value.
 		///		If the game object is unknown or unavailable, AK_INVALID_GAME_OBJECT can be passed in in_gameObjectID, and the game object will be looked up via in_playingID.  
 		///		However in this case, it is not possible to retrieve a game object value as a fall back value if the playing id does not exist.  It is best to pass in the game object if possible.
-		///		
-		/// \return AK_Success if succeeded, AK_IDNotFound if the RTPC does not exist
+		/// \note
+		///		Contrary to most AK::Query functions, GetRTPCValue does not block. This means that GetRTPCValue does not wait for all previous API to be completed (which may take several milliseconds), 
+		///		and instead returns the current value. Therefore calling SetRTPCValue, RenderAudio and then GetRTPCValue might not immediately give the value set by SetRTPCValue.
+		/// \return
+		///	- AK_Success if succeeded
+		/// - AK_IDNotFound if the RTPC does not exist
+		/// - AK_InvalidID if the GameObject does not exist.
 		/// \sa 
 		/// - \ref soundengine_rtpc
 		/// - RTPCValue_type
@@ -4465,8 +4718,13 @@ public:
 		///		When looking up RTPC values via playing ID (ie. io_rValueType is RTPC_PlayingID), in_gameObjectID can be set to a specific game object (if it is available to the caller) to use as a fall back value.
 		///		If the game object is unknown or unavailable, AK_INVALID_GAME_OBJECT can be passed in in_gameObjectID, and the game object will be looked up via in_playingID.  
 		///		However in this case, it is not possible to retrieve a game object value as a fall back value if the playing id does not exist.  It is best to pass in the game object if possible.
-		///		
-		/// \return AK_Success if succeeded, AK_IDNotFound if the RTPC does not exist
+		/// \note
+		///		Contrary to most AK::Query functions, GetRTPCValue does not block. This means that GetRTPCValue does not wait for all previous API to be completed (which may take several milliseconds), 
+		///		and instead returns the current value. Therefore calling SetRTPCValue, RenderAudio and then GetRTPCValue might not immediately give the value set by SetRTPCValue.
+		/// \return
+		///	- AK_Success if succeeded
+		/// - AK_IDNotFound if the RTPC does not exist
+		/// - AK_InvalidID if the GameObject does not exist.
 		/// \sa 
 		/// - \ref soundengine_rtpc
 		/// - RTPCValue_type
@@ -4488,8 +4746,13 @@ public:
 		///		When looking up RTPC values via playing ID (ie. io_rValueType is RTPC_PlayingID), in_gameObjectID can be set to a specific game object (if it is available to the caller) to use as a fall back value.
 		///		If the game object is unknown or unavailable, AK_INVALID_GAME_OBJECT can be passed in in_gameObjectID, and the game object will be looked up via in_playingID.  
 		///		However in this case, it is not possible to retrieve a game object value as a fall back value if the playing id does not exist.  It is best to pass in the game object if possible.
-		///		
-		/// \return AK_Success if succeeded, AK_IDNotFound if the RTPC does not exist
+		/// \note
+		///		Contrary to most AK::Query functions, GetRTPCValue does not block. This means that GetRTPCValue does not wait for all previous API to be completed (which may take several milliseconds), 
+		///		and instead returns the current value. Therefore calling SetRTPCValue, RenderAudio and then GetRTPCValue might not immediately give the value set by SetRTPCValue.
+		/// \return
+		///	- AK_Success if succeeded
+		/// - AK_IDNotFound if the RTPC does not exist
+		/// - AK_InvalidID if the GameObject does not exist.
 		/// \sa 
 		/// - \ref soundengine_rtpc
 		/// - RTPCValue_type
@@ -4501,10 +4764,18 @@ public:
 			AK::SoundEngine::Query::RTPCValue_type& io_rValueType		///< In/Out value, the user must specify the requested type. The function will return in this variable the type of the returned value.				) = 0;
 			) override;
 
-		/// Get the state of a switch group (by IDs).
-		/// \return AK_Success if succeeded, or AK_IDNotFound if the game object was not registered
+		/// Get the current Switch value of the specified Switch Group, for a game object 
+		/// \note
+		///		Contrary to most AK::Query functions, GetSwitch does not block. This means that GetSwitch does not wait for all previous API to be completed (which may take several milliseconds), 
+		///		and instead returns the current value. Therefore calling SetSwitch, RenderAudio and then GetSwitch might not immediately give the value set by SetSwitch.
+		/// \return
+		///	- AK_Success if succeeded
+		/// - AK_IDNotFound if the RTPC does not exist
+		/// - AK_InvalidID if the GameObject does not exist.
+		/// \return AK_Success if succeeded, or AK_IDNotFound if the game object was not registered or the Switch Group name cannot be found
 		/// \sa 
 		/// - \ref soundengine_switch
+		/// - \ref AK::SoundEngine::SetSwitch
 		virtual AKRESULT GetSwitch(
 			AkSwitchGroupID in_switchGroup, 			///< ID of the switch group
 			AkGameObjectID  in_gameObjectID,			///< Associated game object ID
@@ -4512,10 +4783,11 @@ public:
 			) override;
 
 #ifdef AK_SUPPORT_WCHAR
-		/// Get the state of a switch group.
-		/// \return AK_Success if succeeded, or AK_IDNotFound if the game object was not registered or the switch group name can not be found
+		/// Get the current Switch value of the specified Switch Group, for a game object 
+		/// \return AK_Success if succeeded, or AK_IDNotFound if the game object was not registered or the Switch Group name cannot be found
 		/// \sa 
 		/// - \ref soundengine_switch
+		/// - \ref AK::SoundEngine::SetSwitch
 		virtual AKRESULT GetSwitch(
 			const wchar_t* in_pstrSwitchGroupName,			///< String name of the switch group
 			AkGameObjectID in_GameObj,					///< Associated game object ID
@@ -4523,40 +4795,44 @@ public:
 			) override;
 #endif //AK_SUPPORT_WCHAR
 
-		/// Get the state of a switch group.
-		/// \return AK_Success if succeeded, or AK_IDNotFound if the game object was not registered or the switch group name can not be found
+		/// Get the current Switch value of the specified Switch Group, for a game object 
+		/// \return AK_Success if succeeded, or AK_IDNotFound if the game object was not registered or the Switch Group name cannot be found
 		/// \sa 
 		/// - \ref soundengine_switch
+		/// - \ref AK::SoundEngine::SetSwitch
 		virtual AKRESULT GetSwitch(
 			const char* in_pstrSwitchGroupName,			///< String name of the switch group
 			AkGameObjectID in_GameObj,					///< Associated game object ID
 			AkSwitchStateID& out_rSwitchState			///< ID of the switch
 			) override;
 
-		/// Get the state of a state group (by IDs).
+		/// Get the current State value active in the specified State Group.
 		/// \return AK_Success if succeeded
 		/// \sa 
 		/// - \ref soundengine_states
+		/// - \ref AK::SoundEngine::SetState
 		virtual AKRESULT GetState(
 			AkStateGroupID in_stateGroup, 				///< ID of the state group
 			AkStateID& out_rState 						///< ID of the state
 			) override;
 
 #ifdef AK_SUPPORT_WCHAR
-		/// Get the state of a state group.
-		/// \return AK_Success if succeeded, or AK_IDNotFound if the state group name can not be found
+		/// Get the current State value active in the specified State Group.
+		/// \return AK_Success if succeeded
 		/// \sa 
 		/// - \ref soundengine_states
+		/// - \ref AK::SoundEngine::SetState
 		virtual AKRESULT GetState(
 			const wchar_t* in_pstrStateGroupName,			///< String name of the state group
 			AkStateID& out_rState						///< ID of the state
 			) override;
 #endif //AK_SUPPORT_WCHAR
 
-		/// Get the state of a state group.
-		/// \return AK_Success if succeeded, or AK_IDNotFound if the state group name can not be found
+		/// Get the current State value active in the specified State Group.
+		/// \return AK_Success if succeeded
 		/// \sa 
 		/// - \ref soundengine_states
+		/// - \ref AK::SoundEngine::SetState
 		virtual AKRESULT GetState(
 			const char* in_pstrStateGroupName,			    ///< String name of the state group
 			AkStateID& out_rState						///< ID of the state
@@ -4670,7 +4946,7 @@ public:
 			AkGameObjectID in_GameObjId ///< Game object ID
 			) override;
 
-		/// Returns the maximum distance used in attenuations associated to all sounds currently playing.
+		/// Returns the maximum distance used in attenuation associated to all sounds currently playing.
 		/// This may be used for example by the game to know if some processing need to be performed on the game side, that would not be required
 		/// if the object is out of reach anyway.
 		///
@@ -4681,11 +4957,11 @@ public:
 		/// // Do not reserve any size for the array, 
 		/// // the system will reserve the correct size.
 		///
-		/// GetMaxRadius( RadLst ) = 0;
+		/// GetMaxRadius( RadLst );
 		/// // Use the content of the list
 		/// (...)
 		///
-		/// RadLst.Term() = 0;// the user is responsible to free the memory allocated
+		/// RadLst.Term();// the user is responsible to free the memory allocated
 		/// /*******************************************************/
 		/// \endcode
 		///
@@ -4800,7 +5076,7 @@ public:
 		FDynamicDialogue() = default;
 
 		/// Resolve a dialogue event into an audio node ID based on the specified argument path.
-		/// \return Unique ID of audio node, or AK_INVALID_UNIQUE_ID if no audio node is defined for specified argument path
+        /// \return Unique ID of audio node, or AK_INVALID_UNIQUE_ID if no audio node is defined for specified argument path
 		virtual AkUniqueID ResolveDialogueEvent(
 				AkUniqueID			in_eventID,					///< Unique ID of dialogue event
 				AkArgumentValueID*	in_aArgumentValues,			///< Argument path, as array of argument value IDs. AK_FALLBACK_ARGUMENTVALUE_ID indicates a fallback argument value
@@ -4812,7 +5088,7 @@ public:
 
 #ifdef AK_SUPPORT_WCHAR
 		/// Resolve a dialogue event into an audio node ID based on the specified argument path.
-		/// \return Unique ID of audio node, or AK_INVALID_UNIQUE_ID if no audio node is defined for specified argument path
+        /// \return Unique ID of audio node, or AK_INVALID_UNIQUE_ID if no audio node is defined for specified argument path
 		virtual AkUniqueID ResolveDialogueEvent(
 				const wchar_t*		in_pszEventName,			///< Name of dialogue event
 				const wchar_t**		in_aArgumentValueNames,		///< Argument path, as array of argument value names. L"" indicates a fallback argument value
@@ -4824,7 +5100,7 @@ public:
 #endif //AK_SUPPORT_WCHAR
 
 		/// Resolve a dialogue event into an audio node ID based on the specified argument path.
-		/// \return Unique ID of audio node, or AK_INVALID_UNIQUE_ID if no audio node is defined for specified argument path
+        /// \return Unique ID of audio node, or AK_INVALID_UNIQUE_ID if no audio node is defined for specified argument path
 		virtual AkUniqueID ResolveDialogueEvent(
 				const char*			in_pszEventName,			///< Name of dialogue event
 				const char**		in_aArgumentValueNames,		///< Argument path, as array of argument value names. "" indicates a fallback argument value
@@ -4883,7 +5159,7 @@ public:
 					AkExternalSourceInfo *in_pExternalSources = nullptr	///< Optional array of external source resolution information
 					) override;
 
-			/// Removes all PlaylistItem in the array
+			/// Removes all PlaylistItem in the array. Optionally reserves space for multiple items.
 			virtual void RemoveAll(int Reserve = 0) override;
 
 			/// Insert a PlaylistItem at the specified position without filling it.
@@ -4917,7 +5193,7 @@ public:
 		};
 		
 		/// Open a new Dynamic Sequence.
-		/// \return Playing ID of the dynamic sequence, or AK_INVALID_PLAYING_ID in failure case and an error message in the debug console and Wwise Profiler
+        /// \return Playing ID of the dynamic sequence, or AK_INVALID_PLAYING_ID in failure case and an error message in the debug console and Wwise Profiler
 		///
 		/// \sa
 		/// - AK::SoundEngine::DynamicSequence::DynamicSequenceType
@@ -5077,7 +5353,7 @@ public:
 		virtual void Term() {};
 		virtual bool GetInfo(TagInformation* in_pTagList, AkUInt32 in_uCount, AkUInt32& out_uTranslated);
 	};
-#endif
+	#endif
 
 	AkErrorMessageTranslator* NewErrorMessageTranslator(FGetInfoErrorMessageTranslatorFunction InMessageTranslatorFunction) override;
 };

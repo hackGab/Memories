@@ -71,7 +71,7 @@ namespace AK
 			bool SubscribeImpl(const char* in_uri, const AkJson& in_options, handler_t in_callback, int in_timeoutMs, uint64_t& out_subscriptionId, AkJson& out_result);
 			bool UnsubscribeImpl(const uint64_t& in_subscriptionId, int in_timeoutMs, AkJson& out_result);
 			
-			template<typename T> bool GetFuture(std::future<T>& in_value, int in_timeoutMs, T& out_result)
+			template<typename T> bool GetFuture(AK::AkFuture<T>& in_value, int in_timeoutMs, T& out_result)
 			{
 				if (in_timeoutMs > -1)
 				{
@@ -80,12 +80,11 @@ namespace AK
 						in_timeoutMs = MIN_TIMEOUT_MS;
 					}
 
-					return GetFutureWithTimeout(in_timeoutMs, in_value, out_result);
+					if (!in_value.wait_for(in_timeoutMs))
+						return false;
 				}
-				else
-				{
-					return GetFutureBlocking(in_value, out_result);
-				}
+
+				return in_value.get(out_result);
 			}
 
 		private:

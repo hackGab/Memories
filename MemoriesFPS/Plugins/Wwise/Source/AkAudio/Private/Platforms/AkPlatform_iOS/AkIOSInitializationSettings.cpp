@@ -47,6 +47,12 @@ UAkIOSInitializationSettings::UAkIOSInitializationSettings(const FObjectInitiali
 
 void UAkIOSInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
 {
+#if defined(WWISE_IOS_PLATFORM_FOLDER)
+	InitializationStructure.SetPluginDllPath(WWISE_IOS_PLATFORM_FOLDER);
+#else
+	InitializationStructure.SetPluginDllPath("iOS_Xcode1500");
+#endif
+	
 	CommonSettings.FillInitializationStructure(InitializationStructure);
 	AudioSession.FillInitializationStructure(InitializationStructure);
 	CommunicationSettings.FillInitializationStructure(InitializationStructure);

@@ -59,13 +59,15 @@ public:
 	virtual void SetupErrorTranslator(
 		const FString& WaapiIP, ///< IP Address of the WAAPI server
 		AkUInt32 WaapiPort, ///< Port of the WAAPI server
-		AkUInt32 Timeout ///< Maximum time that can be spent resolving the error parameters. Set to INT_MAX to wait infinitely or 0 to disable XML translation entirely.
-		) override;
+		AkUInt32 Timeout
+		///< Maximum time that can be spent resolving the error parameters. Set to INT_MAX to wait infinitely or 0 to disable XML translation entirely.
+	) override;
 
 	/// Terminate the default, WwiseSDK-provided WAAPI error translator.
 	virtual void TerminateErrorTranslator() override;
+
 private:
-	static AkWAAPIErrorMessageTranslator WaapiErrorMessageTranslator;
+	TUniquePtr<AkWAAPIErrorMessageTranslator> WaapiErrorMessageTranslator;
 #endif
 };
 #endif

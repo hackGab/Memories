@@ -35,7 +35,11 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include <AK/Plugin/AkOpusDecoderFactory.h>
 #endif // AK_SUPPORT_OPUS
 
+#include <AK/MusicEngine/Common/AkMusicEngine.h>
+#include <AK/SoundEngine/Common/AkTypes.h>
+
 #include "Wwise/PostSoundEngineInclude.h"
+#include "Wwise/Compat_2024_1/common_types.h"
 
 #if defined(PLATFORM_MICROSOFT) && PLATFORM_MICROSOFT
 #pragma warning(pop)
@@ -53,21 +57,31 @@ bool FWwiseSoundEngineAPI_2024_1::IsInitialized()
 }
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::Init(
-	AkInitSettings* in_pSettings,
+	WwiseInitSettings* in_pSettings,
 	AkPlatformInitSettings* in_pPlatformSettings
 )
 {
 	SCOPED_WWISESOUNDENGINE_EVENT(TEXT("AK::SoundEngine::Init"));
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK::SoundEngine::Init(in_pSettings, in_pPlatformSettings);
+	auto Result = AK::SoundEngine::Init(in_pSettings, in_pPlatformSettings);
+	if (Result == AK_Success)
+	{
+		Result = AK::MusicEngine::Init(in_pSettings);
+		if (Result != AK_Success)
+		{
+			AK::SoundEngine::Term();
+		}
+	}
+	return Result;
 }
 
 void FWwiseSoundEngineAPI_2024_1::GetDefaultInitSettings(
-	AkInitSettings& out_settings
+	WwiseInitSettings& out_settings
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	AK::SoundEngine::GetDefaultInitSettings(out_settings);
+	AK::MusicEngine::GetDefaultInitSettings(out_settings);
 }
 
 void FWwiseSoundEngineAPI_2024_1::GetDefaultPlatformInitSettings(
@@ -82,6 +96,7 @@ void FWwiseSoundEngineAPI_2024_1::Term()
 {
 	SCOPED_WWISESOUNDENGINE_EVENT(TEXT("AK::SoundEngine::Term"));
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	AK::MusicEngine::Term();
 	AK::SoundEngine::Term();
 }
 
@@ -351,7 +366,7 @@ AkPlayingID FWwiseSoundEngineAPI_2024_1::PostEvent(
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::ExecuteActionOnEvent(
 	AkUniqueID in_eventID,
-	AK::SoundEngine::AkActionOnEventType in_ActionType,
+	AkActionOnEventType in_ActionType,
 	AkGameObjectID in_gameObjectID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve,
@@ -360,13 +375,13 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::ExecuteActionOnEvent(
 {
 	SCOPED_WWISESOUNDENGINE_EVENT(TEXT("AK::SoundEngine::ExecuteActionOnEvent"));
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK::SoundEngine::ExecuteActionOnEvent(in_eventID, in_ActionType, in_gameObjectID, in_uTransitionDuration, in_eFadeCurve, in_PlayingID);
+	return AK::SoundEngine::ExecuteActionOnEvent(in_eventID, (AK::SoundEngine::AkActionOnEventType)in_ActionType, in_gameObjectID, in_uTransitionDuration, in_eFadeCurve, in_PlayingID);
 }
 
 #ifdef AK_SUPPORT_WCHAR
 AKRESULT FWwiseSoundEngineAPI_2024_1::ExecuteActionOnEvent(
 	const wchar_t* in_pszEventName,
-	AK::SoundEngine::AkActionOnEventType in_ActionType,
+	AkActionOnEventType in_ActionType,
 	AkGameObjectID in_gameObjectID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve,
@@ -375,13 +390,13 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::ExecuteActionOnEvent(
 {
 	SCOPED_WWISESOUNDENGINE_EVENT(TEXT("AK::SoundEngine::ExecuteActionOnEvent"));
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK::SoundEngine::ExecuteActionOnEvent(in_pszEventName, in_ActionType, in_gameObjectID, in_uTransitionDuration, in_eFadeCurve, in_PlayingID);
+	return AK::SoundEngine::ExecuteActionOnEvent(in_pszEventName, (AK::SoundEngine::AkActionOnEventType)in_ActionType, in_gameObjectID, in_uTransitionDuration, in_eFadeCurve, in_PlayingID);
 }
 #endif //AK_SUPPORT_WCHAR
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::ExecuteActionOnEvent(
 	const char* in_pszEventName,
-	AK::SoundEngine::AkActionOnEventType in_ActionType,
+	AkActionOnEventType in_ActionType,
 	AkGameObjectID in_gameObjectID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve,
@@ -390,7 +405,7 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::ExecuteActionOnEvent(
 {
 	SCOPED_WWISESOUNDENGINE_EVENT(TEXT("AK::SoundEngine::ExecuteActionOnEvent"));
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK::SoundEngine::ExecuteActionOnEvent(in_pszEventName, in_ActionType, in_gameObjectID, in_uTransitionDuration, in_eFadeCurve, in_PlayingID);
+	return AK::SoundEngine::ExecuteActionOnEvent(in_pszEventName, (AK::SoundEngine::AkActionOnEventType)in_ActionType, in_gameObjectID, in_uTransitionDuration, in_eFadeCurve, in_PlayingID);
 }
 
 AkPlayingID FWwiseSoundEngineAPI_2024_1::PostMIDIOnEvent(
@@ -630,6 +645,16 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::GetSourcePlayPositions(
 	return AK::SoundEngine::GetSourcePlayPositions(in_PlayingID, out_puPositions, io_pcPositions, in_bExtrapolate);
 }
 
+AKRESULT FWwiseSoundEngineAPI_2024_1::GetPlayingSegmentInfo(
+	AkPlayingID		in_PlayingID,
+	AkSegmentInfo& out_segmentInfo,
+	bool			in_bExtrapolate
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK::MusicEngine::GetPlayingSegmentInfo(in_PlayingID, out_segmentInfo, in_bExtrapolate);
+}
+
 AKRESULT FWwiseSoundEngineAPI_2024_1::GetSourceStreamBuffering(
 	AkPlayingID		in_PlayingID,
 	AkTimeMs& out_buffering,
@@ -659,14 +684,14 @@ void FWwiseSoundEngineAPI_2024_1::StopPlayingID(
 }
 
 void FWwiseSoundEngineAPI_2024_1::ExecuteActionOnPlayingID(
-	AK::SoundEngine::AkActionOnEventType in_ActionType,
+	AkActionOnEventType in_ActionType,
 	AkPlayingID in_playingID,
 	AkTimeMs in_uTransitionDuration,
 	AkCurveInterpolation in_eFadeCurve
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	AK::SoundEngine::ExecuteActionOnPlayingID(in_ActionType, in_playingID, in_uTransitionDuration, in_eFadeCurve);
+	AK::SoundEngine::ExecuteActionOnPlayingID((AK::SoundEngine::AkActionOnEventType)in_ActionType, in_playingID, in_uTransitionDuration, in_eFadeCurve);
 }
 
 void FWwiseSoundEngineAPI_2024_1::SetRandomSeed(
@@ -751,24 +776,26 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::SetMultiplePositions(
 	AkGameObjectID in_GameObjectID,
 	const AkSoundPosition* in_pPositions,
 	AkUInt16 in_NumPositions,
-	AK::SoundEngine::MultiPositionType in_eMultiPositionType,
+	AkMultiPositionType in_eMultiPositionType,
 	AkSetPositionFlags in_eFlags
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK::SoundEngine::SetMultiplePositions(in_GameObjectID, in_pPositions, in_NumPositions, in_eMultiPositionType, in_eFlags);
+	AK::SoundEngine::MultiPositionType PositionType = (AK::SoundEngine::MultiPositionType)in_eMultiPositionType;
+	return AK::SoundEngine::SetMultiplePositions(in_GameObjectID, in_pPositions, in_NumPositions, PositionType, in_eFlags);
 }
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::SetMultiplePositions(
 	AkGameObjectID in_GameObjectID,
 	const AkChannelEmitter* in_pPositions,
 	AkUInt16 in_NumPositions,
-	AK::SoundEngine::MultiPositionType in_eMultiPositionType,
+	AkMultiPositionType in_eMultiPositionType,
 	AkSetPositionFlags in_eFlags
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
-	return AK::SoundEngine::SetMultiplePositions(in_GameObjectID, in_pPositions, in_NumPositions, in_eMultiPositionType, in_eFlags);
+	AK::SoundEngine::MultiPositionType PositionType = (AK::SoundEngine::MultiPositionType)in_eMultiPositionType;
+	return AK::SoundEngine::SetMultiplePositions(in_GameObjectID, in_pPositions, in_NumPositions, PositionType, in_eFlags);
 }
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::SetScalingFactor(
@@ -787,6 +814,11 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::SetDistanceProbe(
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SoundEngine::SetDistanceProbe(in_listenerGameObjectID, in_distanceProbeGameObjectID);
+}
+
+void FWwiseSoundEngineAPI_2024_1::ProcessBanks()
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 }
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::ClearBanks()
@@ -1594,6 +1626,44 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::ResetRTPCValue(
 	return AK::SoundEngine::ResetRTPCValue(in_pszRtpcName, in_gameObjectID, in_uValueChangeDuration, in_eFadeCurve, in_bBypassInternalValueInterpolation);
 }
 
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetRTPCValueByPlayingID(
+	AkRtpcID in_rtpcID,
+	AkPlayingID in_playingID,
+	AkTimeMs in_uValueChangeDuration,
+	AkCurveInterpolation in_eFadeCurve,
+	bool in_bBypassInternalValueInterpolation
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK::SoundEngine::ResetRTPCValueByPlayingID(in_rtpcID, in_playingID, in_uValueChangeDuration, in_eFadeCurve, in_bBypassInternalValueInterpolation);
+}
+
+#ifdef AK_SUPPORT_WCHAR
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetRTPCValueByPlayingID(
+	const wchar_t* in_pszRtpcName,
+	AkPlayingID in_playingID,
+	AkTimeMs in_uValueChangeDuration,
+	AkCurveInterpolation in_eFadeCurve,
+	bool in_bBypassInternalValueInterpolation
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK::SoundEngine::ResetRTPCValueByPlayingID(in_pszRtpcName, in_playingID, in_uValueChangeDuration, in_eFadeCurve, in_bBypassInternalValueInterpolation);
+}
+#endif //AK_SUPPORT_WCHAR
+
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetRTPCValueByPlayingID(
+	const char* in_pszRtpcName,
+	AkPlayingID in_playingID,
+	AkTimeMs in_uValueChangeDuration,
+	AkCurveInterpolation in_eFadeCurve,
+	bool in_bBypassInternalValueInterpolation
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK::SoundEngine::ResetRTPCValueByPlayingID(in_pszRtpcName, in_playingID, in_uValueChangeDuration, in_eFadeCurve, in_bBypassInternalValueInterpolation);
+}
+
 AKRESULT FWwiseSoundEngineAPI_2024_1::SetSwitch(
 	AkSwitchGroupID in_switchGroup,
 	AkSwitchStateID in_switchState,
@@ -1736,6 +1806,16 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::SetGameObjectOutputBusVolume(
 	return AK::SoundEngine::SetGameObjectOutputBusVolume(in_emitterObjID, in_listenerObjID, in_fControlValue);
 }
 
+AKRESULT FWwiseSoundEngineAPI_2024_1::SetContainerEffect(
+	AkUniqueID in_audioNodeID,
+	AkUInt32 in_uFXIndex,
+	AkUniqueID in_shareSetID
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
 AKRESULT FWwiseSoundEngineAPI_2024_1::SetActorMixerEffect(
 	AkUniqueID in_audioNodeID,
 	AkUInt32 in_uFXIndex,
@@ -1817,6 +1897,61 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::SetBusConfig(
 	return AK::SoundEngine::SetBusConfig(in_pszBusName, in_channelConfig);
 }
 
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetBusConfig(
+	AkUniqueID in_audioNodeID
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
+#ifdef AK_SUPPORT_WCHAR
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetBusConfig(
+	const wchar_t* in_pszBusName
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+#endif //AK_SUPPORT_WCHAR
+
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetBusConfig(
+	const char* in_pszBusName
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSoundEngineAPI_2024_1::SetSidechainMixConfig(
+	AkUniqueID in_sidechainMixId,
+	AkChannelConfig in_channelConfig
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
+#ifdef AK_SUPPORT_WCHAR
+AKRESULT FWwiseSoundEngineAPI_2024_1::SetSidechainMixConfig(
+	const wchar_t* in_pszSidechainMixName,
+	AkChannelConfig in_channelConfig
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+#endif //AK_SUPPORT_WCHAR
+
+AKRESULT FWwiseSoundEngineAPI_2024_1::SetSidechainMixConfig(
+	const char* in_pszSidechainMixName,
+	AkChannelConfig in_channelConfig
+)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
 AKRESULT FWwiseSoundEngineAPI_2024_1::SetObjectObstructionAndOcclusion(
 	AkGameObjectID in_EmitterID,
 	AkGameObjectID in_ListenerID,
@@ -1870,7 +2005,8 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::StopOutputCapture()
 }
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::AddOutputCaptureMarker(
-	const char* in_MarkerText
+	const char* in_MarkerText,
+	AkUInt32 in_uSamplePos
 )
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
@@ -1879,7 +2015,8 @@ AKRESULT FWwiseSoundEngineAPI_2024_1::AddOutputCaptureMarker(
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::AddOutputCaptureBinaryMarker(
 	void* in_pMarkerData,
-	AkUInt32 in_uMarkerDataSize
+	AkUInt32 in_uMarkerDataSize,
+	AkUInt32 in_uSamplePos
 	)
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
@@ -2093,6 +2230,18 @@ AkUInt64 FWwiseSoundEngineAPI_2024_1::GetSampleTick()
 {
 	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
 	return AK::SoundEngine::GetSampleTick();
+}
+
+AKRESULT FWwiseSoundEngineAPI_2024_1::ResetGlobalValues()
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSoundEngineAPI_2024_1::SetAssertHook(AkAssertHook in_pfnAssertHook)
+{
+	SCOPE_CYCLE_COUNTER(STAT_WwiseSoundEngineAPI);
+	return AK_NotImplemented;
 }
 
 AKRESULT FWwiseSoundEngineAPI_2024_1::FQuery::GetPosition(

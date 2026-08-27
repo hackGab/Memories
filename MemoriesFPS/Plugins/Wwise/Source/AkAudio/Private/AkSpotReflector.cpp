@@ -43,6 +43,7 @@ AAkSpotReflector::AAkSpotReflector(const FObjectInitializer& ObjectInitializer)
 		SpriteComponent->SetSprite(LoadObject<UTexture2D>(NULL, TEXT("/Wwise/S_AkSpotReflector.S_AkSpotReflector")));
 		SpriteComponent->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 		SpriteComponent->SetupAttachment(RootComponent);
+		SpriteComponent->bIsScreenSizeScaled = true;
 	}
 #endif
 
@@ -114,6 +115,7 @@ AkAuxBusID AAkSpotReflector::GetAuxBusID() const
 
 void AAkSpotReflector::SetImageSource(UAkComponent* AkComponent)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("AAkSpotReflector::SetImageSource"));
 	FAkAudioDevice* pDev = FAkAudioDevice::Get();
 	if (!pDev)
 		return;
@@ -157,6 +159,7 @@ void AAkSpotReflector::SetImageSource(UAkComponent* AkComponent)
 
 void AAkSpotReflector::UpdateSpotReflectors(UAkComponent* AkComponent)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpotReflector::UpdateSpotReflectors"));
 	FAkAudioDevice* pDev = FAkAudioDevice::Get();
 	if (pDev)
 	{

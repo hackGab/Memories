@@ -39,6 +39,7 @@ struct FAkAudioRTPCExecutionToken : IMovieSceneExecutionToken
 {
 	virtual void Execute(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand, FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) override
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioRTPCExecutionToken::Execute"));
 		auto AudioDevice = FAkAudioDevice::Get();
 		if (!AudioDevice)
 		{

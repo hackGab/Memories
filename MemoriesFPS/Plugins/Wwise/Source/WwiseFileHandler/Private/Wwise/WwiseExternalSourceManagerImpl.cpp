@@ -444,3 +444,22 @@ void FWwiseExternalSourceManagerImpl::SetExternalSourceMediaWithIds(const int32 
 {
 	UE_LOG(LogWwiseFileHandler, Error, TEXT("External Source manager needs to be overridden."));
 }
+
+void FWwiseExternalSourceManagerImpl::DoPostTerm()
+{
+	for (auto FileStateTuple : FileStatesById)
+	{
+		auto& FileStateSharedPtr{ FileStateTuple.Value };
+		if (!FileStateSharedPtr.IsValid())
+		{
+			continue;
+		}
+		auto& FileState = *FileStateSharedPtr.Get();
+		if (FileState.State != FWwiseFileState::EState::Loaded || FileState.State != FWwiseFileState::EState::Unloading)
+		{
+			continue;
+		}
+
+		FileState.SetState(TEXT("FWwiseExternalSourceManagerImpl::DoPostTerm"), FWwiseFileState::EState::Opened);
+	}
+}

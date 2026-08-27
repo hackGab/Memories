@@ -51,15 +51,23 @@ FAkComponentCallbackManager* FAkComponentCallbackManager::GetInstance()
 
 FCriticalSection FAkFunctionPtrEventCallbackPackage::CancelLock;
 
+#if WWISE_2025_1_OR_LATER
+void FAkFunctionPtrEventCallbackPackage::HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo)
+#else
 void FAkFunctionPtrEventCallbackPackage::HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
+#endif
 {
 	FScopeLock ScopeLock(&CancelLock);
 	if (bShouldExecute)
 	{
 		UE_LOG(LogAkAudio, VeryVerbose, TEXT("Executing callback for Cookie %p, type %d"), pUserCookie, in_eType)
+#if WWISE_2025_1_OR_LATER
+		pfnUserCallback(in_eType, in_pEventInfo, in_pCallbackInfo, pUserCookie);
+#else
 		in_pCallbackInfo->pCookie = pUserCookie;
 		pfnUserCallback(in_eType, in_pCallbackInfo);
 		in_pCallbackInfo->pCookie = (void*)this;
+#endif
 		UE_LOG(LogAkAudio, VeryVerbose, TEXT("Finsihed executing callback for Cookie %p, type %d"), pUserCookie, in_eType)
 	}
 }
@@ -73,11 +81,19 @@ void FAkFunctionPtrEventCallbackPackage::CancelCallback()
 	uUserFlags = 0;
 }
 
+#if WWISE_2025_1_OR_LATER
+void FAkBlueprintDelegateEventCallbackPackage::HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo)
+#else
 void FAkBlueprintDelegateEventCallbackPackage::HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
+#endif
 {
 	if (BlueprintCallback.IsBound())
 	{
-		AkCallbackInfo* cbInfoCopy = AkCallbackTypeHelpers::CopyWwiseCallbackInfo(in_eType, in_pCallbackInfo);
+#if WWISE_2025_1_OR_LATER
+		AkCombinedCallbackInfo* cbInfoCopy = AkCallbackTypeHelpers::CopyWwiseCallbackInfo(in_eType, in_pEventInfo, in_pCallbackInfo);
+#else
+		AkCombinedCallbackInfo* cbInfoCopy = AkCallbackTypeHelpers::CopyWwiseCallbackInfo(in_eType, in_pCallbackInfo);
+#endif
 		EAkCallbackType BlueprintCallbackType = AkCallbackTypeHelpers::GetBlueprintCallbackTypeFromAkCallbackType(in_eType);
 		auto CachedBlueprintCallback = BlueprintCallback;
 		auto* Task = new FWwiseRetriggerableAsyncTask(ENamedThreads::GameThread, [cbInfoCopy, BlueprintCallbackType, CachedBlueprintCallback]
@@ -104,9 +120,9 @@ void FAkBlueprintDelegateEventCallbackPackage::HandleAction(AkCallbackType in_eT
 				return EWwiseDeferredAsyncResult::Done;
 			}
 
-			UAkComponent* akComponent = (UAkComponent*)cbInfoCopy->gameObjID;
+			UAkComponent* akComponent = (UAkComponent*)cbInfoCopy->eventInfo.gameObjID;
 
-			if (cbInfoCopy->gameObjID != DUMMY_GAMEOBJ && !IsValid(akComponent))
+			if (cbInfoCopy->eventInfo.gameObjID != DUMMY_GAMEOBJ && !IsValid(akComponent))
 			{
 				UE_LOG(LogAkAudio, Log, TEXT("FAkBlueprintDelegateEventCallbackPackage::HandleAction: Could not get valid AkComponent, callback will be ignored."));
 				return EWwiseDeferredAsyncResult::Done;
@@ -135,7 +151,11 @@ void FAkBlueprintDelegateEventCallbackPackage::CancelCallback()
 	uUserFlags = 0;
 }
 
+#if WWISE_2025_1_OR_LATER
+void FAkLatentActionEventCallbackPackage::HandleAction(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo)
+#else
 void FAkLatentActionEventCallbackPackage::HandleAction(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
+#endif
 {
 	// Don't access EndOfEventLatentAction if it's been deleted already
 	if (!LatentActionValidityToken->bValid)
@@ -149,13 +169,27 @@ void FAkLatentActionEventCallbackPackage::HandleAction(AkCallbackType in_eType, 
 	}
 }
 
+#if WWISE_2025_1_OR_LATER
+void FAkComponentCallbackManager::AkComponentCallback(AkCallbackType in_eType, AkEventCallbackInfo* in_pEventInfo, void* in_pCallbackInfo, void* in_pCookie)
+{
+	auto pPackage = (IAkUserEventCallbackPackage*)in_pCookie;
+	AkEventCallbackInfo* EventInfo = in_pEventInfo;
+#else
 void FAkComponentCallbackManager::AkComponentCallback(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
 {
 	auto pPackage = (IAkUserEventCallbackPackage*)in_pCallbackInfo->pCookie;
+	AkEventCallbackInfo* EventInfo = static_cast<AkEventCallbackInfo*>(in_pCallbackInfo);
+#endif
+
+	if(!Instance->HasActiveEvents(EventInfo->gameObjID))
+	{
+		// No active events on this gameObjectID, callbacks received here should not have happened. 
+		return;
+	}
 
 	if (Instance && pPackage)
 	{
-		const auto& gameObjID = in_pCallbackInfo->gameObjID;
+		const auto& gameObjID = EventInfo->gameObjID;
 		bool deletePackage = false;
 
 		if (in_eType == AK_EndOfEvent)
@@ -163,21 +197,25 @@ void FAkComponentCallbackManager::AkComponentCallback(AkCallbackType in_eType, A
 			deletePackage = true;
 			if (auto* Device = FAkAudioDevice::Get())
 			{
-				Device->RemovePlayingID(((AkEventCallbackInfo*)in_pCallbackInfo)->eventID, ((AkEventCallbackInfo*)in_pCallbackInfo)->playingID);
+				Device->RemovePlayingID(EventInfo->eventID, EventInfo->playingID);
 			}
 
 			if(pPackage->HasExternalSources)
 			{
 				if (auto ExternalSourceMananger = IWwiseExternalSourceManager::Get())
 				{
-					ExternalSourceMananger->OnEndOfEvent(((AkEventCallbackInfo*)in_pCallbackInfo)->playingID);
+					ExternalSourceMananger->OnEndOfEvent(EventInfo->playingID);
 				}
 			}
 		}
 
 		if ((pPackage->uUserFlags & in_eType) != 0)
 		{
+#if WWISE_2025_1_OR_LATER
+			pPackage->HandleAction(in_eType, in_pEventInfo, in_pCallbackInfo);
+#else
 			pPackage->HandleAction(in_eType, in_pCallbackInfo);
+#endif
 		}
 
 		{

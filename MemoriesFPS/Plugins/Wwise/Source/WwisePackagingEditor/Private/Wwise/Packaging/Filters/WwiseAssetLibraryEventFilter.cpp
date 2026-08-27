@@ -131,29 +131,55 @@ void UWwiseAssetLibraryEventFilter::PreFilter(
 		GlobFilters = TSet(GlobFiltersArray);
 	}
 
-	const WwiseEventGlobalIdsMap& Events = Shared.Db.GetEvents();
-	for (auto Event : Events)
 	{
-		const bool bInside = PatternMatch(**Event.Value.EventName());
-		if (!bInside && !bIncludeSingleReferenceAssetsOnly)
+		const WwiseEventGlobalIdsMap& Events = Shared.Db.GetEvents();
+		for (auto Event : Events)
 		{
-			continue;
-		}
-		
-		if (bFilterSoundBanks)
-		{
-			FilterSoundBank(bInside, Event.Value.GetSoundBank());
-		}
-		if (bFilterMedia)
-		{
-			const auto AllMedia = Event.Value.GetAllMedia(Shared.Db.GetMediaFiles());
-			for (auto Media: AllMedia)
+			const bool bInside = PatternMatch(**Event.Value.EventName());
+			if (!bInside && !bIncludeSingleReferenceAssetsOnly)
 			{
-				FilterMedia(bInside, Media.Value.GetMedia());	
+				continue;
+			}
+			
+			if (bFilterSoundBanks)
+			{
+				FilterSoundBank(bInside, Event.Value.GetSoundBank());
+			}
+			if (bFilterMedia)
+			{
+				const auto AllMedia = Event.Value.GetAllMedia(Shared.Db.GetMediaFiles());
+				for (auto Media: AllMedia)
+				{
+					FilterMedia(bInside, Media.Value.GetMedia());	
+				}
 			}
 		}
 	}
-
+	{
+		const WwiseDialogueEventGlobalIdsMap& Events = Shared.Db.GetDialogueEvents();
+		for (auto Event : Events)
+		{
+			const bool bInside = PatternMatch(**Event.Value.DialogueEventName());
+			if (!bInside && !bIncludeSingleReferenceAssetsOnly)
+			{
+				continue;
+			}
+			
+			if (bFilterSoundBanks)
+			{
+				FilterSoundBank(bInside, Event.Value.GetSoundBank());
+			}
+			if (bFilterMedia)
+			{
+				const auto AllMedia = Event.Value.GetAllMedia(Shared.Db.GetMediaFiles());
+				for (auto Media: AllMedia)
+				{
+					FilterMedia(bInside, Media.Value.GetMedia());	
+				}
+			}
+		}
+	}
+	
 	if (bIncludeSingleReferenceAssetsOnly)
 	{
 		AdditionalMedia = AdditionalMedia.Difference(OutsideMedia);

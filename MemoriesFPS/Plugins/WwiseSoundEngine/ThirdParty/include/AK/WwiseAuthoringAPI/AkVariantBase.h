@@ -456,6 +456,17 @@ namespace AK
 					|| (m_eType >= AkVariantType_real32 && m_eType <= AkVariantType_real64);
 			}
 
+			inline bool IsInteger() const
+			{
+				return (m_eType >= AkVariantType_int8 && m_eType <= AkVariantType_int64)
+					|| (m_eType >= AkVariantType_uint8 && m_eType <= AkVariantType_uint64);
+			}
+
+			inline bool IsReal() const
+			{
+				return (m_eType >= AkVariantType_real32 && m_eType <= AkVariantType_real64);
+			}
+
 			inline bool IsEmpty() const
 			{
 				return (m_eType == AkVariantType_none);

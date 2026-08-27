@@ -38,17 +38,15 @@ the specific language governing permissions and limitations under the License.
 //-----------------------------------------------------------------------------
 // Types.
 //-----------------------------------------------------------------------------
-
-typedef AkUInt8			AkMidiChannelNo;			///< MIDI channel number, usually 0-15.  
-typedef AkUInt8			AkMidiNoteNo;				///< MIDI note number.  
+typedef AkUInt8 AkMidiChannelNo;      ///< MIDI channel number, usually 0-15.  
+typedef AkUInt8 AkMidiNoteNo;         ///< MIDI note number.  
 
 //-----------------------------------------------------------------------------
 // Constants.
 //-----------------------------------------------------------------------------
 
-// Invalid values
-static const AkMidiChannelNo			AK_INVALID_MIDI_CHANNEL				=  (AkMidiChannelNo)-1;		///< Not a valid midi channel
-static const AkMidiNoteNo				AK_INVALID_MIDI_NOTE				=  (AkUInt8)-1;				///< Not a valid midi note
+static const AkMidiChannelNo          AK_INVALID_MIDI_CHANNEL = (AkMidiChannelNo)-1;    ///< Not a valid midi channel
+static const AkMidiNoteNo             AK_INVALID_MIDI_NOTE    = (AkUInt8)-1;            ///< Not a valid midi note
 
 // List of event types
 #define AK_MIDI_EVENT_TYPE_INVALID					0x00
@@ -174,67 +172,68 @@ static const AkMidiNoteNo				AK_INVALID_MIDI_NOTE				=  (AkUInt8)-1;				///< Not
 // Structs.
 //-----------------------------------------------------------------------------
 
+#pragma pack(push, 4)
+
+struct AkMIDIGen
+{
+	AkUInt8		byParam1;
+	AkUInt8		byParam2;
+};
+struct AkMIDINote
+{
+	AkMidiNoteNo	byNote;
+	AkUInt8			byVelocity;
+};
+struct AkMIDICC
+{
+	AkUInt8		byCc;
+	AkUInt8		byValue;
+};
+struct AkMIDIPitchbend
+{
+	AkUInt8		byValueLsb;
+	AkUInt8		byValueMsb;
+};
+struct AkMIDINoteAftertouch
+{
+	AkUInt8		byNote;
+	AkUInt8		byValue;
+};
+struct AkMIDIChannelAftertouch
+{
+	AkUInt8		byValue;
+};
+struct AkMIDIProgramChange
+{
+	AkUInt8		byProgramNum;
+};
+struct AkMIDIWwiseCmd
+{
+	AkUInt16	uCmd;	///< See AK_MIDI_WWISE_CMD_* pre-processor definitions
+	AkUInt32	uArg;	///< Optional argument for some commands
+};
+
 struct AkMIDIEvent
 {
 	AkUInt8			byType;		///< See AK_MIDI_EVENT_TYPE_* pre-processor definitions
 	AkMidiChannelNo	byChan;
 
-	struct tGen
-	{
-		AkUInt8		byParam1;
-		AkUInt8		byParam2;
-	};
-	struct tNoteOnOff
-	{
-		AkMidiNoteNo	byNote;
-		AkUInt8			byVelocity;
-	};
-	struct tCc
-	{
-		AkUInt8		byCc;
-		AkUInt8		byValue;
-	};
-	struct tPitchBend
-	{
-		AkUInt8		byValueLsb;
-		AkUInt8		byValueMsb;
-	};
-	struct tNoteAftertouch
-	{
-		AkUInt8		byNote;
-		AkUInt8		byValue;
-	};
-	struct tChanAftertouch
-	{
-		AkUInt8		byValue;
-	};
-	struct tProgramChange
-	{
-		AkUInt8		byProgramNum;
-	};
-	struct tWwiseCmd
-	{
-		AkUInt16	uCmd;	///< See AK_MIDI_WWISE_CMD_* pre-processor definitions
-		AkUInt32	uArg;	///< Optional argument for some commands
-	};
-
 	union
 	{
-		tGen Gen;
-		tCc Cc;
-		tNoteOnOff NoteOnOff;
-		tPitchBend PitchBend;
-		tNoteAftertouch NoteAftertouch;
-		tChanAftertouch ChanAftertouch;
-		tProgramChange ProgramChange;
-		tWwiseCmd WwiseCmd;
+		struct AkMIDIGen Gen;
+		struct AkMIDICC Cc;
+		struct AkMIDINote NoteOnOff;
+		struct AkMIDIPitchbend PitchBend;
+		struct AkMIDINoteAftertouch NoteAftertouch;
+		struct AkMIDIChannelAftertouch ChanAftertouch;
+		struct AkMIDIProgramChange ProgramChange;
+		struct AkMIDIWwiseCmd WwiseCmd;
 	};
 };
 
-#pragma pack(push, 4)
-
-struct AkMIDIPost : public AkMIDIEvent
+struct AkMIDIPost
 {
+	struct AkMIDIEvent midiEvent;
 	AkUInt64 uOffset; ///< Frame offset (in samples) for MIDI event post
 };
 

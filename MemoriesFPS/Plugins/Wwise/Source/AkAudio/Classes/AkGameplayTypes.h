@@ -43,28 +43,28 @@ enum class EAkAudioContext : uint8
 };
 
 UENUM(BlueprintType)
-enum class PanningRule : uint8
+enum class EPanningRule : uint8
 {
 	PanningRule_Speakers = 0,	///< Left and right positioned 60 degrees apart (by default - see AK::SoundEngine::GetSpeakerAngles()).
 	PanningRule_Headphones = 1,		///< Left and right positioned 180 degrees apart.
-	Last
+	Last UMETA(Hidden)
 };
-static_assert(static_cast<AkPanningRule>(PanningRule::PanningRule_Speakers) == AkPanningRule_Speakers, "PanningRule::PanningRule_Speakers does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AkPanningRule>(PanningRule::PanningRule_Headphones) == AkPanningRule_Headphones, "PanningRule::PanningRule_Speakers does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkPanningRule>(EPanningRule::PanningRule_Speakers) == AkPanningRule_Speakers, "EPanningRule::PanningRule_Speakers does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkPanningRule>(EPanningRule::PanningRule_Headphones) == AkPanningRule_Headphones, "EPanningRule::PanningRule_Speakers does not correspond with its internal Wwise counterpart.");
 
 #if WWISE_2024_1_OR_LATER
-static_assert(static_cast<AkPanningRule>(PanningRule::Last) == AkPanningRule_Last, "A new value was added to the AkPanningRule enum. Please update its Unreal counterpart.");
+static_assert(static_cast<AkPanningRule>(EPanningRule::Last) == AkPanningRule_Last, "A new value was added to the AkPanningRule enum. Please update its Unreal counterpart.");
 #endif
 
 UENUM(BlueprintType)
-enum class AkAcousticPortalState : uint8
+enum class EAkAcousticPortalState : uint8
 {
 	Closed = 0 UMETA(DisplayName = "Disabled"),
 	Open = 1 UMETA(DisplayName = "Enabled"),
 };
 
 UENUM(BlueprintType)
-enum class AkChannelConfiguration : uint8
+enum class EAkChannelConfiguration : uint8
 {
 	Ak_Parent = 0,
 	Ak_MainMix,
@@ -96,7 +96,7 @@ enum class AkChannelConfiguration : uint8
 };
 
 UENUM(meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
-enum class AkSpeakerConfiguration
+enum class EAkSpeakerConfiguration
 {
 	Ak_Speaker_Front_Left = AK_SPEAKER_FRONT_LEFT,
 	Ak_Speaker_Front_Right = AK_SPEAKER_FRONT_RIGHT,
@@ -117,44 +117,44 @@ enum class AkSpeakerConfiguration
 };
 
 UENUM(BlueprintType)
-enum class AkMultiPositionType : uint8
+enum class EAkMultiPositionType : uint8
 {
-    SingleSource = 0, //AK::SoundEngine::MultiPositionType_SingleSource,
-    MultiSources = 1, //AK::SoundEngine::MultiPositionType_MultiSources,
-    MultiDirections = 2, //AK::SoundEngine::MultiPositionType_MultiDirections,
-	Last
+    SingleSource = 0, //AkMultiPositionType_SingleSource,
+    MultiSources = 1, //AkMultiPositionType_MultiSources,
+    MultiDirections = 2, //AkMultiPositionType_MultiDirections,
+	Last UMETA(Hidden)
 };
 
-static_assert(static_cast<AK::SoundEngine::MultiPositionType>(AkMultiPositionType::SingleSource) == AK::SoundEngine::MultiPositionType_SingleSource, "AkMultiPositionType::SingleSource does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AK::SoundEngine::MultiPositionType>(AkMultiPositionType::MultiSources) == AK::SoundEngine::MultiPositionType_MultiSources, "AkMultiPositionType::MultiSources does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AK::SoundEngine::MultiPositionType>(AkMultiPositionType::MultiDirections) == AK::SoundEngine::MultiPositionType_MultiDirections, "AkMultiPositionType::MultiDirections does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkMultiPositionType>(EAkMultiPositionType::SingleSource) == AkMultiPositionType_SingleSource, "AkMultiPositionType::SingleSource does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkMultiPositionType>(EAkMultiPositionType::MultiSources) == AkMultiPositionType_MultiSources, "AkMultiPositionType::MultiSources does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkMultiPositionType>(EAkMultiPositionType::MultiDirections) == AkMultiPositionType_MultiDirections, "AkMultiPositionType::MultiDirections does not correspond with its internal Wwise counterpart.");
 #if WWISE_2024_1_OR_LATER
-static_assert(static_cast<AK::SoundEngine::MultiPositionType>(AkMultiPositionType::Last) == AK::SoundEngine::MultiPositionType_Last, "A new value was added to the AK::SoundEngine::MultiPositionType enum. Please update its Unreal counterpart.");
+static_assert(static_cast<AkMultiPositionType>(EAkMultiPositionType::Last) == AkMultiPositionType_Last, "A new value was added to the AkMultiPositionType enum. Please update its Unreal counterpart.");
 #endif
 
 UENUM(BlueprintType)
-enum class AkActionOnEventType : uint8
+enum class EAkActionOnEventType : uint8
 {
-	// AK::SoundEngine::AkActionOnEventType_Stop
+	// AkActionOnEventType_Stop
 	Stop = 0,
-	// AK::SoundEngine::AkActionOnEventType_Pause
+	// AkActionOnEventType_Pause
 	Pause = 1,
-	// AK::SoundEngine::AkActionOnEventType_Resume
+	// AkActionOnEventType_Resume
 	Resume = 2,
-	// AK::SoundEngine::AkActionOnEventType_Break
+	// AkActionOnEventType_Break
 	Break = 3,
-	// AK::SoundEngine::AkActionOnEventType_ReleaseEnvelope
+	// AkActionOnEventType_ReleaseEnvelope
 	ReleaseEnvelope = 4,
-	Last
+	Last UMETA(Hidden)
 };
 
-static_assert(static_cast<AK::SoundEngine::AkActionOnEventType>(AkActionOnEventType::Stop) == AK::SoundEngine::AkActionOnEventType_Stop, "AkActionOnEventType::Stop does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AK::SoundEngine::AkActionOnEventType>(AkActionOnEventType::Pause) == AK::SoundEngine::AkActionOnEventType_Pause, "AkActionOnEventType::Pause does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AK::SoundEngine::AkActionOnEventType>(AkActionOnEventType::Resume) == AK::SoundEngine::AkActionOnEventType_Resume, "AkActionOnEventType::Resume does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AK::SoundEngine::AkActionOnEventType>(AkActionOnEventType::Break) == AK::SoundEngine::AkActionOnEventType_Break, "AkActionOnEventType::Break does not correspond with its internal Wwise counterpart.");
-static_assert(static_cast<AK::SoundEngine::AkActionOnEventType>(AkActionOnEventType::ReleaseEnvelope) == AK::SoundEngine::AkActionOnEventType_ReleaseEnvelope, "AkActionOnEventType::ReleaseEnvelope does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkActionOnEventType>(EAkActionOnEventType::Stop) == AkActionOnEventType_Stop, "EAkActionOnEventType::Stop does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkActionOnEventType>(EAkActionOnEventType::Pause) == AkActionOnEventType_Pause, "EAkActionOnEventType::Pause does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkActionOnEventType>(EAkActionOnEventType::Resume) == AkActionOnEventType_Resume, "EAkActionOnEventType::Resume does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkActionOnEventType>(EAkActionOnEventType::Break) == AkActionOnEventType_Break, "EAkActionOnEventType::Break does not correspond with its internal Wwise counterpart.");
+static_assert(static_cast<AkActionOnEventType>(EAkActionOnEventType::ReleaseEnvelope) == AkActionOnEventType_ReleaseEnvelope, "EAkActionOnEventType::ReleaseEnvelope does not correspond with its internal Wwise counterpart.");
 #if WWISE_2024_1_OR_LATER
-static_assert(static_cast<AK::SoundEngine::AkActionOnEventType>(AkActionOnEventType::Last) == AK::SoundEngine::AkActionOnEventType_Last, "A new value was added to the AK::SoundEngine::AkActionOnEventType enum. Please update its Unreal counterpart.");
+static_assert(static_cast<AkActionOnEventType>(EAkActionOnEventType::Last) == AkActionOnEventType_Last, "A new value was added to the AkActionOnEventTypee enum. Please update its Unreal counterpart.");
 #endif
 
 UENUM(BlueprintType)
@@ -183,7 +183,7 @@ enum class EAkCurveInterpolation : uint8
 	// Constant ( not valid for fading values )
 	Constant = 9,
 
-	Last
+	Last UMETA(Hidden)
 };
 
 static_assert(static_cast<AkCurveInterpolation>(EAkCurveInterpolation::Log3) == AkCurveInterpolation_Log3, "AkCurveInterpolation::Log3 does not correspond with its internal Wwise counterpart.");
@@ -287,7 +287,7 @@ enum class EAkResult : uint8
 #if WWISE_2024_1_OR_LATER
 	InvalidState = AK_InvalidState			UMETA(ToolTip = "This method should not be called when the object is in its current state."),
 #endif
-	Last
+	Last UMETA(Hidden)
 };
 
 #define CHECK_AKRESULT_VALUE(ValueName) static_assert(AK_##ValueName == (uint32)EAkResult::ValueName, #ValueName " value has changed in AKRESULT, please update the EAkResult::" #ValueName " value");
@@ -384,37 +384,45 @@ Begin - Ak Callback Blueprint classes and structures. Known limitations:
 
 =============================================================================*/
 
+#if WWISE_2024_1_OR_LATER
+#define MIDI_BITMASK 15
+#else
+#define MIDI_BITMASK 16
+#endif
+
 /// Type of callback. Used as a bitfield in methods AK::SoundEngine::PostEvent() and AK::SoundEngine::DynamicSequence::Open().
 UENUM(BlueprintType, meta = (Bitmask))
 enum class EAkCallbackType : uint8
 {
-	EndOfEvent = 0			UMETA(ToolTip = "Callback triggered when reaching the end of an event. AkCallbackInfo can be cast to AkEventCallbackInfo."),
-	Marker = 2				UMETA(ToolTip = "Callback triggered when encountering a marker during playback. AkCallbackInfo can be cast to AkMarkerCallbackInfo."),
-	Duration = 3			UMETA(ToolTip = "Callback triggered when the duration of the sound is known by the sound engine. AkCallbackInfo can be cast to AkDurationCallbackInfo."),
+	EndOfEvent = 0				UMETA(ToolTip = "Callback triggered when reaching the end of an event. AkCallbackInfo can be cast to AkEventCallbackInfo."),
+	EndOfDynamicSequenceItem = 1
+								UMETA(ToolTop = "Callback triggered when reaching the end of a dynamic sequence item. AkCallbackInfo can be cast to AkDynamicSequenceItemCallbackInfo."),
+	Marker = 2					UMETA(ToolTip = "Callback triggered when encountering a marker during playback. AkCallbackInfo can be cast to AkMarkerCallbackInfo."),
+	Duration = 3				UMETA(ToolTip = "Callback triggered when the duration of the sound is known by the sound engine. AkCallbackInfo can be cast to AkDurationCallbackInfo."),
 
-	Starvation = 5			UMETA(ToolTip = "Callback triggered when playback skips a frame due to stream starvation. AkCallbackInfo can be cast to AkEventCallbackInfo."),
+	Starvation = 5				UMETA(ToolTip = "Callback triggered when playback skips a frame due to stream starvation. AkCallbackInfo can be cast to AkEventCallbackInfo."),
 	
-	MusicPlayStarted = 7	UMETA(ToolTip = "Callback triggered when a Play or Seek command has been executed (Seek commands are issued from AK::SoundEngine::SeekOnEvent()). Applies to objects of the Interactive-Music Hierarchy only. AkCallbackInfo can be cast to AkEventCallbackInfo."),
+	MusicPlayStarted = 7		UMETA(ToolTip = "Callback triggered when a Play or Seek command has been executed (Seek commands are issued from AK::SoundEngine::SeekOnEvent()). Applies to objects of the Containers Hierarchy only. AkCallbackInfo can be cast to AkEventCallbackInfo."),
 
-	MusicSyncBeat = 8		UMETA(ToolTip = "Enable notifications on Music Beat. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
-	MusicSyncBar = 9		UMETA(ToolTip = "Enable notifications on Music Bar. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
-	MusicSyncEntry = 10		UMETA(ToolTip = "Enable notifications on Music Entry Cue. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
-	MusicSyncExit = 11		UMETA(ToolTip = "Enable notifications on Music Exit Cue. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
-	MusicSyncGrid = 12		UMETA(ToolTip = "Enable notifications on Music Grid. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
-	MusicSyncUserCue = 13	UMETA(ToolTip = "Enable notifications on Music Custom Cue. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
-	MusicSyncPoint = 14		UMETA(ToolTip = "Enable notifications on Music switch transition synchronization point. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncBeat = 8			UMETA(ToolTip = "Enable notifications on Music Beat. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncBar = 9			UMETA(ToolTip = "Enable notifications on Music Bar. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncEntry = 10			UMETA(ToolTip = "Enable notifications on Music Entry Cue. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncExit = 11			UMETA(ToolTip = "Enable notifications on Music Exit Cue. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncGrid = 12			UMETA(ToolTip = "Enable notifications on Music Grid. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncUserCue = 13		UMETA(ToolTip = "Enable notifications on Music Custom Cue. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MusicSyncPoint = 14			UMETA(ToolTip = "Enable notifications on Music switch transition synchronization point. AkCallbackInfo can be cast to AkMusicSyncCallbackInfo."),
+	MIDIEvent = MIDI_BITMASK	UMETA(DisplayName = "MIDI Event", ToolTip = "Enable notifications for MIDI events. AkCallbackInfo can be cast to AkMIDIEventCallbackInfo."),
 
-#if WWISE_2024_1_OR_LATER
-	MIDIEvent = 15			UMETA(ToolTip = "Enable notifications for MIDI events. AkCallbackInfo can be cast to AkMIDIEventCallbackInfo."),
-#else
-	MIDIEvent = 16			UMETA(ToolTip = "Enable notifications for MIDI events. AkCallbackInfo can be cast to AkMIDIEventCallbackInfo."),
+#if WWISE_2025_1_OR_LATER
+	Reserved = 16				UMETA(ToolTip = "Do not use."),
 #endif
 	
-	Last					UMETA(Hidden)
+	Last						UMETA(Hidden)
 };
 
 #define CHECK_CALLBACK_TYPE_VALUE(ValueName) static_assert(AK_##ValueName == (1 << (uint32)EAkCallbackType::ValueName), #ValueName " value has changed in AkCallbackType, please update the EAkCallbackType::" #ValueName " value");
 CHECK_CALLBACK_TYPE_VALUE(EndOfEvent);
+CHECK_CALLBACK_TYPE_VALUE(EndOfDynamicSequenceItem);
 CHECK_CALLBACK_TYPE_VALUE(Marker);
 CHECK_CALLBACK_TYPE_VALUE(Duration);
 CHECK_CALLBACK_TYPE_VALUE(Starvation);
@@ -441,17 +449,30 @@ enum class ERTPCValueType : uint8
 	GameObject = AK::SoundEngine::Query::RTPCValue_GameObject,	///< The value is the game object specific RTPC.
 	PlayingID = AK::SoundEngine::Query::RTPCValue_PlayingID,	///< The value is the playing ID specific RTPC.
 	Unavailable = AK::SoundEngine::Query::RTPCValue_Unavailable,	///< The value is not available for the RTPC specified.
-	Last
+	Last UMETA(Hidden)
 };
 #if WWISE_2024_1_OR_LATER
 static_assert(AK::SoundEngine::Query::RTPCValue_Last == static_cast<AK::SoundEngine::Query::RTPCValue_type>(ERTPCValueType::Last), "A value was added to the AK::SoundEngine::Query::RTPCValue_type enum, please update its Unreal counterpart accordingly.");
 #endif
 
+struct AkCombinedCallbackInfo
+{
+	AkEventCallbackInfo eventInfo;
+#if WWISE_2025_1_OR_LATER
+	// In 2025.1 and later, callback information is split in two separate structs
+	void* pCallbackInfo;
+#endif
+};
+
 class AkCallbackTypeHelpers
 {
 public:
-	static UAkCallbackInfo* GetBlueprintableCallbackInfo(EAkCallbackType CallbackType, AkCallbackInfo* CallbackInfo);
-	static AkCallbackInfo* CopyWwiseCallbackInfo(AkCallbackType CallbackType, AkCallbackInfo* SourceCallbackInfo);
+	static UAkCallbackInfo* GetBlueprintableCallbackInfo(EAkCallbackType CallbackType, AkCombinedCallbackInfo* CallbackInfo);
+#if WWISE_2025_1_OR_LATER
+	static AkCombinedCallbackInfo* CopyWwiseCallbackInfo(AkCallbackType CallbackType, AkEventCallbackInfo* EventCallbackInfo, void* SourceCallbackInfo);
+#else
+	static AkCombinedCallbackInfo* CopyWwiseCallbackInfo(AkCallbackType CallbackType, AkCallbackInfo * SourceCallbackInfo);
+#endif
 	static AkCallbackType GetCallbackMaskFromBlueprintMask(int32 CallbackMask);
 	static EAkCallbackType GetBlueprintCallbackTypeFromAkCallbackType(AkCallbackType CallbackType);
 };
@@ -480,7 +501,7 @@ struct FAkChannelMask
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category="Channel Mask", BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "/Script/AkAudio.AkSpeakerConfiguration"))
+	UPROPERTY(EditAnywhere, Category="Channel Mask", BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "/Script/AkAudio.EAkSpeakerConfiguration"))
 	int32 ChannelMask = 0;
 };
 
@@ -490,16 +511,16 @@ struct FAkOutputSettings
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, Category = "Output Settings", BlueprintReadWrite)
-	UAkAudioDeviceShareSet* AudioDeviceShareSet = nullptr;
+	TObjectPtr<UAkAudioDeviceShareSet> AudioDeviceShareSet = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Output Settings", BlueprintReadWrite)
 	int64 IdDevice = 0;
 
-	UPROPERTY(EditAnywhere, Category = "Output Settings", BlueprintReadWrite, meta=(DisplayName="PanningRule"))
-	PanningRule PanRule = PanningRule::PanningRule_Speakers;
+	UPROPERTY(EditAnywhere, Category = "Output Settings", BlueprintReadWrite, meta=(DisplayName="EPanningRule"))
+	EPanningRule PanRule = EPanningRule::PanningRule_Speakers;
 
 	UPROPERTY(EditAnywhere, Category = "Output Settings", BlueprintReadWrite)
-	AkChannelConfiguration ChannelConfig = AkChannelConfiguration::Ak_Parent;
+	EAkChannelConfiguration ChannelConfig = EAkChannelConfiguration::Ak_Parent;
 };
 
 /// Callback information structure corresponding to \ref AK_EndOfEvent, \ref AK_MusicPlayStarted and \ref AK_Starvation.
@@ -522,6 +543,29 @@ public:
 	int32 EventID = 0;		///< Unique ID of Event, passed to PostEvent()
 };
 
+/// Callback information structure corresponding to \ref AK_EndOfDynamicSequenceItem.
+/// \sa 
+/// - AK::SoundEngine::PostEvent()
+/// - AK::SoundEngine::DynamicSequence::Open()
+/// - \ref soundengine_events
+UCLASS(BlueprintType)
+class AKAUDIO_API UAkDynamicSequenceItemCallbackInfo : public UAkCallbackInfo
+{
+	GENERATED_BODY()
+public:
+	UAkDynamicSequenceItemCallbackInfo(class FObjectInitializer const & ObjectInitializer);
+
+	static UAkDynamicSequenceItemCallbackInfo* Create(AkCombinedCallbackInfo * akCallbackInfo);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audiokinetic|AkCallbackInfo|AkDynamicSequenceItem")
+	int32 PlayingID = 0;				///< Playing ID of Dynamic Sequence, returned by AK::SoundEngine:DynamicSequence::Open()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audiokinetic|AkCallbackInfo|AkDynamicSequenceItem")
+	int32 AudioNodeID = 0;				///< Audio Node ID of finished item
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audiokinetic|AkCallbackInfo|AkDynamicSequenceItem")
+	TObjectPtr<UObject> CustomInfo;
+};
 
 // List of MIDI event types
 static_assert(AK_MIDI_EVENT_TYPE_INVALID == 0, "AK_MIDI_EVENT_TYPE_INVALID is not equal to 0, please change the value in the EAkMidiEventType enum");
@@ -813,7 +857,7 @@ class UAkMIDIEventCallbackInfo : public UAkEventCallbackInfo
 	
 public:
 	UAkMIDIEventCallbackInfo(class FObjectInitializer const & ObjectInitializer);
-	static UAkMIDIEventCallbackInfo* Create(AkMIDIEventCallbackInfo* akCallbackInfo);
+	static UAkMIDIEventCallbackInfo* Create(AkCombinedCallbackInfo* akCallbackInfo);
 
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|AkCallbackInfo|MIDI")
 	EAkMidiEventType GetType();
@@ -860,7 +904,7 @@ class UAkMarkerCallbackInfo : public UAkEventCallbackInfo
 	GENERATED_BODY()
 public:
 	UAkMarkerCallbackInfo(class FObjectInitializer const & ObjectInitializer);
-	static UAkMarkerCallbackInfo* Create(AkMarkerCallbackInfo* akCallbackInfo);
+	static UAkMarkerCallbackInfo* Create(AkCombinedCallbackInfo* akCallbackInfo);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audiokinetic|AkCallbackInfo|Marker")
 	int32 Identifier = 0;		///< Cue point identifier
@@ -882,7 +926,7 @@ class UAkDurationCallbackInfo : public UAkEventCallbackInfo
 	GENERATED_BODY()
 public:
 	UAkDurationCallbackInfo(class FObjectInitializer const & ObjectInitializer);
-	static UAkDurationCallbackInfo* Create(AkDurationCallbackInfo* akCallbackInfo);
+	static UAkDurationCallbackInfo* Create(AkCombinedCallbackInfo* akCallbackInfo);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audiokinetic|AkCallbackInfo|Duration")
 	float Duration = 0.f;				///< Duration of the sound (unit: milliseconds)
@@ -954,7 +998,7 @@ class UAkMusicSyncCallbackInfo : public UAkCallbackInfo
 
 public:
 	UAkMusicSyncCallbackInfo(class FObjectInitializer const & ObjectInitializer);
-	static UAkMusicSyncCallbackInfo* Create(AkMusicSyncCallbackInfo* akCallbackInfo);
+	static UAkMusicSyncCallbackInfo* Create(AkCombinedCallbackInfo* akCallbackInfo);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audiokinetic|AkCallbackInfo|Music")
 	int32 PlayingID = 0;		///< Playing ID of Event, returned by PostEvent()
@@ -1098,7 +1142,7 @@ Begin - AkExternalSources enums and structures. Known limitations:
 =============================================================================*/
 
 UENUM(BlueprintType)
-enum class AkCodecId : uint8
+enum class EAkCodecId : uint8
 {	
 	///< None: required default.
 	None = 0,
@@ -1141,7 +1185,7 @@ struct FAkExternalSourceInfo
 	
 	/// Codec ID for the file. 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|AkExternalSourceInfo")
-	AkCodecId CodecID = AkCodecId::None;
+	EAkCodecId CodecID = EAkCodecId::None;
 	
 	/// File path for the source. (Relative to ExternalSources folder in your sound bank folder)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|AkExternalSourceInfo")

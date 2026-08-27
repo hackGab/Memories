@@ -64,7 +64,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		}
 
 		// Creating Node
-		auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+		auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 		CHECK(Node);
 		if (UNLIKELY(!Node))
@@ -116,12 +116,13 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			SoundBank1.SoundBankId = 1;
 			Data1.SoundBanks.Emplace(SoundBank1);
 
-			FWwiseSwitchContainerLeafCookedData Leaf1;
+			FWwiseAudioNodeCookedData Leaf1;
 			FWwiseMediaCookedData Leaf1Media;
 			Leaf1Media.MediaId = 3;
 			Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-			Leaf1.GroupValueSet.Emplace(GroupValue);
-			Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+			FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+			Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+			Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 			Data1.RequiredGroupValueSet.Add(GroupValue);
 			
@@ -129,7 +130,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		}
 
 		// Creating Node
-		auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+		auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 		CHECK(Node);
 		if (UNLIKELY(!Node))
@@ -189,7 +190,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		}
 		
 		// Creating Node
-		auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+		auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 		CHECK(Node);
 		if (UNLIKELY(!Node))
@@ -204,18 +205,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			SoundBank2.SoundBankId = 2;
 			Data2.SoundBanks.Emplace(SoundBank2);
 
-			FWwiseSwitchContainerLeafCookedData Leaf1;
+			FWwiseAudioNodeCookedData Leaf1;
 			FWwiseMediaCookedData Leaf1Media;
 			Leaf1Media.MediaId = 3;
 			Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-			Leaf1.GroupValueSet.Emplace(GroupValue);
-			Data2.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+			FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+			Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+			Data2.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 			
 			CookedData2.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data2));
 		}
 
 		// Creating Node
-		auto* Node2 = ResourceLoaderImpl->CreateEventNode(CookedData2, nullptr);
+		auto* Node2 = ResourceLoaderImpl->CreateEventListEntry(CookedData2, nullptr);
 
 		CHECK(Node2);
 		if (UNLIKELY(!Node2))
@@ -296,18 +298,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 3;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -369,18 +372,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -405,7 +409,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -473,7 +477,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -503,18 +507,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -588,7 +593,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -613,7 +618,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue2);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue2);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -643,18 +648,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -740,7 +746,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -765,7 +771,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue2);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue2);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -795,18 +801,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -892,7 +899,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -917,7 +924,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue2);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue2);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -947,18 +954,19 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue2);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1049,19 +1057,20 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue2);
-				Leaf1.GroupValueSet.Add(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 				
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1088,7 +1097,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1115,7 +1124,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue2);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue2);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1206,13 +1215,14 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue2);
-				Leaf1.GroupValueSet.Add(GroupValue);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 				Data1.RequiredGroupValueSet.Add(GroupValue);
 				
@@ -1220,7 +1230,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1247,7 +1257,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue2);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue2);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1326,13 +1336,14 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Leaf1.GroupValueSet.Add(GroupValue2);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 				Data1.RequiredGroupValueSet.Add(GroupValue);
 				Data1.RequiredGroupValueSet.Add(GroupValue2);
@@ -1341,7 +1352,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1411,19 +1422,20 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Leaf1.GroupValueSet.Add(GroupValue2);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1448,7 +1460,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1484,7 +1496,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1574,13 +1586,14 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Leaf1.GroupValueSet.Add(GroupValue2);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 				Data1.RequiredGroupValueSet.Add(GroupValue);
 				
@@ -1588,7 +1601,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1622,7 +1635,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1703,19 +1716,20 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Leaf1.GroupValueSet.Add(GroupValue2);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1749,7 +1763,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1783,7 +1797,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1881,20 +1895,21 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 				Data1.Media.Emplace(FWwiseMediaCookedData{});
 				Data1.SoundBanks.Emplace(FWwiseSoundBankCookedData{});
 
-				FWwiseSwitchContainerLeafCookedData Leaf1;
+				FWwiseAudioNodeCookedData Leaf1;
 				FWwiseMediaCookedData Leaf1Media;
 				Leaf1Media.MediaId = 1;
 				Leaf1.Media.Emplace(MoveTemp(Leaf1Media));
-				Leaf1.GroupValueSet.Emplace(GroupValue);
-				Leaf1.GroupValueSet.Add(GroupValue2);
-				Leaf1.GroupValueSet.Add(GroupValue3);
-				Data1.SwitchContainerLeaves.Emplace(MoveTemp(Leaf1));
+				FWwiseGroupValueCookedDataSet Leaf1GroupValueSet;
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue2);
+				Leaf1GroupValueSet.GroupValues.Emplace(GroupValue3);
+				Data1.AudioNodes.Emplace(MoveTemp(Leaf1GroupValueSet), MoveTemp(Leaf1));
 
 				CookedData.EventLanguageMap.Emplace(FWwiseLanguageCookedData::Sfx, MoveTemp(Data1));
 			}
 
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateEventNode(CookedData, nullptr);
+			auto* Node = ResourceLoaderImpl->CreateEventListEntry(CookedData, nullptr);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1921,7 +1936,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1949,7 +1964,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue2);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue2);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))
@@ -1976,7 +1991,7 @@ WWISE_TEST_CASE(ResourceLoader_Media, "Wwise::ResourceLoader::ResourceLoader_Med
 		do
 		{
 			// Creating Node
-			auto* Node = ResourceLoaderImpl->CreateGroupValueNode(GroupValue3);
+			auto* Node = ResourceLoaderImpl->CreateGroupValueListEntry(GroupValue3);
 
 			CHECK(Node);
 			if (UNLIKELY(!Node))

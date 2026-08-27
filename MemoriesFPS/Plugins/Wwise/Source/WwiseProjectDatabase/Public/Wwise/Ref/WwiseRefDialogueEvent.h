@@ -36,7 +36,8 @@ public:
 		DialogueEventIndex(InDialogueEventIndex)
 	{}
 	const WwiseMetadataDialogueEvent* GetDialogueEvent() const;
-	WwiseDialogueArgumentIdsMap GetDialogueArguments(const WwiseDialogueArgumentGlobalIdsMap& GlobalMap) const;
+	WwiseDialogueArgumentArray GetDialogueArguments(const WwiseDialogueArgumentGlobalIdsMap& GlobalMap) const;
+	WwiseMediaIdsMap GetAllMedia(const WwiseMediaGlobalIdsMap& GlobalMap) const;
 
 	WwiseDBShortId DialogueEventId() const;
 	WwiseDBGuid DialogueEventGuid() const;

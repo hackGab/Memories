@@ -71,6 +71,7 @@ public:
 	virtual void SetExternalSourceMediaByName(const FName& ExternalSourceName, const FName& MediaName) override {}
 	virtual void SetExternalSourceMediaWithIds(const int32 ExternalSourceCookie, const int32 MediaId) override {}
 
+	virtual void DoPostTerm() override {}
 
 #if WITH_EDITORONLY_DATA
 	virtual void Cook(IWwiseResourceCooker& InResourceCooker, const FWwiseExternalSourceCookedData& InCookedData,
@@ -99,7 +100,7 @@ protected:
 	
 	FWwiseFileStateSharedPtr CreateOp(FWwiseExternalSourceCookedData InExternalSourceCookedData)
 	{
-		auto* FileState = new FWwiseMockFileState(InExternalSourceCookedData.Cookie);
+		auto* FileState = new FWwiseMockFileState(InExternalSourceCookedData.Cookie, FWwiseMockFileState::EFileType::ExternalSource);
 		return FWwiseFileStateSharedPtr(FileState);
 	}
 };

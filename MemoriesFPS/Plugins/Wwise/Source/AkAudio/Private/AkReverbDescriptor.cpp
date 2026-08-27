@@ -72,13 +72,6 @@ float CapsuleSurfaceArea(const FKSphylElem& capsule, const FVector& scale)
 	return 2.0f * PI * r * (2.0f * r + capsule.Length * scale.Z);
 }
 
-bool HasSimpleCollisionGeometry(UBodySetup* bodySetup)
-{
-	FKAggregateGeom geometry = bodySetup->AggGeom;
-	return geometry.BoxElems.Num() > 0 || geometry.ConvexElems.Num() > 0 || geometry.SphereElems.Num() > 0 || geometry.TaperedCapsuleElems.Num() > 0 || geometry.SphylElems.Num() > 0;
-
-}
-
 #if AK_USE_CHAOS
 // Copied from BodySetup.cpp
 // References: 
@@ -95,7 +88,7 @@ void UpdateVolumeAndArea(UBodySetup* bodySetup, const FVector& scale, float& vol
 	surfaceArea = 0.0f;
 	// Initially use the Unreal UBodySetup::GetVolume function to calculate volume...
 	volume = bodySetup->GetScaledVolume(scale);
-	FKAggregateGeom& geometry = bodySetup->AggGeom;
+	const FKAggregateGeom& geometry = bodySetup->AggGeom;
 
 	for (const FKBoxElem& box : geometry.BoxElems)
 	{
@@ -203,6 +196,7 @@ void FAkReverbDescriptor::SetReverbComponent(UAkLateReverbComponent* InReverbCom
 
 void FAkReverbDescriptor::CalculateT60(UAkLateReverbComponent* InReverbComp)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkReverbDescriptor::CalculateT60"));
 	if (IsValid(Primitive))
 	{
 		PrimitiveVolume = 0.0f;
@@ -212,7 +206,7 @@ void FAkReverbDescriptor::CalculateT60(UAkLateReverbComponent* InReverbComp)
 		{
 			FVector scale = Primitive->GetComponentScale();
 			UBodySetup* primitiveBody = Primitive->GetBodySetup();
-			if (primitiveBody != nullptr && HasSimpleCollisionGeometry(primitiveBody))
+			if (primitiveBody != nullptr && AkComponentHelpers::HasSimpleCollisionGeometry(primitiveBody))
 			{
 				UpdateVolumeAndArea(primitiveBody, scale, PrimitiveVolume, PrimitiveSurfaceArea);
 			}
@@ -306,6 +300,7 @@ void FAkReverbDescriptor::CalculateT60(UAkLateReverbComponent* InReverbComp)
 
 void FAkReverbDescriptor::CalculateTimeToFirstReflection()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkReverbDescriptor::CalculateTimeToFirstReflection"));
 	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
 	if (SpatialAudio && IsValid(Primitive))
 	{
@@ -325,6 +320,7 @@ void FAkReverbDescriptor::CalculateTimeToFirstReflection()
 
 void FAkReverbDescriptor::CalculateHFDamping(const UAkAcousticTextureSetComponent* acousticTextureSetComponent)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkReverbDescriptor::CalculateHFDamping"));
 	HFDamping = 0.0f;
 
 	if (IsValid(Primitive))
@@ -377,6 +373,7 @@ void FAkReverbDescriptor::CalculateHFDamping(const UAkAcousticTextureSetComponen
 
 bool FAkReverbDescriptor::GetRTPCRoom(UAkRoomComponent*& room) const
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkReverbDescriptor::GetRTPCRoom"));
 	if (!IsValid(Primitive))
 		return false;
 
@@ -404,6 +401,7 @@ bool FAkReverbDescriptor::CanSetRTPCOnRoom(const UAkRoomComponent* room) const
 
 void FAkReverbDescriptor::UpdateDecayRTPC() const
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkReverbDescriptor::UpdateDecayRTPC"));
 	UAkRoomComponent* room = nullptr;
 	if (GetRTPCRoom(room))
 	{
@@ -417,6 +415,7 @@ void FAkReverbDescriptor::UpdateDecayRTPC() const
 
 void FAkReverbDescriptor::UpdateDampingRTPC() const
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkReverbDescriptor::UpdateDampingRTPC"));
 	UAkRoomComponent* room = nullptr;
 	if (GetRTPCRoom(room))
 	{
@@ -430,6 +429,7 @@ void FAkReverbDescriptor::UpdateDampingRTPC() const
 
 void FAkReverbDescriptor::UpdatePredelaytRTPC() const
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkReverbDescriptor::UpdatePredelaytRTPC"));
 	UAkRoomComponent* room = nullptr;
 	if (GetRTPCRoom(room))
 	{
@@ -443,6 +443,7 @@ void FAkReverbDescriptor::UpdatePredelaytRTPC() const
 
 void FAkReverbDescriptor::UpdateAllRTPCs(const UAkRoomComponent* room) const
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkReverbDescriptor::UpdateAllRTPCs"));
 	checkf(room, TEXT("FAkReverbDescriptor::UpdateAllRTPCs: room is nullptr."));
 
 	if (CanSetRTPCOnRoom(room))

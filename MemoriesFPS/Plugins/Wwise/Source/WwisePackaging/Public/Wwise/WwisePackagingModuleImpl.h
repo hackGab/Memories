@@ -17,7 +17,10 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
+#include "UObject/ObjectMacros.h"
 #include "Wwise/WwisePackagingModule.h"
+
+class UWwiseAssetLibrary;
 
 class WWISEPACKAGING_API FWwisePackagingModule : public IWwisePackagingModule
 {
@@ -35,4 +38,7 @@ public:
 protected:
 	TFunction<void(const ITargetPlatform* TargetPlatform)> CreateResourceCookerForPlatformFct;
 #endif
+private:
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UWwiseAssetLibrary>> LoadedWwiseAssetLibraries;
 };

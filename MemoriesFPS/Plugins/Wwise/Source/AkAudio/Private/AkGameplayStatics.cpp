@@ -60,6 +60,7 @@ UAkGameplayStatics::UAkGameplayStatics(const class FObjectInitializer& ObjectIni
 class UAkComponent * UAkGameplayStatics::GetAkComponent(USceneComponent* AttachToComponent, bool& ComponentCreated, FName AttachPointName, FVector Location, EAttachLocation::
 	Type LocationType)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetAkComponent"));
 	if ( !AttachToComponent )
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::GetAkComponent: NULL AttachToComponent specified!"));
@@ -79,6 +80,7 @@ class UAkComponent * UAkGameplayStatics::GetAkComponent(USceneComponent* AttachT
 UAkComponent* UAkGameplayStatics::GetOrCreateAkComponent(USceneComponent* AttachToComponent, bool& ComponentCreated,
 	FName AttachPointName)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetOrCreateAkComponent"));
 	if ( !AttachToComponent )
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::GetAkComponent: NULL AttachToComponent specified!"));
@@ -106,6 +108,7 @@ bool UAkGameplayStatics::IsEditor()
 
 bool UAkGameplayStatics::IsGame(UObject* WorldContextObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::IsGame"));
 	EWorldType::Type WorldType = EWorldType::None;
 	if (WorldContextObject)
 	{
@@ -120,6 +123,7 @@ bool UAkGameplayStatics::IsGame(UObject* WorldContextObject)
 int32 UAkGameplayStatics::PostEvent(UAkAudioEvent* AkEvent, AActor* Actor, int32 CallbackMask,
 	const FOnAkPostEventCallback& PostEventCallback, bool bStopWhenAttachedToDestroyed)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::PostEvent"));
 	if (UNLIKELY(!IsValid(AkEvent)))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("Failed to post invalid AkAudioEvent."))
@@ -132,6 +136,7 @@ int32 UAkGameplayStatics::PostEvent(UAkAudioEvent* AkEvent, AActor* Actor, int32
 int32 UAkGameplayStatics::PostAndWaitForEndOfEvent(UAkAudioEvent* AkEvent, AActor* Actor,
 	FLatentActionInfo LatentInfo, bool bStopWhenAttachedToDestroyed)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::PostAndWaitForEndOfEvent"));
 	if (UNLIKELY(!IsValid(AkEvent)))
 	{
 		UE_LOG(LogAkAudio, Error, TEXT("Failed to post and wait invalid AkAudioEvent on actor '%s'."), IsValid(Actor) ? *Actor->GetName() : TEXT("(invalid)"));
@@ -143,6 +148,7 @@ int32 UAkGameplayStatics::PostAndWaitForEndOfEvent(UAkAudioEvent* AkEvent, AActo
 
 int32 UAkGameplayStatics::PostEventAtLocation(class UAkAudioEvent* AkEvent, FVector Location, FRotator Orientation, UObject* WorldContextObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::PostEventAtLocation"));
 	if (LIKELY(IsValid(AkEvent)))
 	{
 		return AkEvent->PostAtLocation(Location, Orientation, {}, 0, WorldContextObject);
@@ -154,6 +160,7 @@ int32 UAkGameplayStatics::PostEventAtLocation(class UAkAudioEvent* AkEvent, FVec
 
 UAkComponent* UAkGameplayStatics::SpawnAkComponentAtLocation(UObject* WorldContextObject, class UAkAudioEvent* AkEvent, FVector Location, FRotator Orientation, bool AutoPost, bool AutoDestroy /* = true*/)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SpawnAkComponentAtLocation"));
 	AkDeviceAndWorld DeviceAndWorld(WorldContextObject);
 	if (UNLIKELY(!DeviceAndWorld.IsValid()))
 	{
@@ -164,6 +171,7 @@ UAkComponent* UAkGameplayStatics::SpawnAkComponentAtLocation(UObject* WorldConte
 
 void UAkGameplayStatics::SetRTPCValue(const UAkRtpc* RTPCValue, float Value, int32 InterpolationTimeMs, AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetRTPCValue"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (AudioDevice)
 	{
@@ -176,6 +184,7 @@ void UAkGameplayStatics::SetRTPCValue(const UAkRtpc* RTPCValue, float Value, int
 
 void UAkGameplayStatics::GetRTPCValue(const UAkRtpc* RTPCValue, int32 PlayingID, ERTPCValueType InputValueType, float& Value, ERTPCValueType& OutputValueType, AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetRTPCValue"));
 	if (FAkAudioDevice * AudioDevice = FAkAudioDevice::Get())
 	{
 		AK::SoundEngine::Query::RTPCValue_type RTPCType = (AK::SoundEngine::Query::RTPCValue_type)InputValueType;
@@ -198,6 +207,7 @@ void UAkGameplayStatics::GetRTPCValue(const UAkRtpc* RTPCValue, int32 PlayingID,
 
 void UAkGameplayStatics::ResetRTPCValue(UAkRtpc const* RTPCValue, int32 InterpolationTimeMs, AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::ResetRTPCValue"));
 	if (FAkAudioDevice* AudioDevice = FAkAudioDevice::Get())
 	{
 		AkGameObjectID IdToGet = AK_INVALID_GAME_OBJECT;
@@ -238,6 +248,7 @@ void UAkGameplayStatics::ResetRTPCValue(UAkRtpc const* RTPCValue, int32 Interpol
 
 void UAkGameplayStatics::SetState(const UAkStateValue* StateValue)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetState"));
 	if(FAkAudioDevice * AudioDevice = FAkAudioDevice::Get())
 	{
 		if (StateValue)
@@ -249,6 +260,7 @@ void UAkGameplayStatics::SetState(const UAkStateValue* StateValue)
 
 void UAkGameplayStatics::PostTrigger(const UAkTrigger* TriggerValue, AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::PostTrigger"));
 	if ( Actor == NULL )
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::PostTrigger: NULL Actor specified!"));
@@ -266,6 +278,7 @@ void UAkGameplayStatics::PostTrigger(const UAkTrigger* TriggerValue, AActor* Act
 
 void UAkGameplayStatics::SetSwitch(const UAkSwitchValue* SwitchValue, AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetSwitch"));
 	if (Actor == NULL)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetSwitch: NULL Actor specified!"));
@@ -282,8 +295,9 @@ void UAkGameplayStatics::SetSwitch(const UAkSwitchValue* SwitchValue, AActor* Ac
 }
 
 void UAkGameplayStatics::SetMultiplePositions(UAkComponent* GameObjectAkComponent, TArray<FTransform> Positions,
-                                              AkMultiPositionType MultiPositionType /*= AkMultiPositionType::MultiPositionType_MultiDirections*/)
+                                              EAkMultiPositionType MultiPositionType /*= EAkMultiPositionType::MultiPositionType_MultiDirections*/)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetMultiplePositions"));
 	if (GameObjectAkComponent == NULL)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetMultiplePositions: NULL Component specified!"));
@@ -298,11 +312,12 @@ void UAkGameplayStatics::SetMultiplePositions(UAkComponent* GameObjectAkComponen
 }
 
 void UAkGameplayStatics::SetMultipleChannelEmitterPositions(UAkComponent* GameObjectAkComponent,
-	TArray<AkChannelConfiguration> ChannelMasks,
+	TArray<EAkChannelConfiguration> ChannelMasks,
 	TArray<FTransform> Positions,
-	AkMultiPositionType MultiPositionType
+	EAkMultiPositionType MultiPositionType
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetMultipleChannelEmitterPositions"));
 	if (GameObjectAkComponent == NULL)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetMultipleChannelEmitterPositions: NULL Component specified!"));
@@ -319,9 +334,10 @@ void UAkGameplayStatics::SetMultipleChannelEmitterPositions(UAkComponent* GameOb
 void UAkGameplayStatics::SetMultipleChannelMaskEmitterPositions(UAkComponent* GameObjectAkComponent,
 	TArray<FAkChannelMask> ChannelMasks,
 	TArray<FTransform> Positions,
-	AkMultiPositionType MultiPositionType
+	EAkMultiPositionType MultiPositionType
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetMultipleChannelMaskEmitterPositions"));
 	if (GameObjectAkComponent == NULL)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetMultipleChannelMaskEmitterPositions: NULL Component specified!"));
@@ -337,6 +353,7 @@ void UAkGameplayStatics::SetMultipleChannelMaskEmitterPositions(UAkComponent* Ga
 
 void UAkGameplayStatics::UseReverbVolumes(bool inUseReverbVolumes, class AActor* Actor )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::UseReverbVolumes"));
 	if ( Actor == NULL )
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::UseReverbVolumes: NULL Actor specified!"));
@@ -356,6 +373,7 @@ void UAkGameplayStatics::UseReverbVolumes(bool inUseReverbVolumes, class AActor*
 
 void UAkGameplayStatics::SetReflectionsOrder(int Order, bool RefreshPaths)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetReflectionsOrder"));
 	if (Order > 4 || Order < 0)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetReflectionsOrder: Invalid reflection order value (%d). Clamping between 0 and 4."), Order);
@@ -371,6 +389,7 @@ void UAkGameplayStatics::SetReflectionsOrder(int Order, bool RefreshPaths)
 
 void UAkGameplayStatics::SetDiffractionOrder(int InDiffractionOrder, bool bInUpdatePaths)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetDiffractionOrder"));
 	if (InDiffractionOrder < 0)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetDiffractionOrder: Invalid diffraction order value (%d). Clamping to 0."), InDiffractionOrder);
@@ -384,6 +403,7 @@ void UAkGameplayStatics::SetDiffractionOrder(int InDiffractionOrder, bool bInUpd
 
 void UAkGameplayStatics::SetMaxEmitterRoomAuxSends(int InMaxEmitterRoomAuxSends)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetMaxEmitterRoomAuxSends"));
 	if (InMaxEmitterRoomAuxSends < 0)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetMaxEmitterRoomAuxSends: Invalid MaxEmitterRoomAuxSends value (%d). Clamping to 0."), InMaxEmitterRoomAuxSends);
@@ -397,6 +417,7 @@ void UAkGameplayStatics::SetMaxEmitterRoomAuxSends(int InMaxEmitterRoomAuxSends)
 
 void UAkGameplayStatics::SetNumberOfPrimaryRays(int InNbPrimaryRays)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetNumberOfPrimaryRays"));
 	if (InNbPrimaryRays < 0)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetNumberOfPrimaryRays: Invalid number of Primary Rays (%d). Clamping to 0."), InNbPrimaryRays);
@@ -410,6 +431,7 @@ void UAkGameplayStatics::SetNumberOfPrimaryRays(int InNbPrimaryRays)
 
 void UAkGameplayStatics::SetLoadBalancingSpread(int InNbFrames)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetLoadBalancingSpread"));
 	if (InNbFrames < 1)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetLoadBalancingSpread: Invalid number of frames (%d). Clamping to 1."), InNbFrames);
@@ -421,8 +443,9 @@ void UAkGameplayStatics::SetLoadBalancingSpread(int InNbFrames)
 	SpatialAudio->SetLoadBalancingSpread(InNbFrames);
 }
 
-void UAkGameplayStatics::SetPortalObstructionAndOcclusion(UAkPortalComponent* PortalComponent, float ObstructionValue, float OcclusionValue)
+void UAkGameplayStatics::SetPortalObstructionAndOcclusion(UAkPortalComponent* PortalComponent, float ObstructionValue, float OcclusionValue, bool Transition)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetPortalObstructionAndOcclusion"));
 	if (ObstructionValue > 1.f || ObstructionValue < 0.f)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetPortalObstructionAndOcclusion: Setting Portal %s to an invalid obstruction value (%.6g). Clamping between 0.0 and 1.0."), *PortalComponent->GetPortalName(), ObstructionValue);
@@ -438,12 +461,13 @@ void UAkGameplayStatics::SetPortalObstructionAndOcclusion(UAkPortalComponent* Po
 	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
 	if (AudioDevice)
 	{
-		AudioDevice->SetPortalObstructionAndOcclusion(PortalComponent, ObstructionValue, OcclusionValue);
+		AudioDevice->SetPortalObstructionAndOcclusion(PortalComponent, ObstructionValue, OcclusionValue, Transition);
 	}
 }
 
 void UAkGameplayStatics::SetMaxGlobalReflectionPaths(int InMaxReflectionPaths)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetMaxGlobalReflectionPaths"));
 	if (InMaxReflectionPaths < 0)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetMaxGlobalReflectionPaths: Invalid number of Reflection Paths (%d). Reflection path limit has been disabled."), InMaxReflectionPaths);
@@ -457,6 +481,7 @@ void UAkGameplayStatics::SetMaxGlobalReflectionPaths(int InMaxReflectionPaths)
 
 void UAkGameplayStatics::SetMaxDiffractionPaths(int InMaxDiffractionPaths, UAkGameObject* InGameObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetMaxDiffractionPaths"));
 	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
 	if (UNLIKELY(!SpatialAudio)) return;
 	SpatialAudio->SetMaxDiffractionPaths(InMaxDiffractionPaths, InGameObject == nullptr ? AK_INVALID_GAME_OBJECT : InGameObject->GetAkGameObjectID());
@@ -464,13 +489,22 @@ void UAkGameplayStatics::SetMaxDiffractionPaths(int InMaxDiffractionPaths, UAkGa
 
 void UAkGameplayStatics::SetSmoothingConstant(float InSmoothingConstantMs, UAkGameObject* InGameObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetSmoothingConstant"));
 	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
 	if (UNLIKELY(!SpatialAudio)) return;
 	SpatialAudio->SetSmoothingConstant(InSmoothingConstantMs, InGameObject == nullptr ? AK_INVALID_GAME_OBJECT : InGameObject->GetAkGameObjectID());
 }
 
+void UAkGameplayStatics::SetAdjacentRoomBleed(float InAdjacentRoomBleed)
+{
+	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
+	if (UNLIKELY(!SpatialAudio)) return;
+	SpatialAudio->SetAdjacentRoomBleed(std::max(InAdjacentRoomBleed, 0.f));
+}
+
 void UAkGameplayStatics::SetGameObjectToPortalObstruction(UAkComponent* GameObjectAkComponent, UAkPortalComponent* PortalComponent, float ObstructionValue)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetGameObjectToPortalObstruction"));
 	if (ObstructionValue > 1.f || ObstructionValue < 0.f)
 	{
 		FString gameObjectName;
@@ -488,6 +522,7 @@ void UAkGameplayStatics::SetGameObjectToPortalObstruction(UAkComponent* GameObje
 
 void UAkGameplayStatics::SetPortalToPortalObstruction(UAkPortalComponent* PortalComponent0, UAkPortalComponent* PortalComponent1, float ObstructionValue)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetPortalToPortalObstruction"));
 	if (ObstructionValue > 1.f || ObstructionValue < 0.f)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetGameObjectToPortalObstruction: Setting an invalid obstruction value (%.6g) between Portals %s and %s. Clamping between 0.0 and 1.0."), ObstructionValue, *PortalComponent0->GetPortalName(), *PortalComponent1->GetPortalName());
@@ -508,6 +543,7 @@ FAkOutdoorsRoomParameters UAkGameplayStatics::GetCurrentOutdoorsRoomParameters()
 
 void UAkGameplayStatics::SetOutdoorsRoomParameters(FAkOutdoorsRoomParameters InOutdoorsRoomParameters)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetOutdoorsRoomParameters"));
 	m_CurrentOutDoorsRoomParameters = InOutdoorsRoomParameters;
 
 	AkRoomParams RoomParams = AkRoomParams();
@@ -527,7 +563,9 @@ void UAkGameplayStatics::SetOutdoorsRoomParameters(FAkOutdoorsRoomParameters InO
 	RoomParams.TransmissionLoss = m_CurrentOutDoorsRoomParameters.TransmissionLoss;
 	RoomParams.RoomGameObj_AuxSendLevelToSelf = m_CurrentOutDoorsRoomParameters.AuxSendLevel;
 	RoomParams.RoomGameObj_KeepRegistered = m_CurrentOutDoorsRoomParameters.KeepRegistered;
+#if WWISE_2023_1_OR_LATER
 	RoomParams.RoomPriority = 1;
+#endif
 
 	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
 	if (SpatialAudio)
@@ -542,6 +580,7 @@ void UAkGameplayStatics::SetOutdoorsRoomParameters(FAkOutdoorsRoomParameters InO
 
 void UAkGameplayStatics::ResetOutdoorsRoomParams()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::ResetOutdoorsRoomParams"));
 	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
 	if (SpatialAudio)
 	{
@@ -555,6 +594,7 @@ void UAkGameplayStatics::ResetOutdoorsRoomParams()
 
 int32 UAkGameplayStatics::PostEventOutdoors(UAkAudioEvent* AkEvent, int32 CallbackMask, const FOnAkPostEventCallback& PostEventCallback)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::PostEventOutdoors"));
 	if (UNLIKELY(!IsValid(AkEvent)))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::PostEventOutdoors: Failed to post invalid AkAudioEvent."))
@@ -575,6 +615,7 @@ int32 UAkGameplayStatics::PostEventOutdoors(UAkAudioEvent* AkEvent, int32 Callba
 
 void UAkGameplayStatics::StopOutdoors()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StopOutdoors"));
 	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -587,6 +628,7 @@ void UAkGameplayStatics::StopOutdoors()
 
 void UAkGameplayStatics::SetOutputBusVolume(float BusVolume, class AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetOutputBusVolume"));
 	if (Actor == NULL)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetOutputBusVolume: NULL Actor specified!"));
@@ -604,8 +646,9 @@ void UAkGameplayStatics::SetOutputBusVolume(float BusVolume, class AActor* Actor
 	}
 }
 
-void UAkGameplayStatics::SetBusConfig(const FString& BusName, AkChannelConfiguration ChannelConfiguration)
+void UAkGameplayStatics::SetBusConfig(const FString& BusName, EAkChannelConfiguration ChannelConfiguration)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetBusConfig"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -616,20 +659,22 @@ void UAkGameplayStatics::SetBusConfig(const FString& BusName, AkChannelConfigura
 	AudioDevice->SetBusConfig(BusName, config);
 }
 
-void UAkGameplayStatics::SetPanningRule(PanningRule PanRule)
+void UAkGameplayStatics::SetPanningRule(EPanningRule PanRule)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetPanningRule"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
 		return;
 	}
 
-	AkPanningRule AkPanRule = (PanRule == PanningRule::PanningRule_Headphones) ? AkPanningRule_Headphones : AkPanningRule_Speakers;
+	AkPanningRule AkPanRule = (PanRule == EPanningRule::PanningRule_Headphones) ? AkPanningRule_Headphones : AkPanningRule_Speakers;
 	AudioDevice->SetPanningRule(AkPanRule);
 }
 
 void UAkGameplayStatics::AddOutput(const FAkOutputSettings& in_Settings, FAkOutputDeviceID& out_DeviceID, UPARAM(ref) TArray<UAkComponent*>& in_ListenerIDs)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::AddOutput"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine))
 	{
@@ -654,7 +699,7 @@ void UAkGameplayStatics::AddOutput(const FAkOutputSettings& in_Settings, FAkOutp
 	AkOutputSettings OutSettings;
 	OutSettings.audioDeviceShareset = ShortID;
 	OutSettings.idDevice = in_Settings.IdDevice;
-	OutSettings.ePanningRule = (in_Settings.PanRule == PanningRule::PanningRule_Headphones) ? AkPanningRule_Headphones : AkPanningRule_Speakers;
+	OutSettings.ePanningRule = (in_Settings.PanRule == EPanningRule::PanningRule_Headphones) ? AkPanningRule_Headphones : AkPanningRule_Speakers;
 	FAkAudioDevice::GetChannelConfig(in_Settings.ChannelConfig, OutSettings.channelConfig);
 
 	AkOutputDeviceID outputDeviceID;
@@ -674,13 +719,14 @@ void UAkGameplayStatics::AddOutput(const FAkOutputSettings& in_Settings, FAkOutp
 	}
 	if (result != AK_Success)
 	{
-		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::AddOutput: AddOuput has failed, new output will not be added. AkResult: %s"), WwiseUnrealHelper::GetResultString(result));
+		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::AddOutput: AddOutput has failed, new output will not be added. AkResult: %s"), WwiseUnrealHelper::GetResultString(result));
 	}
 	out_DeviceID.UInt64Value = outputDeviceID;
 }
 
 void UAkGameplayStatics::RemoveOutput(FAkOutputDeviceID in_OutputDeviceId)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::RemoveOutput"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine))
 	{
@@ -693,6 +739,7 @@ void UAkGameplayStatics::RemoveOutput(FAkOutputDeviceID in_OutputDeviceId)
 
 void UAkGameplayStatics::ReplaceMainOutput(const FAkOutputSettings& MainOutputSettings)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::ReplaceMainOutput"));
 	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -712,13 +759,14 @@ void UAkGameplayStatics::ReplaceMainOutput(const FAkOutputSettings& MainOutputSe
 	AkOutputSettings OutSettings;
 	OutSettings.audioDeviceShareset = ShortID;
 	OutSettings.idDevice = MainOutputSettings.IdDevice;
-	OutSettings.ePanningRule = (MainOutputSettings.PanRule == PanningRule::PanningRule_Headphones) ? AkPanningRule_Headphones : AkPanningRule_Speakers;
+	OutSettings.ePanningRule = (MainOutputSettings.PanRule == EPanningRule::PanningRule_Headphones) ? AkPanningRule_Headphones : AkPanningRule_Speakers;
 	FAkAudioDevice::GetChannelConfig(MainOutputSettings.ChannelConfig, OutSettings.channelConfig);
 	AudioDevice->ReplaceMainOutput(OutSettings);
 }
 
 void UAkGameplayStatics::GetSpeakerAngles(TArray<float>& SpeakerAngles, float& HeightAngle, const FString& DeviceShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetSpeakerAngles"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -731,6 +779,7 @@ void UAkGameplayStatics::GetSpeakerAngles(TArray<float>& SpeakerAngles, float& H
 
 void UAkGameplayStatics::SetSpeakerAngles(const TArray<float>& SpeakerAngles, float HeightAngles, const FString& DeviceShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetSpeakerAngles"));
 	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -743,6 +792,7 @@ void UAkGameplayStatics::SetSpeakerAngles(const TArray<float>& SpeakerAngles, fl
 
 void UAkGameplayStatics::SetOcclusionRefreshInterval(float RefreshInterval, class AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetOcclusionRefreshInterval"));
 	if (Actor == NULL)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetOcclusionRefreshInterval: NULL Actor specified!"));
@@ -778,6 +828,7 @@ void UAkGameplayStatics::SetOcclusionRefreshInterval(float RefreshInterval, clas
 
 void UAkGameplayStatics::StopActor(class AActor* Actor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StopActor"));
 	if ( Actor == NULL )
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::StopActor: NULL Actor specified!"));
@@ -796,6 +847,7 @@ void UAkGameplayStatics::StopActor(class AActor* Actor)
 
 void UAkGameplayStatics::StopAll()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StopAll"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -807,6 +859,7 @@ void UAkGameplayStatics::StopAll()
 
 void UAkGameplayStatics::CancelEventCallback(const FOnAkPostEventCallback& PostEventCallback)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::CancelEventCallback"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -817,6 +870,7 @@ void UAkGameplayStatics::CancelEventCallback(const FOnAkPostEventCallback& PostE
 
 void UAkGameplayStatics::StartAllAmbientSounds(UObject* WorldContextObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StartAllAmbientSounds"));
 	AkDeviceAndWorld DeviceAndWorld(WorldContextObject);
 	if (UNLIKELY(!DeviceAndWorld.IsValid()))
 	{
@@ -840,6 +894,7 @@ void UAkGameplayStatics::StartAllAmbientSounds(UObject* WorldContextObject)
 
 void UAkGameplayStatics::StopAllAmbientSounds(UObject* WorldContextObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StopAllAmbientSounds"));
 	AkDeviceAndWorld DeviceAndWorld(WorldContextObject);
 	if (UNLIKELY(!DeviceAndWorld.IsValid()))
 	{
@@ -862,6 +917,7 @@ void UAkGameplayStatics::StopAllAmbientSounds(UObject* WorldContextObject)
 
 void UAkGameplayStatics::ClearSoundBanksAndMedia()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::ClearSoundBanksAndMedia"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -872,6 +928,7 @@ void UAkGameplayStatics::ClearSoundBanksAndMedia()
 
 void UAkGameplayStatics::LoadInitBank()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::LoadInitBank"));
 	auto* InitBankLoader = FWwiseInitBankLoader::Get();
 	if(UNLIKELY(!InitBankLoader))
 	{
@@ -884,6 +941,7 @@ void UAkGameplayStatics::LoadInitBank()
 
 void UAkGameplayStatics::UnloadInitBank()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::UnloadInitBank"));
 	auto* InitBankLoader = FWwiseInitBankLoader::Get();
 	if(UNLIKELY(!InitBankLoader))
 	{
@@ -896,6 +954,7 @@ void UAkGameplayStatics::UnloadInitBank()
 
 void UAkGameplayStatics::StartOutputCapture(const FString& Filename)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StartOutputCapture"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!AudioDevice))
 	{
@@ -911,6 +970,7 @@ void UAkGameplayStatics::StartOutputCapture(const FString& Filename)
 
 void UAkGameplayStatics::AddOutputCaptureMarker(const FString& MarkerText)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::AddOutputCaptureMarker"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if( AudioDevice )
 	{
@@ -920,6 +980,7 @@ void UAkGameplayStatics::AddOutputCaptureMarker(const FString& MarkerText)
 
 void UAkGameplayStatics::StopOutputCapture()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StopOutputCapture"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if( AudioDevice )
 	{
@@ -929,6 +990,7 @@ void UAkGameplayStatics::StopOutputCapture()
 
 void UAkGameplayStatics::StartProfilerCapture(const FString& Filename)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StartProfilerCapture"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if( AudioDevice )
 	{
@@ -943,6 +1005,7 @@ void UAkGameplayStatics::StartProfilerCapture(const FString& Filename)
 
 void UAkGameplayStatics::StopProfilerCapture()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::StopProfilerCapture"));
 	FAkAudioDevice * AudioDevice = FAkAudioDevice::Get();
 	if( AudioDevice )
 	{
@@ -952,6 +1015,7 @@ void UAkGameplayStatics::StopProfilerCapture()
 
 FString UAkGameplayStatics::GetCurrentAudioCulture()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetCurrentAudioCulture"));
 	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
 	if (AudioDevice)
 	{
@@ -963,6 +1027,7 @@ FString UAkGameplayStatics::GetCurrentAudioCulture()
 
 TArray<FString> UAkGameplayStatics::GetAvailableAudioCultures()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetAvailableAudioCultures"));
 	FAkAudioDevice* AudioDevice = FAkAudioDevice::Get();
 	if (AudioDevice)
 	{
@@ -974,6 +1039,7 @@ TArray<FString> UAkGameplayStatics::GetAvailableAudioCultures()
 
 void UAkGameplayStatics::SetCurrentAudioCulture(const FString& AudioCulture, FLatentActionInfo LatentInfo, UObject* WorldContextObject)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetCurrentAudioCulture"));
 	AkDeviceAndWorld DeviceAndWorld(WorldContextObject);
 	FLatentActionManager& LatentActionManager = DeviceAndWorld.CurrentWorld->GetLatentActionManager();
 	FSetCurrentAudioCultureAction* NewAction = LatentActionManager.FindExistingAction<FSetCurrentAudioCultureAction>(LatentInfo.CallbackTarget, LatentInfo.UUID);
@@ -995,6 +1061,7 @@ void UAkGameplayStatics::SetCurrentAudioCulture(const FString& AudioCulture, FLa
 
 void UAkGameplayStatics::SetCurrentAudioCultureAsync(const FString& AudioCulture, const FOnSetCurrentAudioCultureCallback& Completed)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetCurrentAudioCultureAsync"));
 	if (FAkAudioDevice* AudioDevice = FAkAudioDevice::Get())
 	{
 		AudioDevice->SetCurrentAudioCultureAsync(AudioCulture, FOnSetCurrentAudioCultureCompleted::CreateLambda([Completed](bool Succeeded) {
@@ -1005,6 +1072,7 @@ void UAkGameplayStatics::SetCurrentAudioCultureAsync(const FString& AudioCulture
 
 UObject* UAkGameplayStatics::GetAkAudioTypeUserData(const UAkAudioType* Instance, const UClass* Type)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::GetAkAudioTypeUserData"));
 	if (UNLIKELY(!Instance))
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::GetAkAudioTypeUserData: nullptr Instance specified!"));
@@ -1029,6 +1097,7 @@ UObject* UAkGameplayStatics::GetAkAudioTypeUserData(const UAkAudioType* Instance
 
 void UAkGameplayStatics::SetDistanceProbe(AActor* Listener, AActor* DistanceProbe)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetDistanceProbe"));
 	if (Listener == nullptr)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetDistanceProbe: NULL Listener specified!"));
@@ -1050,6 +1119,7 @@ void UAkGameplayStatics::SetDistanceProbe(AActor* Listener, AActor* DistanceProb
 
 bool UAkGameplayStatics::SetOutputDeviceEffect(const FAkOutputDeviceID InDeviceID, const int32 InEffectIndex, const UAkEffectShareSet* InEffectShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetOutputDeviceEffect"));
 	if(UNLIKELY(!InEffectShareSet)) 
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetOutputDeviceEffect: NULL Effect ShareSet specified!"));
@@ -1068,6 +1138,7 @@ bool UAkGameplayStatics::SetOutputDeviceEffect(const FAkOutputDeviceID InDeviceI
 
 bool UAkGameplayStatics::SetBusEffectByName(const FString InBusName, const int32 InEffectIndex, const UAkEffectShareSet* InEffectShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetBusEffectByName"));
 	if(UNLIKELY(!InEffectShareSet)) 
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetBusEffectByName: NULL Effect ShareSet specified!"));
@@ -1085,6 +1156,7 @@ bool UAkGameplayStatics::SetBusEffectByName(const FString InBusName, const int32
 
 bool UAkGameplayStatics::SetBusEffectByID(const FAkUniqueID InBusID, const int32 InEffectIndex, const UAkEffectShareSet* InEffectShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetBusEffectByID"));
 	if(UNLIKELY(!InEffectShareSet)) 
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetBusEffectByID: NULL Effect ShareSet specified!"));
@@ -1101,6 +1173,7 @@ bool UAkGameplayStatics::SetBusEffectByID(const FAkUniqueID InBusID, const int32
 
 bool UAkGameplayStatics::SetAuxBusEffect(const UAkAuxBus* InAuxBus, const int32 InEffectIndex, const UAkEffectShareSet* InEffectShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetAuxBusEffect"));
 	if(UNLIKELY(!InEffectShareSet)) 
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetAuxBusEffect: NULL Effect ShareSet specified!"));
@@ -1122,6 +1195,7 @@ bool UAkGameplayStatics::SetAuxBusEffect(const UAkAuxBus* InAuxBus, const int32 
 
 bool UAkGameplayStatics::SetActorMixerEffect(const FAkUniqueID InAudioNodeID,const  int32 InEffectIndex, const UAkEffectShareSet* InEffectShareSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkGameplayStatics::SetActorMixerEffect"));
 	if(UNLIKELY(!InEffectShareSet)) 
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkGameplayStatics::SetActorMixerEffect: NULL Effect ShareSet specified!"));

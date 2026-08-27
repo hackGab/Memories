@@ -20,60 +20,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 
-public class WwiseUEPlatform_2024_1_Mac : WwiseUEPlatform
+public class WwiseUEPlatform_2024_1_Mac : WwiseUEPlatform_Mac
 {
 	public WwiseUEPlatform_2024_1_Mac(ReadOnlyTargetRules in_TargetRules, string in_ThirdPartyFolder) : base(in_TargetRules, in_ThirdPartyFolder)
 	{
-	}
-
-	public override string GetLibraryFullPath(string LibName, string LibPath)
-	{
-		return Path.Combine(LibPath, "lib" + LibName + ".a");
-	}
-
-	public override bool SupportsAkAutobahn { get { return Target.Configuration != UnrealTargetConfiguration.Shipping; } }
-
-	public override bool SupportsCommunication { get { return true; } }
-
-	public override bool SupportsDeviceMemory { get { return false; } }
-
-	public override string AkPlatformLibDir { get { return "Mac_Xcode1400"; } }
-
-	public override string DynamicLibExtension { get { return "dylib"; } }
-
-	public override List<string> GetAdditionalWwiseLibs()
-	{
-		return new List<string>();
-	}
-	
-	public override List<string> GetPublicSystemLibraries()
-	{
-		return new List<string>();
-	}
-
-	public override List<string> GetPublicDelayLoadDLLs()
-	{
-		return new List<string>();
-	}
-
-	public override List<string> GetPublicDefinitions()
-	{
-		return new List<string>();
-	}
-
-	public override Tuple<string, string> GetAdditionalPropertyForReceipt(string ModuleDirectory)
-	{
-		return null;
-	}
-
-	public override List<string> GetPublicFrameworks()
-	{
-		return new List<string>
-		{
-			"AudioUnit",
-			"AudioToolbox",
-			"AVFoundation",
-			"CoreAudio"
-		};
 	}
 }

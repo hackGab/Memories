@@ -51,20 +51,20 @@ the specific language governing permissions and limitations under the License.
  * You can also subscribe to notifications through ak_wwise_plugin_notifications_property_set_v1 in order to
  * be informed when some property set values changed.
  * 
- * \aknote
- * 		Most methods assume you acquired access to a platform as a GUID; either provided by the caller function,
- *		or retrieved through the Host interface.
- * 
- * 		The usual providers of this GUID are \ref ak_wwise_plugin_audio_plugin_v1::GetBankParameters
- * 		and \ref ak_wwise_plugin_audio_plugin_v1::GetPluginData method parameters.
- * 
- * 		You can also poll up-to-date GUIDs from \ref ak_wwise_plugin_host_v1 methods, such as
- * 		\ref ak_wwise_plugin_host_v1::GetCurrentPlatform.
- * 
- * 		Finally, you can also provide GUID_NULL as a parameter, which will access data for all platforms at
- * 		once (linked value). This is adequate only in certain cases where no platform-specific data is
- * 		possible for a value. Using the current platform is always the preferred method of access. 
- * \endaknote
+ * The methods in this interface which use in_guidPlatform as an input parameter assume that you have access to
+ * a Platform defined as a GUID, either provided by the caller function or retrieved through the
+ * Host interface.
+ *
+ * You can retrieve GUIDs in the following ways:
+ *
+ * - Use the in_guidPlatform provided as an input parameter in \ref ak_wwise_plugin_audio_plugin_v1::GetBankParameters
+ *   or \ref ak_wwise_plugin_custom_data_v1::GetPluginData
+ * - Poll the currently-active platform from \ref ak_wwise_plugin_host_v1::GetCurrentPlatform or
+ *   \ref ak_wwise_plugin_host_v1::GetAuthoringPlaybackPlatform
+ *
+ * You can also provide GUID_NULL as a parameter, which accesses data for all platforms at once
+ * as a linked value. However, GUID_NULL only works when no platform-specific data is possible
+ * for a value. Using the current platform is always the preferred access method.
  * 
  * \sa
  * - \ref wwiseplugin_xml_properties_tag

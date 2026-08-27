@@ -38,7 +38,7 @@ namespace AK
 			/// <summary>
 			/// Wwise SDK major version
 			/// </summary>
-            public const int Major = 2024;
+            public const int Major = 2025;
 
 			/// <summary>
 			/// Wwise SDK minor version
@@ -48,12 +48,12 @@ namespace AK
 			/// <summary>
 			/// Wwise SDK sub-minor version
 			/// </summary>
-            public const int SubMinor = 5;
+            public const int SubMinor = 4;
 
 			/// <summary>
 			/// Wwise SDK build number
 			/// </summary>
-            public const int Build = 8803;
+            public const int Build = 9062;
 
 			/// <summary>
 			/// Wwise SDK build nickname
@@ -78,12 +78,12 @@ namespace AK
             /// <summary>
             /// String representing the Wwise SDK version
             /// </summary>
-            public const string AssemblyVersion = "2024.1.5.8803";
+            public const string AssemblyVersion = "2025.1.4.9062";
 
 			/// <summary>
 			/// String representing the Wwise SDK copyright notice
 			/// </summary>
-            public const string CopyrightNotice = "\xA9 2006-2024. Audiokinetic Inc. All rights reserved.";
+            public const string CopyrightNotice = "\xA9 2006-2025. Audiokinetic Inc. All rights reserved.";
 
             #endregion Wwise SDK Version - String values
         }

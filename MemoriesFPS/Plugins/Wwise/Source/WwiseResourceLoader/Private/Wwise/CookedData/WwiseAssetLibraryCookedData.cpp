@@ -80,13 +80,13 @@ void FWwiseAssetLibraryCookedData::SerializeBulkData(FArchive& Ar, const FWwiseP
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseAssetLibraryCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
+void FWwiseAssetLibraryCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
 {
 	Writer << "Files";
 	Writer.BeginArray();
 	for (auto& PackagedFile : PackagedFiles)
 	{
-		SaveContext.AddCookBuildDependency(PackagedFile.GetCookDependency());
+		WwiseCookEventContext::AddLoadBuildDependency(Context,PackagedFile.GetCookDependency());
 		PackagedFile.FillCbObject(Writer);
 	}
 	Writer.EndArray();

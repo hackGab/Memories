@@ -97,8 +97,8 @@ struct WWISECONCURRENCY_API FWwiseDeferredQueue
 protected:
 	FWwiseExecutionQueue AsyncExecutionQueue;
 
-	using FOps = TQueue<FFunction, EQueueMode::Mpsc>;
-	using FSyncOps = TQueue<FSyncFunction, EQueueMode::Mpsc>;
+	using FOps = TLockFreePointerListFIFO<FFunction, PLATFORM_CACHE_LINE_SIZE>;
+	using FSyncOps = TLockFreePointerListFIFO<FSyncFunction, PLATFORM_CACHE_LINE_SIZE>;
 	FOps AsyncOpQueue;
 	FSyncOps SyncOpQueue;
 	FOps GameOpQueue;

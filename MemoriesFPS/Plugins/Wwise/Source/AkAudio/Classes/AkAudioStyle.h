@@ -43,9 +43,9 @@ public:
 	static const FSlateBrush* GetBrush(EWwiseItemType::Type ItemType);
 	static const FSlateBrush* GetBrush(WwiseRefType WwiseRefType);
 	static const FSlateBrush* GetBrush(UClass* Class);
-#endif
 	static const FSlateBrush* GetBrush(FName PropertyName, const ANSICHAR* Specifier = NULL);
 	static const FSlateFontInfo GetFontStyle(FName PropertyName, const ANSICHAR* Specifier = NULL);
+#endif
 	static UMaterial* GetAkForegroundTextMaterial();
 	/** returns a color from the WwiseUnrealColorPalette (taken from the dark theme in the Wwise Authoring tool). Use a colorIndex of -1 to use the 'default' color. */
 	static FLinearColor GetWwiseObjectColor(int colorIndex);

@@ -33,6 +33,7 @@ the specific language governing permissions and limitations under the License.
 #define _AKSET_H_
 
 #include <AK/Tools/Common/AkKeyArray.h>
+#include "AK/SoundEngine/Common/IAkPluginMemAlloc.h"
 
 // AkSetType
 //	- An optional set type specifier which is passed into some set operations.  If it is not included, SetType_Inclusion is assumed.
@@ -57,6 +58,36 @@ class AkSet : public AkSortedKeyArray < T, T, U_POOL, AkSetGetKey<T>, uGrowBy, T
 {
 public:
 	bool Contains(T in_item) const { return AkSortedKeyArray < T, T, U_POOL, AkSetGetKey<T>, uGrowBy, TMovePolicy, TComparePolicy >::Exists(in_item) != NULL; }
+};
+
+// AkBookmarkSet
+//
+//	Same as AkSet, but uses the bookmark allocator for short term allocations.
+//  Example usage:
+// 
+//		AK::BookmarkAlloc::BookmarkAllocRegion mark; // scoped bookmark 
+//		AkBookmarkSet<AkUInt32> mySet(AK::BookmarkAlloc::MemAlloc::GetAllocator()); 
+//		mySet.Set(1); // use the set .. 
+//		...
+//		// memory is freed when bookmark falls out of scope. Do not call Term();
+//
+template< typename T, class TMovePolicy = AkAssignmentMovePolicy<T>, class TComparePolicy = AkDefaultSortedKeyCompare<T> > 
+class AkBookmarkSet : public AkSet<T, AkPluginArrayAllocator, AkGrowByPolicy_DEFAULT, TMovePolicy, TComparePolicy>
+{
+	using tBase = AkSet<T, AkPluginArrayAllocator, AkGrowByPolicy_DEFAULT, TMovePolicy, TComparePolicy>;
+public:
+	AkBookmarkSet(AK::IAkPluginMemAlloc* in_pAllocator)
+	{
+		AkPluginArrayAllocator::Init(in_pAllocator);
+	}
+
+	~AkBookmarkSet()
+	{
+		// The memory will get cleaned up when AK::BookmarkAlloc::BookmarkAllocRegion mark goes out of scope.
+		tBase::m_uLength = 0;
+		tBase::m_ulReserved = 0;
+		tBase::m_pItems = nullptr;
+	}
 };
 
 // AkDisjoint

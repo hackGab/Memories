@@ -39,10 +39,6 @@ the specific language governing permissions and limitations under the License.
 #endif
 #include <stdlib.h>
 
-#if defined(AK_SUPPORT_THREADS)
-#include <pthread.h>
-#endif
-
 #define AK_POSIX_NO_ERR 0
 #define AK_POSIX
 
@@ -102,10 +98,6 @@ namespace AK
 
 #define AK_INFINITE                             (AK_UINT_MAX)
 
-#define AkMax(x1, x2)	(((x1) > (x2))? (x1): (x2))
-#define AkMin(x1, x2)	(((x1) < (x2))? (x1): (x2))
-#define AkClamp(x, min, max)  ((x) < (min)) ? (min) : (((x) > (max) ? (max) : (x)))
-
 #pragma GCC visibility push(hidden)
 
 namespace AKPLATFORM
@@ -144,6 +136,19 @@ namespace AKPLATFORM
 	inline void AkWaitForEvent( AkEvent & in_event )
 	{
 		AKVERIFY( sem_wait( &in_event ) == AK_POSIX_NO_ERR );
+	}
+
+	// Returns true if event signaled, false if timed out
+	inline bool AkWaitForEvent( AkEvent & in_event, AkUInt32 in_dwMilliseconds )
+	{
+		AKASSERT( in_dwMilliseconds != 0xFFFFFFFF ); // does not support INFINITE
+
+		timespec ts;
+		ts.tv_sec = in_dwMilliseconds / 1000;
+		ts.tv_nsec = (in_dwMilliseconds % 1000) * 1000000;
+
+		int kr = sem_timedwait( &in_event, &ts );
+		return kr == AK_POSIX_NO_ERR;
 	}
 
 	/// Platform Independent Helper
@@ -190,179 +195,7 @@ namespace AKPLATFORM
 			AKVERIFY(sem_post(&in_semaphore) == AK_POSIX_NO_ERR);
 		}
 	}
-#endif	
-
-#if defined(AK_SUPPORT_THREADS)
-    // Threads
-    // ------------------------------------------------------------------
-
-	/// Platform Independent Helper
-	inline bool AkIsValidThread( AkThread * in_pThread )
-	{
-		return (*in_pThread != AK_NULL_THREAD);
-	}
-
-	/// Platform Independent Helper
-	inline void AkClearThread( AkThread * in_pThread )
-	{
-		*in_pThread = AK_NULL_THREAD;
-	}
-
-	/// Platform Independent Helper
-    inline void AkCloseThread( AkThread * in_pThread )
-    {
-        AKASSERT( in_pThread );
-        AKASSERT( *in_pThread );
-		
-        AkClearThread( in_pThread );
-    }
-
-	/// Platform Independent Helper
-	inline void AkGetDefaultThreadProperties( AkThreadProperties & out_threadProperties )
-	{
-		out_threadProperties.uStackSize		= AK_DEFAULT_STACK_SIZE;
-		out_threadProperties.uSchedPolicy	= AK_THREAD_DEFAULT_SCHED_POLICY;
-		out_threadProperties.nPriority		= AK_THREAD_PRIORITY_NORMAL;
-		out_threadProperties.dwAffinityMask = AK_THREAD_AFFINITY_DEFAULT;	
-	}
-
-#if !defined(AK_ANDROID) && !defined(AK_LINUX_AOSP) && !defined(AK_HARMONY)
-	/// Platform Independent Helper
-	inline void AkCreateThread( 
-		AkThreadRoutine pStartRoutine,					// Thread routine.
-		void * pParams,									// Routine params.
-		const AkThreadProperties & in_threadProperties,	// Properties. NULL for default.
-		AkThread * out_pThread,							// Returned thread handle.
-		const char * /*in_szThreadName*/ )				// Opt thread name.
-    {
-		AKASSERT( out_pThread != NULL );
-		
-		pthread_attr_t  attr;
-		
-		// Create the attr
-		AKVERIFY(!pthread_attr_init(&attr));
-		// Set the stack size
-#ifndef AK_EMSCRIPTEN 
-		// Apparently Emscripten doesn't like that we try to specify stack sizes.
-		AKVERIFY(!pthread_attr_setstacksize(&attr,in_threadProperties.uStackSize));
-#endif //AK_EMSCRIPTEN
-		
-		AKVERIFY(!pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE));
-		
-		// Try to set the thread policy
-		int sched_policy = in_threadProperties.uSchedPolicy;
-		if( pthread_attr_setschedpolicy( &attr, sched_policy )  )
-		{
-			AKASSERT( !"AKCreateThread invalid sched policy, will automatically set it to FIFO scheduling" );
-			sched_policy = AK_THREAD_DEFAULT_SCHED_POLICY;
-			AKVERIFY( !pthread_attr_setschedpolicy( &attr, sched_policy ));
-		}
-
-		// Get the priority for the policy
-		int minPriority, maxPriority;
-		minPriority = sched_get_priority_min(sched_policy);
-		maxPriority = sched_get_priority_max(sched_policy);
-		
-		// Set the thread priority if valid
-		AKASSERT( in_threadProperties.nPriority >= minPriority && in_threadProperties.nPriority <= maxPriority );
-		if(  in_threadProperties.nPriority >= minPriority && in_threadProperties.nPriority <= maxPriority )
-		{
-			sched_param schedParam;
-			AKVERIFY( !pthread_attr_getschedparam(&attr, &schedParam));
-			schedParam.sched_priority = in_threadProperties.nPriority;
-			AKVERIFY( !pthread_attr_setschedparam( &attr, &schedParam ));
-		}
-#ifdef AK_APPLE
-		int inherit;
-		pthread_attr_getinheritsched(&attr, &inherit );
-		pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED );
 #endif
-		// Create the tread
-		int     threadError = pthread_create( out_pThread, &attr, pStartRoutine, pParams);
-		AKASSERT( threadError == 0 );
-		AKVERIFY(!pthread_attr_destroy(&attr));
-		
-		if( threadError != 0 )
-		{
-			AkClearThread( out_pThread );
-			return;
-		}
-
-		// ::CreateThread() return NULL if it fails.
-        if ( !*out_pThread )
-        {
-			AkClearThread( out_pThread );
-            return;
-        }		
-    }
-#endif
-
-	/// Platform Independent Helper
-    inline void AkWaitForSingleThread( AkThread * in_pThread )
-    {
-        AKASSERT( in_pThread );
-        AKASSERT( *in_pThread );
-		AKVERIFY(!pthread_join( *in_pThread, NULL ));
-    }
-
-	/// Returns the calling thread's ID.
-	inline AkThreadID CurrentThread()
-	{
-		return pthread_self();
-	}
-
-#else // AK_SUPPORT_THREADS
-
-	inline bool AkIsValidThread( AkThread * in_pThread )
-	{
-		return false;
-	}
-
-	inline void AkClearThread( AkThread * in_pThread )
-	{
-	}
-
-	inline void AkCloseThread( AkThread * in_pThread )
-	{
-	}
-
-	/// Platform Independent Helper
-	inline void AkGetDefaultThreadProperties( AkThreadProperties & out_threadProperties )
-	{
-		out_threadProperties.uStackSize		= AK_DEFAULT_STACK_SIZE;
-		out_threadProperties.uSchedPolicy	= AK_THREAD_DEFAULT_SCHED_POLICY;
-		out_threadProperties.nPriority		= AK_THREAD_PRIORITY_NORMAL;
-		out_threadProperties.dwAffinityMask = AK_THREAD_AFFINITY_DEFAULT;	
-	}
-
-	inline void AkCreateThread( 
-		AkThreadRoutine pStartRoutine,					// Thread routine.
-		void * pParams,									// Routine params.
-		const AkThreadProperties & in_threadProperties,	// Properties. NULL for default.
-		AkThread * out_pThread,							// Returned thread handle.
-		const char * /*in_szThreadName*/ )				// Opt thread name.
-	{
-	}
-
-	/// Platform Independent Helper
-	inline void AkWaitForSingleThread( AkThread * in_pThread )
-	{
-	}
-
-	/// Returns the calling thread's ID.
-	inline AkThreadID CurrentThread()
-	{
-		return 1;
-	}
-
-#endif // AK_SUPPORT_THREADS
-
-	/// Platform Independent Helper
-    inline void AkSleep( AkUInt32 in_ulMilliseconds )
-    {
-		// usleep in micro second
-		usleep( in_ulMilliseconds * 1000 );
-    }
 
 	/// Platform Independent Helper
     inline void UpdatePerformanceFrequency()

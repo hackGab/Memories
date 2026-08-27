@@ -68,7 +68,13 @@ public:
 	virtual void UnloadData(bool bAsync = false);
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
+public:
+#if UE_5_6_OR_LATER
+	virtual void OnCookEvent(UE::Cook::ECookEvent CookEvent, UE::Cook::FCookEventContext& Context) override;
+#else
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
+#endif
+
 	static void HashDependenciesForCook(FCbFieldViewIterator Args, UE::Cook::FCookDependencyContext& Context);
 #endif
 

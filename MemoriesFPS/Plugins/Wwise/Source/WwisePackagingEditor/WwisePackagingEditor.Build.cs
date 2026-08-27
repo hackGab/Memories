@@ -39,6 +39,7 @@ public class WwisePackagingEditor : ModuleRules
 			});
 			PrivateDependencyModuleNames.AddRange(new string[] {
 				"AssetTools",
+				"DeveloperToolSettings",
 				"Engine",
 				"InputCore",
 				"Slate",

@@ -273,8 +273,17 @@ IAudioLinkFactory::FAudioLinkSourcePushedSharedPtr FWwiseAudioLinkFactory::Creat
 		UE_LOG(LogWwiseAudioLink, Error, TEXT("FWwiseAudioLinkFactory::CreateSourcePushedAudioLink: AkAudio not initialized."));
 		return {};
 	}
+	
+	const FWwiseAudioLinkSettingsProxy* WwiseSettings = static_cast<FWwiseAudioLinkSettingsProxy*>(InArgs.Settings.Get());
+	{
+		if (!WwiseSettings->GetStartEvent().IsValid())
+		{
+			UE_LOG(LogWwiseAudioLink, Error, TEXT("FWwiseAudioLinkFactory::CreateSourcePushedAudioLink: No (or invalid) StartEvent specified in the settings."));
+			return {};
+		}
+	}
 
-	UE_LOG(LogWwiseAudioLink, VeryVerbose, TEXT("FWwiseAudioLinkFactory: Creating AudioLink SourcePushed"));
+	UE_LOG(LogWwiseAudioLink, VeryVerbose, TEXT("FWwiseAudioLinkFactory::CreateSourcePushedAudioLink Creating AudioLink SourcePushed"));
 
 	return MakeShared<FWwiseAudioLinkSourcePushed, ESPMode::ThreadSafe>(InArgs,this);
 }

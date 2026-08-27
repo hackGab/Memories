@@ -49,6 +49,32 @@ FWwiseResourceCookerImpl::~FWwiseResourceCookerImpl()
 }
 
 
+void FWwiseResourceCookerImpl::CookAudioNode(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename,
+	const WriteAdditionalFileFunction& WriteAdditionalFile)
+{
+	if (UNLIKELY(!CookingCache))
+	{
+		UE_LOG(LogWwiseResourceCooker, Error, TEXT("CookAudioNode: No CookingCache."));
+		return;
+	}
+
+	if (const auto* CachedCookedData = CookingCache->AudioNodeCache.Find(InInfo))
+	{
+		CookAudioNodeToSandbox(*CachedCookedData, PackageFilename, WriteAdditionalFile);
+	}
+	else
+	{
+		FWwiseAudioNodeCookedData CookedData;
+		if (UNLIKELY(!GetAudioNodeCookedData(CookedData,*GetOwnerContentFolder(Owner), InInfo)))
+		{
+			return;
+		}
+
+		CookingCache->AudioNodeCache.Add(InInfo, CookedData);
+		CookAudioNodeToSandbox(CookedData, PackageFilename, WriteAdditionalFile);
+	}
+}
+
 void FWwiseResourceCookerImpl::CookAuxBus(const FWwiseObjectInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename,
 	const WriteAdditionalFileFunction& WriteAdditionalFile)
 {
@@ -72,6 +98,32 @@ void FWwiseResourceCookerImpl::CookAuxBus(const FWwiseObjectInfo& InInfo, const 
 
 		CookingCache->AuxBusCache.Add(InInfo, CookedData);
 		CookLocalizedAuxBusToSandbox(CookedData, PackageFilename, WriteAdditionalFile);
+	}
+}
+
+void FWwiseResourceCookerImpl::CookDialogueEvent(const FWwiseDialogueEventInfo& InInfo, const UObject* Owner, const TCHAR* PackageFilename,
+	const WriteAdditionalFileFunction& WriteAdditionalFile)
+{
+	if (UNLIKELY(!CookingCache))
+	{
+		UE_LOG(LogWwiseResourceCooker, Error, TEXT("CookDialogueEvent: No CookingCache."));
+		return;
+	}
+
+	if (const auto* CachedCookedData = CookingCache->DialogueEventCache.Find(InInfo))
+	{
+		CookLocalizedDialogueEventToSandbox(*CachedCookedData, PackageFilename, WriteAdditionalFile);
+	}
+	else
+	{
+		FWwiseLocalizedDialogueEventCookedData CookedData;
+		if (UNLIKELY(!GetDialogueEventCookedData(CookedData, *GetOwnerContentFolder(Owner), InInfo)))
+		{
+			return;
+		}
+
+		CookingCache->DialogueEventCache.Add(InInfo, CookedData);
+		CookLocalizedDialogueEventToSandbox(CookedData, PackageFilename, WriteAdditionalFile);
 	}
 }
 
@@ -430,6 +482,31 @@ bool FWwiseResourceCookerImpl::PrepareCookedData(FWwiseAudioDeviceShareSetCooked
 	return false;
 }
 
+bool FWwiseResourceCookerImpl::PrepareCookedData(FWwiseAudioNodeCookedData& OutCookedData, const UObject* Owner, const FWwiseObjectInfo& InInfo)
+{
+	if (OutCookedData.IsInitialized())
+	{
+		return true;
+	}
+	
+	if (!CookingCache)
+	{
+		return GetAudioNodeCookedData(OutCookedData, *GetOwnerContentFolder(Owner), InInfo);
+	}
+
+	if (const auto* CachedCookedData = CookingCache->AudioNodeCache.Find(InInfo))
+	{
+		OutCookedData = *CachedCookedData;
+		return true;
+	}
+	if (LIKELY(GetAudioNodeCookedData(OutCookedData, *GetOwnerContentFolder(Owner), InInfo)))
+	{
+		CookingCache->AudioNodeCache.Add(InInfo, OutCookedData);
+		return true;
+	}
+	return false;
+}
+
 bool FWwiseResourceCookerImpl::PrepareCookedData(FWwiseLocalizedAuxBusCookedData& OutCookedData, const UObject* Owner,
                                                  const FWwiseObjectInfo& InInfo)
 {
@@ -446,6 +523,27 @@ bool FWwiseResourceCookerImpl::PrepareCookedData(FWwiseLocalizedAuxBusCookedData
 	if (LIKELY(GetAuxBusCookedData(OutCookedData, *GetOwnerContentFolder(Owner), InInfo)))
 	{
 		CookingCache->AuxBusCache.Add(InInfo, OutCookedData);
+		return true;
+	}
+	return false;
+}
+
+bool FWwiseResourceCookerImpl::PrepareCookedData(FWwiseLocalizedDialogueEventCookedData& OutCookedData, const UObject* Owner,
+	const FWwiseDialogueEventInfo& InInfo)
+{
+	if (!CookingCache)
+	{
+		return GetDialogueEventCookedData(OutCookedData, *GetOwnerContentFolder(Owner), InInfo);
+	}
+
+	if (const auto* CachedCookedData = CookingCache->DialogueEventCache.Find(InInfo))
+	{
+		OutCookedData = *CachedCookedData;
+		return true;
+	}
+	if (LIKELY(GetDialogueEventCookedData(OutCookedData, *GetOwnerContentFolder(Owner), InInfo)))
+	{
+		CookingCache->DialogueEventCache.Add(InInfo, OutCookedData);
 		return true;
 	}
 	return false;
@@ -732,7 +830,7 @@ FString FWwiseResourceCookerImpl::GetOwnerContentFolder(const UObject* Owner) co
 	}
 
 	//Extract the full plugin folder using the name.
-	if(!ContentFolder.IsEmpty() && ContentFolder != "Game" && ContentFolder != "Engine")
+	if(!ContentFolder.IsEmpty() && ContentFolder != "Game" && ContentFolder != "Engine" && ContentFolder != "Temp")
 	{
 		const auto PluginInfo = IPluginManager::Get().FindPlugin(ContentFolder);
 		const FString FullPluginPath = PluginInfo->GetDescriptorFileName();
@@ -761,6 +859,19 @@ void FWwiseResourceCookerImpl::CookLocalizedAuxBusToSandbox(const FWwiseLocalize
 			*InCookedData.DebugName.ToString(), *AuxBus.Key.GetLanguageName().ToString(),
 			(uint32)AuxBus.Key.GetLanguageId());
 		CookAuxBusToSandbox(AuxBus.Value, PackageFilename, WriteAdditionalFile);
+	}
+}
+
+void FWwiseResourceCookerImpl::CookLocalizedDialogueEventToSandbox(const FWwiseLocalizedDialogueEventCookedData& InCookedData,
+	const TCHAR* PackageFilename,
+	const WriteAdditionalFileFunction& WriteAdditionalFile)
+{
+	for (const auto& DialogueEvent : InCookedData.DialogueEventLanguageMap)
+	{
+		UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("Cooking DialogueEvent %s in %s %" PRIu32),
+			*InCookedData.DebugName.ToString(), *DialogueEvent.Key.GetLanguageName().ToString(),
+			(uint32)DialogueEvent.Key.GetLanguageId());
+		CookDialogueEventToSandbox(DialogueEvent.Value, PackageFilename, WriteAdditionalFile);
 	}
 }
 
@@ -1059,6 +1170,23 @@ void FWwiseResourceCookerImpl::PrepareResourceCookerForPlatform(FWwiseProjectDat
 	}
 }
 
+void FWwiseResourceCookerImpl::CookAudioNodeToSandbox(const FWwiseAudioNodeCookedData& InCookedData,
+	const TCHAR* PackageFilename,
+	const WriteAdditionalFileFunction& WriteAdditionalFile)
+{
+	UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("Cooking AudioNode %" PRIu32), (uint32)InCookedData.AudioNodeId);
+	for (const auto& SoundBank : InCookedData.SoundBanks)
+	{
+		CookSoundBankToSandbox(SoundBank, PackageFilename, WriteAdditionalFile);
+	}
+	for (const auto& Media : InCookedData.Media)
+	{
+		CookMediaToSandbox(Media, PackageFilename, WriteAdditionalFile);
+	}
+	UE_LOG(LogWwiseResourceCooker, VeryVerbose, TEXT("Done cooking AudioNode %" PRIu32),
+		(uint32)InCookedData.AudioNodeId);
+}
+
 void FWwiseResourceCookerImpl::CookAuxBusToSandbox(const FWwiseAuxBusCookedData& InCookedData,
 	const TCHAR* PackageFilename,
 	const WriteAdditionalFileFunction& WriteAdditionalFile)
@@ -1075,6 +1203,36 @@ void FWwiseResourceCookerImpl::CookAuxBusToSandbox(const FWwiseAuxBusCookedData&
 	}
 	UE_LOG(LogWwiseResourceCooker, VeryVerbose, TEXT("Done cooking AuxBus %s %" PRIu32),
 		*InCookedData.DebugName.ToString(), (uint32)InCookedData.AuxBusId);
+}
+
+void FWwiseResourceCookerImpl::CookDialogueEventToSandbox(const FWwiseDialogueEventCookedData& InCookedData, const TCHAR* PackageFilename,
+	const WriteAdditionalFileFunction& WriteAdditionalFile)
+{
+	UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("Cooking Event %s %" PRIu32), *InCookedData.DebugName.ToString(),
+		(uint32)InCookedData.DialogueEventId);
+	for (const auto& SoundBank : InCookedData.SoundBanks)
+	{
+		CookSoundBankToSandbox(SoundBank, PackageFilename, WriteAdditionalFile);
+	}
+	for (const auto& AudioNode : InCookedData.AudioNodes)
+	{
+		UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("Cooking DialogueEvent %s %" PRIu32 " AudioNode %" PRIu32),
+			*InCookedData.DebugName.ToString(), (uint32)InCookedData.DialogueEventId, AudioNode.Value.AudioNodeId);
+		for (const auto& SoundBank : AudioNode.Value.SoundBanks)
+		{
+			CookSoundBankToSandbox(SoundBank, PackageFilename, WriteAdditionalFile);
+		}
+		for (const auto& Media : AudioNode.Value.Media)
+		{
+			CookMediaToSandbox(Media, PackageFilename, WriteAdditionalFile);
+		}
+		for (const auto& ExternalSource : AudioNode.Value.ExternalSources)
+		{
+			CookExternalSourceToSandbox(ExternalSource, PackageFilename, WriteAdditionalFile);
+		}
+	}
+	UE_LOG(LogWwiseResourceCooker, VeryVerbose, TEXT("Done cooking DialogueEvent %s %" PRIu32),
+		*InCookedData.DebugName.ToString(), (uint32)InCookedData.DialogueEventId);
 }
 
 void FWwiseResourceCookerImpl::CookEventToSandbox(const FWwiseEventCookedData& InCookedData,
@@ -1095,19 +1253,19 @@ void FWwiseResourceCookerImpl::CookEventToSandbox(const FWwiseEventCookedData& I
 	{
 		CookExternalSourceToSandbox(ExternalSource, PackageFilename, WriteAdditionalFile);
 	}
-	for (const auto& SwitchContainerLeaf : InCookedData.SwitchContainerLeaves)
+	for (const auto& AudioNode : InCookedData.AudioNodes)
 	{
 		UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("Cooking Event %s %" PRIu32 " Switched Media"),
 			*InCookedData.DebugName.ToString(), (uint32)InCookedData.EventId);
-		for (const auto& SoundBank : SwitchContainerLeaf.SoundBanks)
+		for (const auto& SoundBank : AudioNode.Value.SoundBanks)
 		{
 			CookSoundBankToSandbox(SoundBank, PackageFilename, WriteAdditionalFile);
 		}
-		for (const auto& Media : SwitchContainerLeaf.Media)
+		for (const auto& Media : AudioNode.Value.Media)
 		{
 			CookMediaToSandbox(Media, PackageFilename, WriteAdditionalFile);
 		}
-		for (const auto& ExternalSource : SwitchContainerLeaf.ExternalSources)
+		for (const auto& ExternalSource : AudioNode.Value.ExternalSources)
 		{
 			CookExternalSourceToSandbox(ExternalSource, PackageFilename, WriteAdditionalFile);
 		}
@@ -1356,6 +1514,17 @@ bool FWwiseResourceCookerImpl::GetAudioDeviceShareSetCookedData(FWwiseAudioDevic
 	return true;
 }
 
+bool FWwiseResourceCookerImpl::GetAudioNodeCookedData(FWwiseAudioNodeCookedData& OutCookedData, const TCHAR* ContentFolderName,
+	const FWwiseObjectInfo& InInfo) const
+{
+	UE_LOG(LogWwiseResourceCooker, Verbose,
+		TEXT("GetAudioNodeCookedData (%s %" PRIu32 " %s): AudioNodes are not exposed in current version of the ProjectDatabase."),
+		*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+	OutCookedData.AudioNodeId = InInfo.WwiseShortId;
+	return true;
+
+}
+
 bool FWwiseResourceCookerImpl::GetAuxBusCookedData(FWwiseLocalizedAuxBusCookedData& OutCookedData, const TCHAR* ContentFolderName,
 	const FWwiseObjectInfo& InInfo) const
 {
@@ -1592,6 +1761,360 @@ bool FWwiseResourceCookerImpl::GetAuxBusCookedData(FWwiseLocalizedAuxBusCookedDa
 		}
 
 		UE_LOG(LogWwiseResourceCooker, VeryVerbose, TEXT("GetAuxBusCookedData (%s %" PRIu32 " %s): AuxBus is a SFX"),
+			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		std::remove_reference_t<decltype(Map)> SfxMap;
+		SfxMap.Add(FWwiseLanguageCookedData::Sfx, *Lhs);
+
+		Map = SfxMap;
+	}
+
+	return true;
+}
+
+bool FWwiseResourceCookerImpl::GetDialogueEventCookedData(FWwiseLocalizedDialogueEventCookedData& OutCookedData, const TCHAR* ContentFolderName,
+	const FWwiseDialogueEventInfo& InInfo) const
+{
+	OutCookedData.DialogueEventId = InInfo.WwiseShortId;
+	OutCookedData.DebugName = InInfo.WwiseName;
+	
+	const auto* ProjectDatabase = GetProjectDatabase();
+	if (UNLIKELY(!ProjectDatabase))
+	{
+		UE_LOG(LogWwiseResourceCooker, Error,
+			TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): ProjectDatabase not initialized"),
+			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		return false;
+	}
+
+	const WwiseDataStructureScopeLock DataStructure(*ProjectDatabase);
+	const auto* PlatformData = DataStructure.GetCurrentPlatformData();
+	if (UNLIKELY(!PlatformData))
+	{
+		UE_LOG(LogWwiseResourceCooker, Error, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): No data for platform"),
+			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		return false;
+	}
+
+	const WwiseDBSet<WwiseDBSharedLanguageId>& Languages = DataStructure.GetLanguages();
+
+	const auto* PlatformInfo = PlatformData->PlatformRef.GetPlatformInfo();
+	if (UNLIKELY(!PlatformInfo))
+	{
+		UE_LOG(LogWwiseResourceCooker, Warning, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): No Platform Info"),
+			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		return false;
+	}
+
+	WwiseDBMap<WwiseDBSharedLanguageId, WwiseDBSet<WwiseRefDialogueEvent>> RefLanguageMap;
+	PlatformData->GetRefMap(RefLanguageMap, Languages, ConvertWwiseObjectInfo(InInfo));
+	if (UNLIKELY(RefLanguageMap.Size() == 0))
+	{
+		UE_LOG(LogWwiseResourceCooker, Warning, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): No ref found"),
+			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		return false;
+	}
+
+	//As we don't know the new size of the required arguments, leaving it 0.
+	OutCookedData.RequiredArguments.Empty();
+
+	OutCookedData.DialogueEventLanguageMap.Empty(RefLanguageMap.Size());
+	UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Adding %llu languages to map"),
+		*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString(), RefLanguageMap.Size());
+
+	for (auto& Ref : RefLanguageMap)
+	{
+		WwiseDBPair<const WwiseDBSharedLanguageId, WwiseDBSet<WwiseRefDialogueEvent>> RefPair(Ref);
+		FWwiseDialogueEventCookedData CookedData;
+
+		WwiseDBSet<FWwiseSoundBankCookedData> SoundBankSet;
+		WwiseDBSet<FWwiseMediaCookedData> MediaSet;
+
+		const WwiseDBSharedLanguageId& LanguageId = RefPair.GetFirst();
+		WwiseDBSet<WwiseRefDialogueEvent> Events = RefPair.GetSecond();
+
+		if (UNLIKELY(Events.Size() == 0))
+		{
+			UE_LOG(LogWwiseResourceCooker, Warning,
+				TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Empty ref for language"),
+				*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+			return false;
+		}
+
+		// Set up basic global Event information
+		{
+			auto FirstEvent(Events.GetFirst());
+			CookedData.DialogueEventId = FirstEvent.DialogueEventId();
+			if (ExportDebugNameRule != EWwiseExportDebugNameRule::Release)
+			{
+				CookedData.DebugName = FName(*((ExportDebugNameRule == EWwiseExportDebugNameRule::Name)
+					? *FirstEvent.DialogueEventName()
+					: *FirstEvent.DialogueEventObjectPath()));
+				OutCookedData.DebugName = CookedData.DebugName;
+			}
+
+			OutCookedData.DialogueEventId = CookedData.DialogueEventId;
+		}
+
+		// Add mandatory SoundBank information
+		WwiseDBSet<FWwiseExternalSourceCookedData> ExternalSourceSet;
+		for (auto& EventRef : Events)
+		{
+			const WwiseMetadataDialogueEvent* Event = EventRef.GetDialogueEvent();
+			if (UNLIKELY(!Event))
+			{
+				UE_LOG(LogWwiseResourceCooker, Warning,
+					TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Could not get DialogueEvent from Ref"),
+					*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+				return false;
+			}
+
+			// Add main SoundBank
+			{
+				const auto* SoundBank = EventRef.GetSoundBank();
+				if (UNLIKELY(!SoundBank))
+				{
+					UE_LOG(LogWwiseResourceCooker, Warning,
+						TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Could not get SoundBank from Ref"),
+						*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+					return false;
+				}
+				if (!SoundBank->IsInitBank())
+				{
+					FWwiseSoundBankCookedData MainSoundBank;
+					if (UNLIKELY(!FillSoundBankBaseInfo(MainSoundBank, *PlatformInfo, *SoundBank, ContentFolderName)))
+					{
+						UE_LOG(LogWwiseResourceCooker, Warning,
+							TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Could not fill SoundBank from Data"),
+							*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+						return false;
+					}
+					SoundBankSet.Add(MainSoundBank);
+				}
+			}
+
+			// Get media
+			{
+				// HACK: In 24.1-, the DialogueEvent doesn't contain the Media. Use the Event instead.
+				WwiseMediaIdsMap MediaRefs = EventRef.GetSoundBankMedia(PlatformData->MediaFiles);
+				for (const auto& MediaRef : MediaRefs)
+				{
+					WwiseDBPair<const unsigned, WwiseRefMedia> MediaRefPair(MediaRef);
+					if (UNLIKELY(!AddRequirementsForMedia(SoundBankSet, MediaSet, MediaRefPair.GetSecond(), LanguageId, *PlatformData, ContentFolderName)))
+					{
+						return false;
+					}
+				}
+			}
+
+			// Get Required Arguments
+			{
+				const auto DialogueArguments{ EventRef.GetDialogueArguments(PlatformData->DialogueArguments) };
+				TMap<FWwiseDialogueArgumentItem, FWwiseDialogueArgumentPosition> OutRequiredArguments;
+				OutRequiredArguments.Reserve(DialogueArguments.Size());
+
+				for (unsigned int Pos = 0; Pos < DialogueArguments.Size(); ++Pos)
+				{
+					const auto& Argument{ DialogueArguments[Pos] };
+					EWwiseGroupType GroupType{ EWwiseGroupType::Unknown };
+					{
+						auto ArgumentGuid{ Argument.DialogueArgumentGuid() };
+						WwiseUnrealArray<WwiseAnyRef> ArgumentRefs;
+						PlatformData->Guids.MultiFind(LocalizableGuidKey(ArgumentGuid, 0), ArgumentRefs);
+						for (const auto& ArgumentRef : ArgumentRefs)
+						{
+							if (!ArgumentRef.IsValid())
+							{
+								continue;
+							}
+							if (ArgumentRef.GetType() == WwiseRefType::StateGroup)
+							{
+								GroupType = EWwiseGroupType::State;
+								break;
+							}
+							else if (ArgumentRef.GetType() == WwiseRefType::SwitchGroup)
+							{
+								GroupType = EWwiseGroupType::Switch;
+								break;
+							}
+						}
+					}
+					
+					FWwiseDialogueArgumentItem Item;
+					Item.Type = GroupType;
+					Item.GroupId = Argument.DialogueArgumentId();
+					Item.DebugName = *Argument.DialogueArgumentName();
+
+					auto& Positions { OutRequiredArguments.FindOrAdd(Item).Positions };
+					Positions.Add(Pos);
+				}
+
+				if (OutCookedData.RequiredArguments.Num() == 0)
+				{
+					UE_LOG(LogWwiseResourceCooker, Verbose, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Adding %d Required Arguments"),
+						*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString(), OutRequiredArguments.Num());
+
+					OutCookedData.RequiredArguments = MoveTemp(OutRequiredArguments);
+				}
+				else
+				{
+					// We support one type of arguments for all languages
+					if (UNLIKELY(OutCookedData.RequiredArguments.Num() != OutRequiredArguments.Num()))
+					{
+						UE_LOG(LogWwiseResourceCooker, Warning,
+							TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Languages don't have the same quantity of Required Arguments (%d vs %d)"),
+							*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString(),
+							OutRequiredArguments.Num(), OutCookedData.RequiredArguments.Num());
+					}
+					else
+					{
+						for (const auto& RequiredArgument : OutRequiredArguments)
+						{
+							if (auto* Pos = OutCookedData.RequiredArguments.Find(RequiredArgument.Key))
+							{
+								if (UNLIKELY(*Pos != RequiredArgument.Value))
+								{
+									UE_LOG(LogWwiseResourceCooker, Warning,
+										TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Languages don't have the same order for Required Arguments"),
+										*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+									break;
+								}
+							}
+							else
+							{
+								UE_LOG(LogWwiseResourceCooker, Warning,
+									TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): Languages don't have the same Required Arguments"),
+									*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Finalize banks
+		SoundBankSet.AppendTo(CookedData.SoundBanks);
+		if (CookedData.SoundBanks.Num() == 0)
+		{
+			UE_LOG(LogWwiseResourceCooker, Log,
+				TEXT("GetDialogueEventCookedData (%s %" PRIu32
+					" %s): No SoundBank set for DialogueEvent. No SoundBank will be loaded."
+				),
+				*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		}
+
+		// Create an AudioNode to add Banks and Media
+		FWwiseAudioNodeCookedData& AudioNodeCookedData{CookedData.AudioNodes.Emplace({}, {}) };
+		SoundBankSet.AppendTo(AudioNodeCookedData.SoundBanks);
+		MediaSet.AppendTo(AudioNodeCookedData.Media);
+		// ExternalSourceSet.AppendTo(CookedData.ExternalSources); Unexposed External Sources.
+
+		AudioNodeCookedData.DebugName = CookedData.DebugName;
+		AudioNodeCookedData.AudioNodeLoading = InInfo.AudioNodeLoading;
+		AudioNodeCookedData.DestroyOptions = InInfo.DestroyOptions;
+
+		OutCookedData.DialogueEventLanguageMap.Add(FWwiseLanguageCookedData(LanguageId.GetLanguageId(), FName(*LanguageId.GetLanguageName()), (EWwiseLanguageRequirement)LanguageId.LanguageRequirement), MoveTemp(CookedData));
+	}
+
+	if (UNLIKELY(OutCookedData.DialogueEventLanguageMap.Num() == 0))
+	{
+		UE_LOG(LogWwiseResourceCooker, Warning, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): No DialogueEvent"),
+			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+		return false;
+	}
+
+	// Make this a SFX if all CookedData are identical
+	{
+		auto& Map = OutCookedData.DialogueEventLanguageMap;
+		TArray<FWwiseLanguageCookedData> Keys;
+		Map.GetKeys(Keys);
+
+		auto LhsKey = Keys.Pop(EWwiseAllowShrinking::No);
+		const auto* Lhs = Map.Find(LhsKey);
+		while (Keys.Num() > 0)
+		{
+			auto RhsKey = Keys.Pop(EWwiseAllowShrinking::No);
+			const auto* Rhs = Map.Find(RhsKey);
+
+			if (Lhs->DialogueEventId != Rhs->DialogueEventId
+				|| Lhs->DebugName != Rhs->DebugName
+				|| Lhs->SoundBanks.Num() != Rhs->SoundBanks.Num()
+				|| Lhs->AudioNodes.Num() != Rhs->AudioNodes.Num())
+			{
+				UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+					TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): DialogueEvent has languages"),
+					*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+				return true;
+			}
+			for (const auto& Elem : Lhs->SoundBanks)
+			{
+				if (!Rhs->SoundBanks.Contains(Elem))
+				{
+					UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+						TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): DialogueEvent has languages due to banks"),
+						*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+					return true;
+				}
+			}
+			for (const auto& LhsAudioNodeTuple : Lhs->AudioNodes)
+			{
+				const auto& LhsCondition{ LhsAudioNodeTuple.Key };
+				const auto& LhsAudioNode{ LhsAudioNodeTuple.Value };
+				const auto* RhsAudioNodePtr = Rhs->AudioNodes.Find(LhsCondition);
+				if (!RhsAudioNodePtr)
+				{
+					UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+						TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): DialogueEvent has languages due to switch container"),
+						*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+					return true;
+				}
+				const auto& RhsAudioNode = *RhsAudioNodePtr;
+				if (LhsAudioNode.AudioNodeId != RhsAudioNode.AudioNodeId)
+				{
+					UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+						TEXT("GetDialogueEventCookedData (%s %" PRIu32
+							" %s): DialogueEvent has languages due to different AudioNodeId"),
+						*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+					return true;
+				}
+
+				for (const auto& Elem : LhsAudioNode.SoundBanks)
+				{
+					if (!RhsAudioNode.SoundBanks.Contains(Elem))
+					{
+						UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+							TEXT("GetDialogueEventCookedData (%s %" PRIu32
+								" %s): DialogueEvent has languages due to banks in AudioNode"),
+							*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+						return true;
+					}
+				}
+				for (const auto& Elem : LhsAudioNode.ExternalSources)
+				{
+					if (!RhsAudioNode.ExternalSources.Contains(Elem))
+					{
+						UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+							TEXT("GetDialogueEventCookedData (%s %" PRIu32
+								" %s): DialogueEvent has languages due to external sources in AudioNode"),
+							*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+						return true;
+					}
+				}
+				for (const auto& Elem : LhsAudioNode.Media)
+				{
+					if (!RhsAudioNode.Media.Contains(Elem))
+					{
+						UE_LOG(LogWwiseResourceCooker, VeryVerbose,
+							TEXT("GetDialogueEventCookedData (%s %" PRIu32
+								" %s): DialogueEvent has languages due to media in AudioNode"),
+							*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
+						return true;
+					}
+				}
+			}
+		}
+
+		UE_LOG(LogWwiseResourceCooker, VeryVerbose, TEXT("GetDialogueEventCookedData (%s %" PRIu32 " %s): DialogueEvent is a SFX"),
 			*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
 		std::remove_reference_t<decltype(Map)> SfxMap;
 		SfxMap.Add(FWwiseLanguageCookedData::Sfx, *Lhs);
@@ -2286,8 +2809,8 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 					continue;
 				}
 
-				// Fill up SwitchContainerCookedData and add it to SwitchContainerLeaves
-				FWwiseSwitchContainerLeafCookedData SwitchContainerCookedData;
+				// Fill up AudioNodeCookedData and add it to AudioNodes
+				FWwiseGroupValueCookedDataSet GroupValueSet;
 				for (const auto& SwitchValue : *SwitchValues)
 				{
 					FWwiseGroupValueCookedData SwitchCookedData;
@@ -2307,14 +2830,9 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 					{
 						SwitchCookedData.DebugName = FName(*(ExportDebugNameRule == EWwiseExportDebugNameRule::Name ? SwitchValue.GetName() : SwitchValue.GetObjectPath()));
 					}
-					SwitchContainerCookedData.GroupValueSet.Add(MoveTemp(SwitchCookedData));
+					GroupValueSet.GroupValues.Add(MoveTemp(SwitchCookedData));
 				}
-				if (auto* ExistingSwitchedMedia = CookedData.SwitchContainerLeaves.FindByPredicate(
-					[&SwitchContainerCookedData](const FWwiseSwitchContainerLeafCookedData& RhsValue)
-					{
-						return RhsValue.GroupValueSet.Difference(SwitchContainerCookedData.GroupValueSet).Num() == 0
-							&& SwitchContainerCookedData.GroupValueSet.Difference(RhsValue.GroupValueSet).Num() == 0;
-					}))
+				if (auto* ExistingSwitchedMedia = CookedData.AudioNodes.Find(GroupValueSet))
 				{
 					SoundBankSetToAdd.AppendTo(ExistingSwitchedMedia->SoundBanks);
 					MediaSetToAdd.AppendTo(ExistingSwitchedMedia->Media);
@@ -2322,10 +2840,12 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 				}
 				else
 				{
-					SoundBankSetToAdd.AppendTo(SwitchContainerCookedData.SoundBanks);
-					MediaSetToAdd.AppendTo(SwitchContainerCookedData.Media);
-					ExternalSourceSetToAdd.AppendTo(SwitchContainerCookedData.ExternalSources);
-					CookedData.SwitchContainerLeaves.Add(MoveTemp(SwitchContainerCookedData));
+					FWwiseAudioNodeCookedData AudioNodeCookedData;
+					AudioNodeCookedData.DebugName = CookedData.DebugName;
+					SoundBankSetToAdd.AppendTo(AudioNodeCookedData.SoundBanks);
+					MediaSetToAdd.AppendTo(AudioNodeCookedData.Media);
+					ExternalSourceSetToAdd.AppendTo(AudioNodeCookedData.ExternalSources);
+					CookedData.AudioNodes.Add(MoveTemp(GroupValueSet), MoveTemp(AudioNodeCookedData));
 				}
 			}
 		}
@@ -2397,7 +2917,7 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 				|| Lhs->ExternalSources.Num() != Rhs->ExternalSources.Num()
 				|| Lhs->Media.Num() != Rhs->Media.Num()
 				|| Lhs->RequiredGroupValueSet.Num() != Rhs->RequiredGroupValueSet.Num()
-				|| Lhs->SwitchContainerLeaves.Num() != Rhs->SwitchContainerLeaves.Num())
+				|| Lhs->AudioNodes.Num() != Rhs->AudioNodes.Num())
 			{
 				UE_LOG(LogWwiseResourceCooker, VeryVerbose,
 					TEXT("GetEventCookedData (%s %" PRIu32 " %s): Event has languages"),
@@ -2445,19 +2965,21 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 					return true;
 				}
 			}
-			for (const auto& LhsLeaf : Lhs->SwitchContainerLeaves)
+			for (const auto& LhsAudioNodeTuple : Lhs->AudioNodes)
 			{
-				const auto RhsLeafIndex = Rhs->SwitchContainerLeaves.Find(LhsLeaf);
-				if (RhsLeafIndex == INDEX_NONE)
+				const auto& LhsCondition{ LhsAudioNodeTuple.Key };
+				const auto& LhsAudioNode{ LhsAudioNodeTuple.Value };
+				const auto* RhsLeafPtr = Rhs->AudioNodes.Find(LhsCondition);
+				if (!RhsLeafPtr)
 				{
 					UE_LOG(LogWwiseResourceCooker, VeryVerbose,
 						TEXT("GetEventCookedData (%s %" PRIu32 " %s): Event has languages due to switch container"),
 						*InInfo.WwiseGuid.ToString(), InInfo.WwiseShortId, *InInfo.WwiseName.ToString());
 					return true;
 				}
-				const auto& RhsLeaf = Rhs->SwitchContainerLeaves[RhsLeafIndex];
+				const auto& RhsLeaf = *RhsLeafPtr;
 
-				for (const auto& Elem : LhsLeaf.SoundBanks)
+				for (const auto& Elem : LhsAudioNode.SoundBanks)
 				{
 					if (!RhsLeaf.SoundBanks.Contains(Elem))
 					{
@@ -2468,7 +2990,7 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 						return true;
 					}
 				}
-				for (const auto& Elem : LhsLeaf.ExternalSources)
+				for (const auto& Elem : LhsAudioNode.ExternalSources)
 				{
 					if (!RhsLeaf.ExternalSources.Contains(Elem))
 					{
@@ -2479,7 +3001,7 @@ bool FWwiseResourceCookerImpl::GetEventCookedData(FWwiseLocalizedEventCookedData
 						return true;
 					}
 				}
-				for (const auto& Elem : LhsLeaf.Media)
+				for (const auto& Elem : LhsAudioNode.Media)
 				{
 					if (!RhsLeaf.Media.Contains(Elem))
 					{
@@ -3472,6 +3994,12 @@ bool FWwiseResourceCookerImpl::FillMediaBaseInfo(FWwiseMediaCookedData& OutMedia
 		// In-Memory (User-defined SoundBank) already have the prefetch in the related SoundBank.
 		OutMediaCookedData.PackagedFile.PrefetchSize = 0;
 	}
+#if WWISE_2025_1_OR_LATER
+	else if (InMedia.bContainsPrefetch)
+	{
+		OutMediaCookedData.PackagedFile.PrefetchSize = 0;
+	}
+#endif
 	else
 	{
 		OutMediaCookedData.PackagedFile.PrefetchSize = InMedia.PrefetchSize;

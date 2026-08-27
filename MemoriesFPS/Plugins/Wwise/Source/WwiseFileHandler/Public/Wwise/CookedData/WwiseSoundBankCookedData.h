@@ -18,6 +18,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #pragma once
 
 #include "AkInclude.h"
+#include "WwiseCookEventContext.h"
 #include "Wwise/WwisePackagedFile.h"
 #include "Wwise/WwiseUnrealVersion.h"
 
@@ -79,7 +80,7 @@ struct WWISEFILEHANDLER_API FWwiseSoundBankCookedData
 	void Serialize(FArchive& Ar);
 	void SerializeBulkData(FArchive& Ar, const FWwisePackagedFileSerializationOptions& Options);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
+	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
 #endif
 	
 	FString GetDebugString() const;

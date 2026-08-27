@@ -26,14 +26,16 @@ class WWISEFILEHANDLER_API FWwiseSoundBankManagerImpl : public IWwiseSoundBankMa
 {
 public:
 	FWwiseSoundBankManagerImpl();
-	~FWwiseSoundBankManagerImpl() override;
+	virtual ~FWwiseSoundBankManagerImpl() override;
 
-	const TCHAR* GetManagingTypeName() const override { return TEXT("SoundBank"); }
-	void LoadSoundBank(const FWwiseSoundBankCookedData& InSoundBankCookedData, FLoadSoundBankCallback&& InCallback) override;
-	void UnloadSoundBank(const FWwiseSoundBankCookedData& InSoundBankCookedData, FUnloadSoundBankCallback&& InCallback) override;
-	void SetGranularity(uint32 InStreamingGranularity) override;
+	virtual const TCHAR* GetManagingTypeName() const override { return TEXT("SoundBank"); }
+	virtual void LoadSoundBank(const FWwiseSoundBankCookedData& InSoundBankCookedData, FLoadSoundBankCallback&& InCallback) override;
+	virtual void UnloadSoundBank(const FWwiseSoundBankCookedData& InSoundBankCookedData, FUnloadSoundBankCallback&& InCallback) override;
+	virtual void SetGranularity(uint32 InStreamingGranularity) override;
 
-	IWwiseStreamingManagerHooks& GetStreamingHooks() final { return *this; }
+	virtual void DoPostTerm() override;
+	
+	virtual IWwiseStreamingManagerHooks& GetStreamingHooks() override final { return *this; }
 
 protected:
 	uint32 StreamingGranularity;

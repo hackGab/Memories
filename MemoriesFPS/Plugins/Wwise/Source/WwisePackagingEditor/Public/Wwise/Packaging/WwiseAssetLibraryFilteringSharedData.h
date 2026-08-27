@@ -53,6 +53,11 @@ struct WWISEPACKAGINGEDITOR_API FWwiseAssetLibraryFilteringSharedData
 	 */
 	TArray<FAssetData> AssetsData;
 
+	/**
+	 * Number of assets that should not be filtered due to being in a different package
+	 */
+	int32 SkippedAssetsCount;
+
 	bool bConsiderAssetsData = true;
 
 };

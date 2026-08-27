@@ -96,6 +96,7 @@ protected:
 	TObjectPtr<UAkAudioEvent> StartEventResolved;
 
 	void PostLoad() override;
+	void CastLoadedAsset(UObject* LoadedAsset);
 	void OnLoadCompleteCallback();
 	void FinishDestroy() override;
 

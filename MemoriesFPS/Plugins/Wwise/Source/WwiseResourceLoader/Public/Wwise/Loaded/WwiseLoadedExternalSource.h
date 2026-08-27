@@ -35,7 +35,7 @@ struct WWISERESOURCELOADER_API FWwiseLoadedExternalSourceInfo
 		FLoadedData& operator=(const FLoadedData&) = delete;
 
 		bool bLoaded = false;
-		int IsProcessing{0};
+		std::atomic<int> IsProcessing{0};
 
 		bool IsLoaded() const;
 	} LoadedData;

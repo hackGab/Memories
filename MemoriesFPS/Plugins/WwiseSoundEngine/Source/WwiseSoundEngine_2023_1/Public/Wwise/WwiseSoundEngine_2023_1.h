@@ -27,7 +27,6 @@ public:
 	virtual IWwiseCommAPI* GetComm() override;
 	virtual IWwiseMemoryMgrAPI* GetMemoryMgr() override;
 	virtual IWwiseMonitorAPI* GetMonitor() override;
-	virtual IWwiseMusicEngineAPI* GetMusicEngine() override;
 	virtual IWwiseSoundEngineAPI* GetSoundEngine() override;
 	virtual IWwiseSpatialAudioAPI* GetSpatialAudio() override;
 	virtual IWwiseStreamMgrAPI* GetStreamMgr() override;

@@ -80,7 +80,7 @@ class WAAPI_URI:
     ak_soundengine_unregistergameobj = u"ak.soundengine.unregisterGameObj"
     # Adds a new platform to a project. The platform must not already exist.
     ak_wwise_cli_addnewplatform = u"ak.wwise.cli.addNewPlatform"
-    # External sources conversion. Converts the external sources files for the specified project. Optionally, additional WSOURCES can be specified. External Sources are a special type of source that you can put in a sound object in Wwise. It indicates that the real sound data will be provided at runtime. While external source conversion can be triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. Refer to \ref integrating_external_sources.
+    # External sources conversion. Converts the external sources files for the specified project. Optionally, additional WSOURCES can be specified. External Sources are a special type of source that you can put in a sound object in Wwise. It indicates that the real sound data will be provided at runtime. While external source conversion can be triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. See \ref integrating_external_sources.
     ak_wwise_cli_convertexternalsource = u"ak.wwise.cli.convertExternalSource"
     # Creates a blank new project. The project must not already exist. If the directory does not exist, it is created.
     ak_wwise_cli_createnewproject = u"ak.wwise.cli.createNewProject"
@@ -112,7 +112,7 @@ class WAAPI_URI:
     ak_wwise_console_project_open = u"ak.wwise.console.project.open"
     # Creates a converted audio file. When errors occur, this function returns a list of messages with corresponding levels of severity.
     ak_wwise_core_audio_convert = u"ak.wwise.core.audio.convert"
-    # Creates Wwise objects and imports audio files. This function does not return an error when something fails during the import process, please refer to the log for the result of each import command. This function uses the same importation processor available through the Tab Delimited import in the Audio File Importer. The function returns an array of all objects created, replaced or re-used. Use the options to specify how the objects are returned. For more information, refer to \ref waapi_import.
+    # Creates Wwise objects and imports audio files. This function does not return an error when something fails during the import process, please see the log for the result of each import command. This function uses the same importation processor available through the Tab Delimited import in the Audio File Importer. The function returns an array of all objects created, replaced or re-used. Use the options to specify how the objects are returned. For more information, see \ref waapi_import.
     ak_wwise_core_audio_import = u"ak.wwise.core.audio.import"
     # Scripted object creation and audio file import from a tab-delimited file.
     ak_wwise_core_audio_importtabdelimited = u"ak.wwise.core.audio.importTabDelimited"
@@ -152,23 +152,27 @@ class WAAPI_URI:
     ak_wwise_core_log_additem = u"ak.wwise.core.log.addItem"
     # Clears the logs on the specified channel.
     ak_wwise_core_log_clear = u"ak.wwise.core.log.clear"
-    # Retrieves the latest log for a specific channel. Refer to \ref ak_wwise_core_log_itemadded to be notified when an item is added to the log. The log is empty when used in WwiseConsole.
+    # Retrieves the latest log for a specific channel. See \ref ak_wwise_core_log_itemadded to be notified when an item is added to the log. The log is empty when used in WwiseConsole.
     ak_wwise_core_log_get = u"ak.wwise.core.log.get"
-    # Sent when an item is added to the log. This could be used to retrieve items added to the SoundBank generation log. To retrieve the complete log, refer to \ref ak_wwise_core_log_get.
+    # Sent when an item is added to the log. This could be used to retrieve items added to the SoundBank generation log. To retrieve the complete log, see \ref ak_wwise_core_log_get.
     ak_wwise_core_log_itemadded = u"ak.wwise.core.log.itemAdded"
+    # Retrieve files from Media Pool. Use the return options to specify which properties of the files to return.
+    ak_wwise_core_mediapool_get = u"ak.wwise.core.mediaPool.get"
+    # Retrieve all fields present in the Media Pool. You can then use the fields to query the Media Pool. The Media Pool discovers some fields when it scans audio files. Others, such as WAV fields, are always available.
+    ak_wwise_core_mediapool_getfields = u"ak.wwise.core.mediaPool.getFields"
     # Sent when an attenuation curve is changed.
     ak_wwise_core_object_attenuationcurvechanged = u"ak.wwise.core.object.attenuationCurveChanged"
     # Sent when an attenuation curve's link/unlink is changed.
     ak_wwise_core_object_attenuationcurvelinkchanged = u"ak.wwise.core.object.attenuationCurveLinkChanged"
-    # Sent when an object is added as a child to another object.
+    # Sent when an object is added as a child to another object. See \ref ak_wwise_core_object_structurechanged to receive changes in batch.
     ak_wwise_core_object_childadded = u"ak.wwise.core.object.childAdded"
-    # Sent when an object is removed from the children of another object.
+    # Sent when an object is removed from the children of another object. See \ref ak_wwise_core_object_structurechanged to receive changes in batch.
     ak_wwise_core_object_childremoved = u"ak.wwise.core.object.childRemoved"
     # Copies an object to the given parent. Note that if a Work Unit is copied, the operation cannot be undone and the project will be saved.
     ak_wwise_core_object_copy = u"ak.wwise.core.object.copy"
-    # Creates an object of type 'type', as a child of 'parent'. Refer to \ref waapi_import for more information about creating objects. Also refer to \ref ak_wwise_core_audio_import to import audio files to Wwise. To create Effect or Source plug-ins, use \ref ak_wwise_core_object_set, and refer to \ref wobjects_index for the classId.
+    # Creates an object of type 'type', as a child of 'parent'. See \ref waapi_import for more information about creating objects. Also see \ref ak_wwise_core_audio_import to import audio files to Wwise. To create Effect or Source plug-ins, use \ref ak_wwise_core_object_set, and see \ref wobjects_index for the classId.
     ak_wwise_core_object_create = u"ak.wwise.core.object.create"
-    # Sent when an object is created.
+    # Sent when an object is created. See \ref ak_wwise_core_object_structurechanged to receive changes in batch.
     ak_wwise_core_object_created = u"ak.wwise.core.object.created"
     # Sent when one or many curves are changed.
     ak_wwise_core_object_curvechanged = u"ak.wwise.core.object.curveChanged"
@@ -176,13 +180,13 @@ class WAAPI_URI:
     ak_wwise_core_object_delete = u"ak.wwise.core.object.delete"
     # Compares properties and lists of the source object with those in the target object.
     ak_wwise_core_object_diff = u"ak.wwise.core.object.diff"
-    # Performs a query and returns the data, as specified in the options, for each object in the query result. The query can specify either a 'waql' argument or a 'from' argument with an optional 'transform' argument. Refer to \ref waql_introduction or \ref waapi_query for more information. Refer to \ref waapi_query_return to learn about options.
+    # Performs a query and returns the data, as specified in the options, for each object in the query result. The query can specify either a 'waql' argument or a 'from' argument with an optional 'transform' argument. See \ref waql_introduction or \ref waapi_query for more information. See \ref waapi_query_return to learn about options.
     ak_wwise_core_object_get = u"ak.wwise.core.object.get"
     # Gets the specified attenuation curve for a given attenuation object.
     ak_wwise_core_object_getattenuationcurve = u"ak.wwise.core.object.getAttenuationCurve"
     # Retrieves the list of property and reference names for an object.
     ak_wwise_core_object_getpropertyandreferencenames = u"ak.wwise.core.object.getPropertyAndReferenceNames"
-    # Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, refer to \ref ak_wwise_core_object_get and \ref waapi_query_return.
+    # Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, see \ref ak_wwise_core_object_get and \ref waapi_query_return.
     ak_wwise_core_object_getpropertyinfo = u"ak.wwise.core.object.getPropertyInfo"
     # Retrieves the list of property and reference names for an object.
     # \deprecated in favor of ak.wwise.core.object.getPropertyAndReferenceNames
@@ -195,21 +199,21 @@ class WAAPI_URI:
     ak_wwise_core_object_ispropertyenabled = u"ak.wwise.core.object.isPropertyEnabled"
     # Moves an object to the given parent. Returns the moved object.
     ak_wwise_core_object_move = u"ak.wwise.core.object.move"
-    # Sent when an object is renamed. Publishes the renamed object.
+    # Sent when an object is renamed. Publishes the renamed object. See \ref ak_wwise_core_object_structurechanged to receive changes in batch.
     ak_wwise_core_object_namechanged = u"ak.wwise.core.object.nameChanged"
     # Sent when the object's notes are changed.
     ak_wwise_core_object_noteschanged = u"ak.wwise.core.object.notesChanged"
-    # Pastes properties, references and lists from one object to any number of target objects. Only those properties, references and lists which differ between source and target are pasted. Refer to \ref wobjects_index for more information on the properties, references and lists available on each object type.
+    # Pastes properties, references and lists from one object to any number of target objects. Only those properties, references and lists which differ between source and target are pasted. See \ref wobjects_index for more information on the properties, references and lists available on each object type.
     ak_wwise_core_object_pasteproperties = u"ak.wwise.core.object.pasteProperties"
-    # Sent following an object's deletion.
+    # Sent following an object's deletion. See \ref ak_wwise_core_object_structurechanged to receive changes in batch.
     ak_wwise_core_object_postdeleted = u"ak.wwise.core.object.postDeleted"
-    # Sent prior to an object's deletion.
+    # Sent prior to an object's deletion. See \ref ak_wwise_core_object_structurechanged to receive changes in batch.
     ak_wwise_core_object_predeleted = u"ak.wwise.core.object.preDeleted"
     # Sent when the watched property of an object changes.
     ak_wwise_core_object_propertychanged = u"ak.wwise.core.object.propertyChanged"
     # Sent when an object reference is changed.
     ak_wwise_core_object_referencechanged = u"ak.wwise.core.object.referenceChanged"
-    # Allows for batch processing of the following operations: Object creation in a child hierarchy, Object creation in a list, Setting name, notes, properties and references. Refer to \ref waapi_import for more information about creating objects. Also refer to \ref ak_wwise_core_audio_import to import audio files to Wwise.
+    # Allows for batch processing of the following operations: Object creation in a child hierarchy, Object creation in a list, Setting name, notes, properties and references. See \ref waapi_import for more information about creating objects. Also see \ref ak_wwise_core_audio_import to import audio files to Wwise.
     ak_wwise_core_object_set = u"ak.wwise.core.object.set"
     # Sets the specified attenuation curve for a given attenuation object.
     ak_wwise_core_object_setattenuationcurve = u"ak.wwise.core.object.setAttenuationCurve"
@@ -219,16 +223,18 @@ class WAAPI_URI:
     ak_wwise_core_object_setname = u"ak.wwise.core.object.setName"
     # Sets the object's notes.
     ak_wwise_core_object_setnotes = u"ak.wwise.core.object.setNotes"
-    # Sets a property value of an object for a specific platform. Refer to \ref wobjects_index for more information on the properties available on each object type. Refer to \ref ak_wwise_core_object_setreference to set a reference to an object. Refer to \ref ak_wwise_core_object_get to obtain the value of a property for an object.
+    # Sets a property value of an object for a specific platform. See \ref wobjects_index for more information on the properties available on each object type. See \ref ak_wwise_core_object_setreference to set a reference to an object. See \ref ak_wwise_core_object_get to obtain the value of a property for an object.
     ak_wwise_core_object_setproperty = u"ak.wwise.core.object.setProperty"
-    # Sets the randomizer values of a property of an object for a specific platform. Refer to \ref wobjects_index for more information on the properties available on each object type.
+    # Sets the randomizer values of a property of an object for a specific platform. See \ref wobjects_index for more information on the properties available on each object type.
     ak_wwise_core_object_setrandomizer = u"ak.wwise.core.object.setRandomizer"
-    # Sets an object's reference value. Refer to \ref wobjects_index for more information on the references available on each object type.
+    # Sets an object's reference value. See \ref wobjects_index for more information on the references available on each object type.
     ak_wwise_core_object_setreference = u"ak.wwise.core.object.setReference"
     # Sets the State Group objects associated with an object. Note, this will remove any previously associated State Group.
     ak_wwise_core_object_setstategroups = u"ak.wwise.core.object.setStateGroups"
     # Set the state properties of an object. Note, this will remove any previous state property, including the default ones.
     ak_wwise_core_object_setstateproperties = u"ak.wwise.core.object.setStateProperties"
+    # Sent when the project structure changes. Publishes a summary of the changes. The publication is sent after the undo stack is modified. The changes are grouped in batch and redundant changes are collapsed.
+    ak_wwise_core_object_structurechanged = u"ak.wwise.core.object.structureChanged"
     # Verify if WAAPI is currently available.
     ak_wwise_core_ping = u"ak.wwise.core.ping"
     # Retrieves the list of all object types registered in Wwise's object model. This function returns the equivalent of \ref wobjects_index .
@@ -237,7 +243,7 @@ class WAAPI_URI:
     # Retrieves the list of property and reference names for an object.
     # \deprecated in favor of ak.wwise.core.object.getPropertyAndReferenceNames
     ak_wwise_core_plugin_getproperties = u"ak.wwise.core.plugin.getProperties"
-    # Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, refer to \ref ak_wwise_core_object_get and \ref waapi_query_return.
+    # Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, see \ref ak_wwise_core_object_get and \ref waapi_query_return.
     # \deprecated in favor of ak.wwise.core.object.getPropertyInfo
     ak_wwise_core_plugin_getproperty = u"ak.wwise.core.plugin.getProperty"
     # Sent when a new entry is added to the capture log. Note that all entries are being sent. No filtering is applied as opposed to the Capture Log view.
@@ -254,27 +260,27 @@ class WAAPI_URI:
     ak_wwise_core_profiler_getaudioobjects = u"ak.wwise.core.profiler.getAudioObjects"
     # Retrieves the busses at a specific profiler capture time.
     ak_wwise_core_profiler_getbusses = u"ak.wwise.core.profiler.getBusses"
-    # Retrieves CPU usage statistics at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the CPU tab. To ensure the CPU data is received, refer to \ref ak_wwise_core_profiler_enableprofilerdata. The returned data includes "Inclusive" and "Exclusive" values, where "Inclusive" refers to the time spent in the element plus the time spent in any called elements, and "Exclusive" values pertain to execution only within the element itself.
+    # Retrieves CPU usage statistics at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the CPU tab. To ensure the CPU data is received, see \ref ak_wwise_core_profiler_enableprofilerdata. The returned data includes "Inclusive" and "Exclusive" values, where "Inclusive" refers to the time spent in the element plus the time spent in any called elements, and "Exclusive" values pertain to execution only within the element itself.
     ak_wwise_core_profiler_getcpuusage = u"ak.wwise.core.profiler.getCpuUsage"
     # Returns the current time of the specified profiler cursor, in milliseconds.
     ak_wwise_core_profiler_getcursortime = u"ak.wwise.core.profiler.getCursorTime"
     # Retrieves the game objects at a specific profiler capture time.
     ak_wwise_core_profiler_getgameobjects = u"ak.wwise.core.profiler.getGameObjects"
-    # Retrieves the loaded media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Loaded Media tab. To ensure the Loaded Media data is received, refer to \ref ak_wwise_core_profiler_enableprofilerdata.
+    # Retrieves the loaded media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Loaded Media tab. To ensure the Loaded Media data is received, see \ref ak_wwise_core_profiler_enableprofilerdata.
     ak_wwise_core_profiler_getloadedmedia = u"ak.wwise.core.profiler.getLoadedMedia"
-    # Retrieves the Meter data for all registered busses, aux busses and devices. Only the master audio bus is registered by default. Use \ref ak_wwise_core_profiler_registermeter for other busses, before retrieval of the meter data.
+    # Retrieves the Meter data for all registered busses, aux busses and devices. Only the Main Audio Bus is registered by default. Use \ref ak_wwise_core_profiler_registermeter for other busses, before retrieval of the meter data.
     ak_wwise_core_profiler_getmeters = u"ak.wwise.core.profiler.getMeters"
-    # Retrieves the Performance Monitor statistics at a specific profiler capture time. Refer to \ref globalcountersids for the available counters.
+    # Retrieves the Performance Monitor statistics at a specific profiler capture time. See \ref globalcountersids for the available counters.
     ak_wwise_core_profiler_getperformancemonitor = u"ak.wwise.core.profiler.getPerformanceMonitor"
     # Retrieves active RTPCs at a specific profiler capture time.
     ak_wwise_core_profiler_getrtpcs = u"ak.wwise.core.profiler.getRTPCs"
-    # Retrieves the streaming media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Streams tab. To ensure the Streams data is received, refer to \ref ak_wwise_core_profiler_enableprofilerdata.
+    # Retrieves the streaming media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Streams tab. To ensure the Streams data is received, see \ref ak_wwise_core_profiler_enableprofilerdata.
     ak_wwise_core_profiler_getstreamedmedia = u"ak.wwise.core.profiler.getStreamedMedia"
     # Retrieves all parameters affecting voice volume, highpass and lowpass for a voice path, resolved from pipeline IDs.
     ak_wwise_core_profiler_getvoicecontributions = u"ak.wwise.core.profiler.getVoiceContributions"
     # Retrieves the voices at a specific profiler capture time.
     ak_wwise_core_profiler_getvoices = u"ak.wwise.core.profiler.getVoices"
-    # Registers a bus, an aux bus or device to receive meter data. Only the master audio bus is registered by default. Use \ref ak_wwise_core_profiler_getmeters to retrieve the meter data after registering. Every call to ak.wwise.core.profiler.registerMeter must have a matching call to \ref ak_wwise_core_profiler_unregistermeter.
+    # Registers a bus, an aux bus or device to receive meter data. Only the Main Audio Bus is registered by default. Use \ref ak_wwise_core_profiler_getmeters to retrieve the meter data after registering. Every call to ak.wwise.core.profiler.registerMeter must have a matching call to \ref ak_wwise_core_profiler_unregistermeter.
     ak_wwise_core_profiler_registermeter = u"ak.wwise.core.profiler.registerMeter"
     # Saves profiler as a .prof file according to the given file path.
     ak_wwise_core_profiler_savecapture = u"ak.wwise.core.profiler.saveCapture"
@@ -308,11 +314,11 @@ class WAAPI_URI:
     ak_wwise_core_remote_getconnectionstatus = u"ak.wwise.core.remote.getConnectionStatus"
     # Sets which version of the source is being used for the specified sound. Use \ref ak_wwise_core_object_get with the 'activeSource' return option to get the active source of a sound.
     ak_wwise_core_sound_setactivesource = u"ak.wwise.core.sound.setActiveSource"
-    # Converts the external sources files for the project as detailed in the wsources file, and places them into either the default folder, or the folder specified by the output argument. External Sources are a special type of source that you can put in a Sound object in Wwise. It indicates that the real sound data will be provided at run time. While External Source conversion is also triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. Please refer to Wwise SDK help page "Integrating External Sources".
+    # Converts the external sources files for the project as detailed in the wsources file, and places them into either the default folder, or the folder specified by the output argument. External Sources are a special type of source that you can put in a Sound object in Wwise. It indicates that the real sound data will be provided at run time. While External Source conversion is also triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. Please see Wwise SDK help page "Integrating External Sources".
     ak_wwise_core_soundbank_convertexternalsources = u"ak.wwise.core.soundbank.convertExternalSources"
     # Generate a list of SoundBanks with the import definition specified in the WAAPI request. If you do not write the SoundBanks to disk, subscribe to \ref ak_wwise_core_soundbank_generated to receive SoundBank structure info and the bank data as base64. Note: This is a synchronous operation.
     ak_wwise_core_soundbank_generate = u"ak.wwise.core.soundbank.generate"
-    # Sent when a single SoundBank is generated. This could be sent multiple times during SoundBank generation, for every SoundBank generated and for every platform. To generate SoundBanks, refer to \ref ak_wwise_core_soundbank_generate or \ref ak_wwise_ui_commands_execute with one of the SoundBank generation commands. Refer to \ref globalcommandsids for the list of commands.
+    # Sent when a single SoundBank is generated. This could be sent multiple times during SoundBank generation, for every SoundBank generated and for every platform. To generate SoundBanks, see \ref ak_wwise_core_soundbank_generate or \ref ak_wwise_ui_commands_execute with one of the SoundBank generation commands. See \ref globalcommandsids for the list of commands.
     ak_wwise_core_soundbank_generated = u"ak.wwise.core.soundbank.generated"
     # Sent when all SoundBanks are generated. Note: This notification is only sent when SoundBanks have been generated, it is not a reliable way to determine when \ref ak_wwise_core_soundbank_generate has completed.
     ak_wwise_core_soundbank_generationdone = u"ak.wwise.core.soundbank.generationDone"
@@ -376,6 +382,10 @@ class WAAPI_URI:
     ak_wwise_core_undo_redo = u"ak.wwise.core.undo.redo"
     # Undoes the last operation in the Undo stack.
     ak_wwise_core_undo_undo = u"ak.wwise.core.undo.undo"
+    # Load a Work Unit that was previously unloaded. The Undo history will be cleared.
+    ak_wwise_core_workunit_load = u"ak.wwise.core.workUnit.load"
+    # Unload a Work Unit. No object contained in the Work Unit will be available after this call. If the Work Unit is modified and not saved, the function will return error. The Undo history will be cleared.
+    ak_wwise_core_workunit_unload = u"ak.wwise.core.workUnit.unload"
     # Sent when an assert has failed. This is only available in Debug builds.
     ak_wwise_debug_assertfailed = u"ak.wwise.debug.assertFailed"
     # Enables debug assertions. Every call to enableAsserts with 'false' increments the ref count. Calling with true decrements the ref count. This is only available with Debug builds.
@@ -394,7 +404,7 @@ class WAAPI_URI:
     ak_wwise_debug_testcrash = u"ak.wwise.debug.testCrash"
     # Validate the arguments, options and result of a WAAPI function call. Does not actually call the function. This is only available with Debug builds.
     ak_wwise_debug_validatecall = u"ak.wwise.debug.validateCall"
-    # Bring Wwise main window to foreground. Refer to SetForegroundWindow and AllowSetForegroundWindow on MSDN for more information on the restrictions. Refer to ak.wwise.core.getInfo to obtain the Wwise process ID for AllowSetForegroundWindow.
+    # Bring Wwise main window to foreground. See SetForegroundWindow and AllowSetForegroundWindow on MSDN for more information on the restrictions. See ak.wwise.core.getInfo to obtain the Wwise process ID for AllowSetForegroundWindow.
     ak_wwise_ui_bringtoforeground = u"ak.wwise.ui.bringToForeground"
     # Captures a part of the Wwise UI relative to a view.
     ak_wwise_ui_capturescreen = u"ak.wwise.ui.captureScreen"
@@ -402,18 +412,22 @@ class WAAPI_URI:
     ak_wwise_ui_cli_executeluascript = u"ak.wwise.ui.cli.executeLuaScript"
     # Launch the main window of WwiseXP.
     ak_wwise_ui_cli_launch = u"ak.wwise.ui.cli.launch"
-    # Executes a command. Some commands can take a list of objects as parameters. Refer to \ref globalcommandsids for the available commands.
+    # Executes a command. Some commands can take a list of objects as parameters. See \ref globalcommandsids for the available commands.
     ak_wwise_ui_commands_execute = u"ak.wwise.ui.commands.execute"
     # Sent when a command is executed. The objects for which the command is executed are sent in the publication.
     ak_wwise_ui_commands_executed = u"ak.wwise.ui.commands.executed"
     # Gets the list of commands.
     ak_wwise_ui_commands_getcommands = u"ak.wwise.ui.commands.getCommands"
-    # Registers an array of add-on commands. Registered commands remain until the Wwise process is terminated. Refer to \ref defining_custom_commands for more information about registering commands. Also refer to \ref ak_wwise_ui_commands_executed.
+    # Registers an array of add-on commands. Registered commands remain until the Wwise process is terminated. See \ref defining_custom_commands for more information about registering commands. Also see \ref ak_wwise_ui_commands_executed.
     ak_wwise_ui_commands_register = u"ak.wwise.ui.commands.register"
     # Unregisters an array of add-on UI commands.
     ak_wwise_ui_commands_unregister = u"ak.wwise.ui.commands.unregister"
-    # Retrieves the list of objects currently selected by the user in the active view.
+    # Retrieves the list of files currently selected by the user in the active view. Note that this function is not available in WwiseConsole.
+    ak_wwise_ui_getselectedfiles = u"ak.wwise.ui.getSelectedFiles"
+    # Retrieves the list of objects currently selected by the user in the active view. Note that this function is not available in WwiseConsole.
     ak_wwise_ui_getselectedobjects = u"ak.wwise.ui.getSelectedObjects"
+    # Requests to close a view by its unique id. The view might not yet be closed when returning from this function.
+    ak_wwise_ui_layout_closeview = u"ak.wwise.ui.layout.closeView"
     # Dock a floating view into a layout.
     ak_wwise_ui_layout_dockview = u"ak.wwise.ui.layout.dockView"
     # Retrieves the current layout name.
@@ -436,6 +450,8 @@ class WAAPI_URI:
     ak_wwise_ui_layout_movesplitter = u"ak.wwise.ui.layout.moveSplitter"
     # Unregisters a temporary layout, previously registered with \ref ak_wwise_ui_layout_setlayout.
     ak_wwise_ui_layout_removelayout = u"ak.wwise.ui.layout.removeLayout"
+    # Reset layouts to their default state.
+    ak_wwise_ui_layout_resetlayouts = u"ak.wwise.ui.layout.resetLayouts"
     # Registers a new layout from a JSON format.
     ak_wwise_ui_layout_setlayout = u"ak.wwise.ui.layout.setLayout"
     # Switches the current layout.
@@ -454,9 +470,9 @@ class WAAPI_URI:
     ak_wwise_ui_model_setstate = u"ak.wwise.ui.model.setState"
     # Closes the current project.
     ak_wwise_ui_project_close = u"ak.wwise.ui.project.close"
-    # Creates, saves and opens new empty project, specified by path and platform. The project has no factory setting WorkUnit.  Please refer to \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed.
+    # Creates, saves and opens new empty project, specified by path and platform. The project has no factory setting WorkUnit.  Please see \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed.
     ak_wwise_ui_project_create = u"ak.wwise.ui.project.create"
-    # Opens a project, specified by path. Please refer to \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed.
+    # Opens a project, specified by path. Please see \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed.
     ak_wwise_ui_project_open = u"ak.wwise.ui.project.open"
     # Sent when the selection changes in the project.
     ak_wwise_ui_selectionchanged = u"ak.wwise.ui.selectionChanged"

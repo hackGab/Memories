@@ -32,31 +32,32 @@ the specific language governing permissions and limitations under the License.
 #include <AK/SoundEngine/Common/IAkPlugin.h>
 
 // Effect plug-ins
-#include <AK/Plugin/AkCompressorFXFactory.h>					// Compressor
-#include <AK/Plugin/AkDelayFXFactory.h>							// Delay
-#include <AK/Plugin/AkMatrixReverbFXFactory.h>					// Matrix reverb
-#include <AK/Plugin/AkMeterFXFactory.h>							// Meter
-#include <AK/Plugin/AkExpanderFXFactory.h>						// Expander
-#include <AK/Plugin/AkParametricEQFXFactory.h>					// Parametric equalizer
-#include <AK/Plugin/AkGainFXFactory.h>							// Gain
-#include <AK/Plugin/AkPeakLimiterFXFactory.h>					// Peak limiter
-#include <AK/Plugin/AkRoomVerbFXFactory.h>						// RoomVerb
-#include <AK/Plugin/AkGuitarDistortionFXFactory.h>				// Guitar distortion
-#include <AK/Plugin/AkStereoDelayFXFactory.h>					// Stereo delay
-#include <AK/Plugin/AkPitchShifterFXFactory.h>					// Pitch shifter
-#include <AK/Plugin/AkTimeStretchFXFactory.h>					// Time stretch
-#include <AK/Plugin/AkFlangerFXFactory.h>						// Flanger
-#include <AK/Plugin/AkTremoloFXFactory.h>						// Tremolo
-#include <AK/Plugin/AkHarmonizerFXFactory.h>					// Harmonizer
-#include <AK/Plugin/AkRecorderFXFactory.h>						// Recorder
-#include <AK/Plugin/Ak3DAudioBedMixerFXFactory.h>     // 3D Audio Bed Mixer
+#include <AK/Plugin/AkCompressorFXFactory.h>         // Compressor/Expander
+#include <AK/Plugin/AkDelayFXFactory.h>              // Delay
+#include <AK/Plugin/AkMatrixReverbFXFactory.h>       // Matrix reverb
+#include <AK/Plugin/AkMeterFXFactory.h>              // Meter
+#include <AK/Plugin/AkParametricEQFXFactory.h>       // Parametric equalizer
+#include <AK/Plugin/AkGainFXFactory.h>               // Gain
+#include <AK/Plugin/AkPeakLimiterFXFactory.h>        // Peak limiter
+#include <AK/Plugin/AkRoomVerbFXFactory.h>           // RoomVerb
+#include <AK/Plugin/AkGuitarDistortionFXFactory.h>   // Guitar distortion
+#include <AK/Plugin/AkStereoDelayFXFactory.h>        // Stereo delay
+#include <AK/Plugin/AkPitchShifterFXFactory.h>       // Pitch shifter
+#include <AK/Plugin/AkTimeStretchFXFactory.h>        // Time stretch
+#include <AK/Plugin/AkFlangerFXFactory.h>            // Flanger
+#include <AK/Plugin/AkTremoloFXFactory.h>            // Tremolo
+#include <AK/Plugin/AkHarmonizerFXFactory.h>         // Harmonizer
+#include <AK/Plugin/AkRecorderFXFactory.h>           // Recorder
+#include <AK/Plugin/AkRecorderADMFXFactory.h>        // Recorder (ADM)
+#include <AK/Plugin/Ak3DAudioBedMixerFXFactory.h>    // 3D Audio Bed Mixer
+#include <AK/Plugin/AkSidechainFXFactory.h>          // SidechainFX
 
 // Sources plug-ins
-#include <AK/Plugin/AkSilenceSourceFactory.h>					// Silence generator
-#include <AK/Plugin/AkSineSourceFactory.h>						// Sine wave generator
-#include <AK/Plugin/AkToneSourceFactory.h>						// Tone generator
-#include <AK/Plugin/AkAudioInputSourceFactory.h>				// Audio input
-#include <AK/Plugin/AkSynthOneSourceFactory.h>					// SynthOne
+#include <AK/Plugin/AkSilenceSourceFactory.h>        // Silence generator
+#include <AK/Plugin/AkSineSourceFactory.h>           // Sine wave generator
+#include <AK/Plugin/AkToneSourceFactory.h>           // Tone generator
+#include <AK/Plugin/AkAudioInputSourceFactory.h>     // Audio input
+#include <AK/Plugin/AkSynthOneSourceFactory.h>       // SynthOne
 
 // Metadata plug-ins
 
@@ -64,7 +65,7 @@ the specific language governing permissions and limitations under the License.
 #include <AK/Plugin/AkVorbisDecoderFactory.h>
 #include <AK/Plugin/AkOpusDecoderFactory.h>
 #if defined(AK_NX)
-	#include <AK/Plugin/AkOpusNXFactory.h>		// Note: Useable only on NX. Ok to include it on other platforms as long as it is not referenced.
+	#include <AK/Plugin/AkOpusNXFactory.h>            // Note: Useable only on NX. Ok to include it on other platforms as long as it is not referenced.
 #endif	
 
 #endif // _AK_ALLPLUGINSFACTORIES_H_

@@ -57,8 +57,9 @@ public:
 	}
 	void SetGranularity(uint32 InStreamingGranularity) override {}
 
-	IWwiseStreamingManagerHooks& GetStreamingHooks() override final { return *this; }
+	void DoPostTerm() override {}
 
+	IWwiseStreamingManagerHooks& GetStreamingHooks() override final { return *this; }
 
 	bool IsEmpty()
 	{
@@ -69,7 +70,7 @@ public:
 protected:
 	virtual FWwiseFileStateSharedPtr CreateOp(const FWwiseSoundBankCookedData& InSoundBankCookedData)
 	{
-		auto* FileState = new FWwiseMockFileState(InSoundBankCookedData.SoundBankId);
+		auto* FileState = new FWwiseMockFileState(InSoundBankCookedData.SoundBankId, FWwiseMockFileState::EFileType::SoundBank);
 		FileState->bIsStreamedState = FWwiseMockFileState::OptionalBool::False;
 		return FWwiseFileStateSharedPtr(FileState);
 	}

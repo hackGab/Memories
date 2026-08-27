@@ -17,18 +17,11 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 #pragma once
 
-#include "Wwise/CookedData/WwiseSwitchContainerLeafCookedData.h"
+#include "Wwise/CookedData/WwiseAudioNodeCookedData.h"
+#include "Wwise/CookedData/WwiseGroupValueCookedData.h"
 #include "Wwise/WwiseUnrealVersion.h"
 
 #include "WwiseEventCookedData.generated.h"
-
-
-UENUM(BlueprintType)
-enum class EWwiseEventDestroyOptions : uint8
-{
-	StopEventOnDestroy,
-	WaitForEventEnd
-};
 
 USTRUCT(BlueprintType)
 struct WWISERESOURCELOADER_API FWwiseEventCookedData
@@ -48,13 +41,13 @@ struct WWISERESOURCELOADER_API FWwiseEventCookedData
 	TArray<FWwiseExternalSourceCookedData> ExternalSources;
 
 	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "Wwise")
-	TArray<FWwiseSwitchContainerLeafCookedData> SwitchContainerLeaves;
+	TMap<FWwiseGroupValueCookedDataSet, FWwiseAudioNodeCookedData> AudioNodes;
 
 	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "Wwise")
 	TSet<FWwiseGroupValueCookedData> RequiredGroupValueSet;
 
 	UPROPERTY(BlueprintReadOnly, VisibleInstanceOnly, Category = "Wwise")
-	EWwiseEventDestroyOptions DestroyOptions = EWwiseEventDestroyOptions::StopEventOnDestroy;
+	EWwiseAssetDestroyOptions DestroyOptions = EWwiseAssetDestroyOptions::StopEventOnDestroy;
 
 	/**
 	 * @brief Optional debug name. Can be empty in release, contain the name, or the full path of the asset.
@@ -67,7 +60,7 @@ struct WWISERESOURCELOADER_API FWwiseEventCookedData
 	void Serialize(FArchive& Ar);
 	void SerializeBulkData(FArchive& Ar, const FWwisePackagedFileSerializationOptions& Options);
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-	void PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const;
+	void GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const;
 #endif
 	
 	FString GetDebugString() const;

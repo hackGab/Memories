@@ -53,7 +53,7 @@ FString FWwiseExternalSourceCookedData::GetDebugString() const
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseExternalSourceCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
+void FWwiseExternalSourceCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
 {
 	Writer << "ES";
 	Writer.BeginObject();

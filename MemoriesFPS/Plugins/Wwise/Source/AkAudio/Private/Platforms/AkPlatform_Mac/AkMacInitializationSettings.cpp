@@ -44,7 +44,11 @@ UAkMacInitializationSettings::UAkMacInitializationSettings(const FObjectInitiali
 
 void UAkMacInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
 {
-	InitializationStructure.SetPluginDllPath("Mac_Xcode1400");
+#if defined(WWISE_MAC_PLATFORM_FOLDER)
+	InitializationStructure.SetPluginDllPath(WWISE_MAC_PLATFORM_FOLDER);
+#else
+	InitializationStructure.SetPluginDllPath("Mac_Xcode1500");
+#endif
 
 	CommonSettings.FillInitializationStructure(InitializationStructure);
 	CommunicationSettings.FillInitializationStructure(InitializationStructure);

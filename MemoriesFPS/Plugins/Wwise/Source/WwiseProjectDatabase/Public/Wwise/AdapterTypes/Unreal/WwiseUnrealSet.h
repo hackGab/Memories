@@ -49,7 +49,7 @@ public:
 
 	WwiseUnrealSet Difference(const WwiseUnrealSet& OtherSet)
 	{
-		return this->Set.Difference(OtherSet.Set);
+		return WwiseUnrealSet(this->Set.Difference(OtherSet.Set));
 	}
 
 	void Empty(int ExpectedUsage = 0) override

@@ -40,7 +40,7 @@ the specific language governing permissions and limitations under the License.
 /// \name Profiling string lengths.
 //@{
 #define AK_MONITOR_STREAMNAME_MAXLENGTH    (64)
-#define AK_MONITOR_DEVICENAME_MAXLENGTH    (16)
+#define AK_MONITOR_DEVICENAME_MAXLENGTH    (64)
 //@}
  
 //-----------------------------------------------------------------------------

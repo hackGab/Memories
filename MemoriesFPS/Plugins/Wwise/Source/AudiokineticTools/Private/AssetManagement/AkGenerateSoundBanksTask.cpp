@@ -18,6 +18,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkGenerateSoundBanksTask.h"
 #include "AkWaapiClient.h"
 #include "Async/Async.h"
+#include "AkSettingsPerUser.h"
 
 AkGenerateSoundBanksTask::AkGenerateSoundBanksTask(const AkSoundBankGenerationManager::FInitParameters& InitParameters)
 {
@@ -40,6 +41,23 @@ void AkGenerateSoundBanksTask::ExecuteForEditorPlatform()
 	}
 
 	CreateAndExecuteTask(InitParameters);
+}
+
+void AkGenerateSoundBanksTask::ExecuteForAllPlatforms()
+{
+	AkSoundBankGenerationManager::FInitParameters InitParameters;
+	const UAkSettingsPerUser* AkSettingsPerUser = GetDefault<UAkSettingsPerUser>();
+	if (AkSettingsPerUser)
+	{
+		InitParameters.bUserOverride = !AkSettingsPerUser->RootOutputPathOverride.Path.IsEmpty();
+	}
+
+	if (FAkWaapiClient::IsProjectLoaded())
+	{
+		InitParameters.GenerationMode = AkSoundBankGenerationManager::ESoundBankGenerationMode::WAAPI;
+	}
+
+	AkGenerateSoundBanksTask::CreateAndExecuteTask(InitParameters);
 }
 
 void AkGenerateSoundBanksTask::CreateAndExecuteTask(const AkSoundBankGenerationManager::FInitParameters& InitParameters)

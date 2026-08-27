@@ -28,9 +28,9 @@ public class WwiseSoundEngineVersion
 	public int Build = -1;
 	private static WwiseSoundEngineVersion Instance = null;
 
-	private WwiseSoundEngineVersion(string PluginDirectory)
+	private WwiseSoundEngineVersion(string ThirdPartyDirectory)
 	{
-		var WwiseSdkVersionPath = Path.Combine(PluginDirectory, "ThirdParty/include/AK/", "AkWwiseSDKVersion.h");
+		var WwiseSdkVersionPath = Path.Combine(ThirdPartyDirectory, "include/AK/", "AkWwiseSDKVersion.h");
 		if (!System.IO.File.Exists(WwiseSdkVersionPath))
 		{
 			throw new BuildException(string.Format("Wwise ThirdParty is not installed. Unable to find \"{0}\" file.", WwiseSdkVersionPath));
@@ -70,14 +70,14 @@ public class WwiseSoundEngineVersion
 		}
 	}
 
-	public static WwiseSoundEngineVersion GetInstance(string PluginDirectory)
+	public static WwiseSoundEngineVersion GetInstance(string ThirdPartyDirectory)
 	{
-		return Instance != null ? Instance : Instance = new WwiseSoundEngineVersion(PluginDirectory);
+		return Instance != null ? Instance : Instance = new WwiseSoundEngineVersion(ThirdPartyDirectory);
 	}
 
-    public static string[] GetVersionDefinesFromPluginDirectory(string PluginDirectory)
+    public static string[] GetVersionDefinesFromPluginDirectory(string ThirdPartyDirectory)
 	{
-		WwiseSoundEngineVersion version = GetInstance(PluginDirectory);
+		WwiseSoundEngineVersion version = GetInstance(ThirdPartyDirectory);
 		return new[]
 		{
 			string.Format("AK_WWISE_SOUNDENGINE_VERSION=\"{0}.{1}.{2}\"", version.Major, version.Minor, version.SubMinor),
@@ -88,7 +88,7 @@ public class WwiseSoundEngineVersion
 		};
 	}
 
-	public static bool IsSoundEngineVersionSupported(string PluginDirectory, string ClassName)
+	public static bool IsSoundEngineVersionSupported(string ThirdPartyDirectory, string ClassName)
 	{
 		var ClassSplit = ClassName.Split('_');
 		int RequiredMajor = -1, RequiredMinor = -1, RequiredSubMinor = -1, RequiredBuild = -1;
@@ -106,24 +106,14 @@ public class WwiseSoundEngineVersion
 				throw new BuildException(string.Format("WwiseSoundEngine class name is invalid: {0}", ClassName));
 		}
 
-		var Version = GetInstance(PluginDirectory);
+		var Version = GetInstance(ThirdPartyDirectory);
 		return Version.Major == RequiredMajor
 			&& (RequiredMinor == -1 || Version.Minor == RequiredMinor)
 			&& (RequiredSubMinor == -1 || Version.SubMinor == RequiredSubMinor)
 			&& (RequiredBuild == -1 || Version.Build == RequiredBuild);
 	}
 
-	public static string GetSoundEngineVersion(string PluginDirectory, string[] Modules)
-	{
-		foreach (var Module in Modules)
-		{
-			if (IsSoundEngineVersionSupported(PluginDirectory, Module))
-			{
-				return Module;
-			}
-		}
-
-		var Version = GetInstance(PluginDirectory);
-		throw new BuildException(string.Format("WwiseSoundEngine does not support the current SDK version: {0}.{1}.{2}.{3}", Version.Major, Version.Minor, Version.SubMinor, Version.Build));
+	public static implicit operator Version( WwiseSoundEngineVersion self ){
+		return new Version(self.Major, self.Minor, self.SubMinor, self.Build);
 	}
 }

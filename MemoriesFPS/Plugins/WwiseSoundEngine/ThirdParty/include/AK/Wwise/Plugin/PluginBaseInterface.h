@@ -95,6 +95,11 @@ typedef enum
 	AK_WWISE_PLUGIN_INTERFACE_TYPE_FRONTEND,									///< \internal <b>Reserved</b>
 	AK_WWISE_PLUGIN_INTERFACE_TYPE_HOST_FRONTEND_MODEL,							///< \internal <b>Reserved</b>
 
+	AK_WWISE_PLUGIN_INTERFACE_TYPE_NOTIFICATIONS_REFERENCE_SET,					///< <b>2025.1</b> Reference Set modification notification. ak_wwise_plugin_notifications_reference_set_v1
+	AK_WWISE_PLUGIN_INTERFACE_TYPE_HOST_REFERENCE_SET,							///< <b>2025.1</b> Reference Set host service. ak_wwise_plugin_host_reference_set_v1
+
+	// Add new entries here
+
 	/** Number of plug-in interfaces. Last value. */
 	AK_WWISE_PLUGIN_INTERFACE_TYPE_NUM
 } ak_wwise_plugin_interface_type;

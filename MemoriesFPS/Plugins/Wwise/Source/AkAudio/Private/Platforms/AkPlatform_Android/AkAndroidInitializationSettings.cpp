@@ -27,17 +27,31 @@ Copyright (c) 2025 Audiokinetic Inc.
 //////////////////////////////////////////////////////////////////////////
 // FAkAndroidAdvancedInitializationSettings
 
+FAkAndroidAdvancedInitializationSettings::FAkAndroidAdvancedInitializationSettings()
+{
+#if WWISE_2024_1_OR_LATER
+	RoundFrameSizeToHardwareSize = false;
+#else
+	RoundFrameSizeToHardwareSize = true;
+#endif
+}
+
 void FAkAndroidAdvancedInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const
 {
 	Super::FillInitializationStructure(InitializationStructure);
 
 #if PLATFORM_ANDROID
-	InitializationStructure.PlatformInitSettings.eAudioAPI = static_cast<AkAudioAPI>(AudioAPI);
-	InitializationStructure.PlatformInitSettings.bRoundFrameSizeToHWSize = RoundFrameSizeToHardwareSize;
 	InitializationStructure.PlatformInitSettings.bVerboseSink = bVerboseSink;
-#if WWISE_2023_1_OR_LATER
-	InitializationStructure.PlatformInitSettings.bEnableLowLatency = UseLowLatencyMode;
+
+#if WWISE_2025_1_OR_LATER
+	InitializationStructure.PlatformInitSettings.eAudioAPI = static_cast<AkAudioAPI>(AudioAPI | SpatializerAPI);
+	InitializationStructure.PlatformInitSettings.eAudioPath = (AkAudioPath)AudioPath;
+#else
+	InitializationStructure.PlatformInitSettings.eAudioAPI = static_cast<AkAudioAPI>(AudioAPI);
+	InitializationStructure.PlatformInitSettings.bEnableLowLatency = AudioPath != EAkAndroidAudioPath::Legacy;
+	InitializationStructure.PlatformInitSettings.bRoundFrameSizeToHWSize = RoundFrameSizeToHardwareSize;
 #endif
+
 #endif
 }
 
@@ -50,6 +64,15 @@ UAkAndroidInitializationSettings::UAkAndroidInitializationSettings(const FObject
 {
 	CommonSettings.MainOutputSettings.PanningRule = EAkPanningRule::Headphones;
 	CommonSettings.MainOutputSettings.ChannelConfigType = EAkChannelConfigType::Standard;
+}
+
+void UAkAndroidInitializationSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	if ((uint32)AdvancedSettings.AudioPath == (uint32)(-1))
+	{
+		AdvancedSettings.AudioPath = AdvancedSettings.UseLowLatencyMode_DEPRECATED ? EAkAndroidAudioPath::LowLatency : EAkAndroidAudioPath::Legacy;
+	}
 }
 
 void UAkAndroidInitializationSettings::FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const

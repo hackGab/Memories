@@ -18,7 +18,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #pragma once
 
 #include "Async/TaskGraphInterfaces.h"
-#include "Containers/Queue.h"
 #include "Misc/DateTime.h"
 #include "Misc/QueuedThreadPool.h"
 #include "Wwise/WwiseTask.h"
@@ -34,6 +33,23 @@ Copyright (c) 2025 Audiokinetic Inc.
 */
 struct WWISECONCURRENCY_API FWwiseExecutionQueue
 {
+	/**
+	 * Defines a Thread Pool to be used by Wwise exclusively.
+	 *
+	 * Using a Thread Pool separate from Unreal is a bad practice in general, since Unreal defines
+	 * enough threads for most uses. However, in some cases of heavy thread contention, it's still
+	 * preferable to allocate multiple threads for Wwise exclusively.
+	 */
+	static FQueuedThreadPool* DefaultWwiseThreadPool;
+
+	/**
+	 * Defines a Thread Pool to be used by this Execution Queue. It's either owned by this
+	 * Execution Queue exclusively, or it's shared by other users, such as the Default Wwise
+	 * Thread Pool.
+	 */
+	FQueuedThreadPool* const ThreadPool;
+	bool bOwnedPool;
+		
 	const TCHAR* const DebugName;
 	const EWwiseTaskPriority TaskPriority;
 	using FBasicFunction = TUniqueFunction<void()>;
@@ -45,8 +61,22 @@ struct WWISECONCURRENCY_API FWwiseExecutionQueue
 	 * @brief Starts a new Execution Queue running at a particular thread priority.
 	 * @param InDebugName Name for this execution queue's task. Can use WWISE_EQ_NAME to create a standardized name.
 	 * @param InTaskPriority The priority for the task.
-	*/
+	 */
 	FWwiseExecutionQueue(const TCHAR* InDebugName, EWwiseTaskPriority InTaskPriority = EWwiseTaskPriority::Default);
+
+	/**
+	 * @brief Starts a new Execution Queue running in a Thread Pool owned by the user.
+	 * @param InDebugName Name for this execution queue's task. Can use WWISE_EQ_NAME to create a standardized name.
+	 * @param InThreadPool The Thread Pool to use for this Execution Queue
+	 */
+	FWwiseExecutionQueue(const TCHAR* InDebugName, FQueuedThreadPool* InThreadPool);
+
+	/**
+	 * @brief Starts a new Execution Queue running in a new Thread Pool owned by the Execution Queue.
+	 * @param InDebugName Name for this execution queue's task. Can use WWISE_EQ_NAME to create a standardized name.
+	 * @param InThreadPriority The priority for the thread.
+	 */
+	FWwiseExecutionQueue(const TCHAR* InDebugName, EThreadPriority InThreadPriority);
 
 	/**
 	 * @brief Destructor for Execution Queue.
@@ -159,7 +189,7 @@ private:
 	std::atomic<EWorkerState> WorkerState{ EWorkerState::Stopped };
 	bool bDeleteOnceClosed{ false };
 
-	using FOpQueue = TQueue<FOpQueueItem, EQueueMode::Mpsc>;
+	using FOpQueue = TLockFreePointerListFIFO<FOpQueueItem, PLATFORM_CACHE_LINE_SIZE>;
 	FOpQueue OpQueue;
 
 	struct TLS;

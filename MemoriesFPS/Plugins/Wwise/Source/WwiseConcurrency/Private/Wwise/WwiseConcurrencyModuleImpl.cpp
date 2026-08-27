@@ -31,8 +31,16 @@ void FWwiseConcurrencyModule::StartupModule()
 {
 	UE_LOG(LogWwiseConcurrency, Log, TEXT("Initializing default Concurrency."));
 
-	DefaultQueue = new FWwiseExecutionQueue(WWISE_EQ_NAME("Default"));
-	
+#if WWISE_CONCURRENCY_USE_SEPARATE_THREADS
+	if (FPlatformProcess::SupportsMultithreading())
+	{
+		FWwiseExecutionQueue::DefaultWwiseThreadPool = FQueuedThreadPool::Allocate();
+		if (LIKELY(FWwiseExecutionQueue::DefaultWwiseThreadPool))
+		{
+			verify(FWwiseExecutionQueue::DefaultWwiseThreadPool->Create(2, (128*1024), TPri_Normal, TEXT("Wwise ExecutionQueue Thread Pool")));
+		}
+	}
+#endif
 	IWwiseConcurrencyModule::StartupModule();
 }
 
@@ -40,12 +48,10 @@ void FWwiseConcurrencyModule::ShutdownModule()
 {
 	UE_LOG(LogWwiseConcurrency, Log, TEXT("Shutting down default Concurrency."));
 
-	if (DefaultQueue)
+	if (FWwiseExecutionQueue::DefaultWwiseThreadPool)
 	{
-		auto* Closing{ DefaultQueue };
-		DefaultQueue = nullptr;
-		
-		Closing->CloseAndDelete();
+		delete FWwiseExecutionQueue::DefaultWwiseThreadPool;
+		FWwiseExecutionQueue::DefaultWwiseThreadPool = nullptr;
 	}
 	IWwiseConcurrencyModule::ShutdownModule();
 }

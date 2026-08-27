@@ -27,10 +27,14 @@ public class WwiseEngineUtils : ModuleRules
 			"Core",
 			"Engine",
 			"WwiseSoundEngine",
-			"WwiseUtils"
+			"WwiseUtils",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
+		});
+		
+		PublicIncludePathModuleNames.AddRange(new string[] {
+			"CoreUObject",
 		});
 
 #if UE_5_3_OR_LATER

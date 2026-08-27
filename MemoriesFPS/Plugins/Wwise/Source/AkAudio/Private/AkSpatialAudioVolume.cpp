@@ -127,6 +127,7 @@ ECollisionChannel AAkSpatialAudioVolume::GetCollisionChannel()
 
 void AAkSpatialAudioVolume::FitRaycast()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::FitRaycast"));
 	UWorld* World = GetWorld();
 	if (!World)
 		return;
@@ -158,7 +159,7 @@ void AAkSpatialAudioVolume::FitRaycast()
 
 		TArray< FHitResult > OutHits;
 		OutHits.Empty();
-		World->LineTraceMultiByObjectType(OutHits, RaycastOrigin, to, (int)GetCollisionChannel(), CollisionParams);
+		World->LineTraceMultiByChannel(OutHits, RaycastOrigin, to, GetCollisionChannel(), CollisionParams);
 
 		for (auto& res : OutHits)
 		{
@@ -238,6 +239,7 @@ void AAkSpatialAudioVolume::FitRaycast()
 
 void AAkSpatialAudioVolume::PostRebuildBrush()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::PostRebuildBrush"));
 	UnregisterAllComponents(true);
 	RegisterAllComponents();
 
@@ -355,6 +357,7 @@ void AddOrIncrementMaterialVote(TMap<TWeakObjectPtr<UPhysicalMaterial>, int>& vo
 
 void AAkSpatialAudioVolume::FitBox(bool bPreviewOnly)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::FitBox"));
 	ClearTextComponents();
 	LongestEdgeLength = 0.0f;
 
@@ -775,6 +778,7 @@ bool AAkSpatialAudioVolume::ShouldTickIfViewportsOnly() const
 
 void AAkSpatialAudioVolume::Tick(float DeltaSeconds)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::Tick"));
 	if (ShouldTickIfViewportsOnly())
 	{
 		SetNeedRebuild(GetLevel());
@@ -787,6 +791,7 @@ void AAkSpatialAudioVolume::Tick(float DeltaSeconds)
 
 void AAkSpatialAudioVolume::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::PostTransacted"));
 	Super::PostTransacted(TransactionEvent);
 	const TArray<FName>& ChangedProperties = TransactionEvent.GetChangedProperties();
 	if (TransactionEvent.GetEventType() == ETransactionObjectEventType::UndoRedo && ChangedProperties.Contains(FName("FitToGeometry")))
@@ -797,6 +802,7 @@ void AAkSpatialAudioVolume::PostTransacted(const FTransactionObjectEvent& Transa
 
 void AAkSpatialAudioVolume::PostEditMove(bool bFinished)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::PostEditMove"));
 	Super::PostEditMove(bFinished);
 
 	IsDragging = !bFinished;
@@ -818,6 +824,7 @@ void AAkSpatialAudioVolume::PostEditMove(bool bFinished)
 
 void AAkSpatialAudioVolume::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkSpatialAudioVolume::PostEditChangeProperty"));
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	IsDragging = PropertyChangedEvent.ChangeType == EPropertyChangeType::Interactive;

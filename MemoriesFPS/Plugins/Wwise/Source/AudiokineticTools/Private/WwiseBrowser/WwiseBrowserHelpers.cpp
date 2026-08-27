@@ -21,13 +21,15 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkAcousticTexture.h"
 #include "AkAudioDeviceShareSet.h"
 #include "AkAudioEvent.h"
+#include "AkAudioNode.h"
 #include "AkAuxBus.h"
+#include "AkDialogueEvent.h"
+#include "AkEffectShareSet.h"
+#include "AkInitBank.h"
 #include "AkRtpc.h"
 #include "AkStateValue.h"
 #include "AkSwitchValue.h"
 #include "AkTrigger.h"
-#include "AkEffectShareSet.h"
-#include "AkInitBank.h"
 #include "WwiseUnrealHelper.h"
 #include "AkAssetFactories.h"
 #include "AssetManagement/AkAssetDatabase.h"
@@ -40,6 +42,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "FileHelpers.h"
 #include "ObjectTools.h"
 #include "PackageTools.h"
+#include "DataSource/WwiseBrowserDataSource.h"
 
 #define LOCTEXT_NAMESPACE "AkAudio"
 
@@ -49,6 +52,10 @@ EWwiseItemType::Type WwiseBrowserHelpers::GetTypeFromClass(UClass* Class)
 	if (Class == UAkAudioEvent::StaticClass())
 	{
 		return EWwiseItemType::Event;
+	}
+	if (Class == UAkDialogueEvent::StaticClass())
+	{
+		return EWwiseItemType::DialogueEvent;
 	}
 	if (Class == UAkAcousticTexture::StaticClass())
 	{
@@ -86,6 +93,10 @@ EWwiseItemType::Type WwiseBrowserHelpers::GetTypeFromClass(UClass* Class)
 	{
 		return EWwiseItemType::InitBank;
 	}
+	if(Class == UAkAudioNode::StaticClass())
+	{
+		return EWwiseItemType::AudioNode;
+	}
 	return EWwiseItemType::None;
 }
 
@@ -106,6 +117,11 @@ void WwiseBrowserHelpers::FindOrCreateAssetsRecursive(const FWwiseTreeItemPtr& W
 	{
 		Name = WwiseTreeItem->DisplayName;
 		WwiseAssetClass = UAkAudioEvent::StaticClass();
+	}
+	if (WwiseTreeItem->ItemType == EWwiseItemType::DialogueEvent)
+	{
+		Name = WwiseTreeItem->DisplayName;
+		WwiseAssetClass = UAkDialogueEvent::StaticClass();
 	}
 	if (WwiseTreeItem->ItemType == EWwiseItemType::AcousticTexture)
 	{
@@ -403,6 +419,9 @@ UAkAssetFactory* WwiseBrowserHelpers::GetAssetFactory(const FWwiseTreeItemPtr& W
 	case EWwiseItemType::Event:
 		Factory = UAkAudioEventFactory::StaticClass()->GetDefaultObject<UFactory>();
 		break;
+	case EWwiseItemType::DialogueEvent:
+		Factory = UAkDialogueEventFactory::StaticClass()->GetDefaultObject<UFactory>();
+		break;
 	case EWwiseItemType::AcousticTexture:
 		Factory = UAkAcousticTextureFactory::StaticClass()->GetDefaultObject<UFactory>();
 		break;
@@ -447,9 +466,20 @@ bool WwiseBrowserHelpers::CanCreateAsset(const FWwiseTreeItemPtr& Item)
 	return !Item->IsOfType({ EWwiseItemType::Sound });
 }
 
-FLinearColor WwiseBrowserHelpers::GetTextColor(bool bUpToDate)
+FLinearColor WwiseBrowserHelpers::GetTextColor(bool bUpToDate, bool bRequireAttention)
 {
-	return bUpToDate ? FLinearColor::Gray : FLinearColor(1.f, 0.33f, 0);
+	if (bRequireAttention)
+	{
+		return FLinearColor(0.2, 0.8, 0.9);
+	}
+	else if (bUpToDate)
+	{
+		return FLinearColor::Gray;
+	}
+	else
+	{
+		return FLinearColor(1.f, 0.33f, 0);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

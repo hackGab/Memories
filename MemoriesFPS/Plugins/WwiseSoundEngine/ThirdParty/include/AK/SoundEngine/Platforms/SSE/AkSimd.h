@@ -208,6 +208,8 @@ static AkForceInline AKSIMD_V4COND AKSIMD_SETMASK_V4COND( AkUInt32 x )
 #define AKSIMD_MSUB_V4F32( __a__, __b__, __c__ ) _mm_sub_ps( _mm_mul_ps( (__a__), (__b__) ), (__c__) )
 #endif
 
+#define AKSIMD_LERP_V4F32( _alpha_, __a__, __b__ ) AKSIMD_MADD_V4F32(_alpha_, AKSIMD_SUB_V4F32(__b__, __a__), __a__)
+
 /// Vector multiply-add operation.
 #define AKSIMD_MADD_SS_V4F32( __a__, __b__, __c__ ) _mm_add_ss( _mm_mul_ss( (__a__), (__b__) ), (__c__) )
 
@@ -752,3 +754,14 @@ typedef __m64	AKSIMD_V2F32;	///< Vector of 2 32-bit floats
 
 #endif
 
+
+////////////////////////////////////////////////////////////////////////
+/// @name AKSIMD int16 helpers
+//@{
+// AKSIMD helpers for loading int6 wav data
+
+/// Loads 64 bits (4 int16 values) into lower half of 128 bit vector from unaligned
+/// memory (see _mm_loadl_epi64)
+#define AKSIMD_LOAD_V1I64_LO( __addr__ ) _mm_loadl_epi64(reinterpret_cast<const __m128i*>(__addr__) )
+//@}
+////////////////////////////////////////////////////////////////////////

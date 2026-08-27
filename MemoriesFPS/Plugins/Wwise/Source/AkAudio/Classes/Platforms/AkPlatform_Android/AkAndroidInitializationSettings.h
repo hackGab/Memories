@@ -31,22 +31,45 @@ enum class EAkAndroidAudioAPI : uint32
 	OpenSL_ES
 };
 
+UENUM(Meta = (Bitmask))
+enum class EAkAndroidSpatializerAPI : uint32
+{
+	DolbyAtmos = 8,
+	AndroidSpatializer = 9,
+};
+
+UENUM()
+enum class EAkAndroidAudioPath : uint32
+{
+	Legacy,
+	LowLatency,
+	Exclusive,
+};
+
 USTRUCT()
 struct FAkAndroidAdvancedInitializationSettings : public FAkAdvancedInitializationSettingsWithMultiCoreRendering
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (Bitmask, BitmaskEnum = "/Script/AkAudio.EAkAndroidAudioAPI", ToolTip = "Main audio API to use. Leave set to \"Default\" for the default audio sink."))
+	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (Bitmask, BitmaskEnum = "/Script/AkAudio.EAkAndroidAudioAPI", ToolTip = "Main audio API to allow using for audio output. Enable both to let Wwise decide the best audio API for the device."))
 	uint32 AudioAPI = (1 << (uint32)EAkAndroidAudioAPI::AAudio) | (1 << (uint32)EAkAndroidAudioAPI::OpenSL_ES);
 
-	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "Used when hardware-preferred frame size and user-preferred frame size are not compatible. If true (default), the sound engine will initialize to a multiple of the HW setting, close to the user setting. If false, the user setting is used as is, regardless of the HW preference (might incur a performance hit)."))
-	bool RoundFrameSizeToHardwareSize = true;
+	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (Bitmask, BitmaskEnum = "/Script/AkAudio.EAkAndroidSpatializerAPI", ToolTip = "Spatializer API to allow using for 3D audio support. Note that Android Spatializer has noticeable latency issues. Disabling all spatializer APIs will effectively disable 3D audio."))
+	uint32 SpatializerAPI = (1 << (uint32)EAkAndroidSpatializerAPI::DolbyAtmos);
 
-	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "Use the lowest output latency possible for the current hardware. If true (default), the output audio device will be initialized in low-latency operation, allowing for more responsive audio playback on most devices. However, when operating in low-latency mode, some devices may have differences in audio reproduction. If false, the output audio device will be initialized without low-latency operation.", MinWwiseVersion="2023.1"))
-	bool UseLowLatencyMode = true;
+	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "Which audio path to use. Legacy gives best compatibility with the widest range of devices but noticeably high latency. Exclusive has best latency but has several drawbacks and bad compatibility. LowLatency is a good balance between the two."))
+	EAkAndroidAudioPath AudioPath = (EAkAndroidAudioPath)(-1); // Invalid value for initial project migration.
+
+	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "(deprecated) Rounds the pipeline buffer size to a multiple of the hardware-preferred frame size. This setting is deprecated. This has no impact on performance and should be left to false (the default)."))
+	bool RoundFrameSizeToHardwareSize = false;
+
+	UPROPERTY(Config)
+	bool UseLowLatencyMode_DEPRECATED = true;
 
 	UPROPERTY(EditAnywhere, Category = "Ak Initialization Settings", meta = (ToolTip = "Enable this to inspect sink behavior. Useful for debugging non-standard Android devices."))
 	bool bVerboseSink = false;
+
+	FAkAndroidAdvancedInitializationSettings();
 
 	void FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const;
 };
@@ -64,6 +87,8 @@ public:
 	}
 
 	UAkAndroidInitializationSettings(const class FObjectInitializer& ObjectInitializer);
+
+	virtual void PostInitProperties() override;
 
 	void FillInitializationStructure(FAkInitializationStructure& InitializationStructure) const override;
 

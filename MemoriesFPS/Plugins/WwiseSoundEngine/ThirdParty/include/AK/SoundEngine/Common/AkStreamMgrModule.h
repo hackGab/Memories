@@ -136,7 +136,7 @@ AK_CALLBACK(void, AkFileOpenCallback)(
 	);
 
 /// Structure used by Low Level IO Hooks (IAkLowLevelIOHook) to pass and retreive information on files to be opened by the IO hook.
-/// Please refer to AK::StreamMgr::IAkLowLevelIOHook::BatchOpen for more information about the sementics of the Open operation.
+/// Please see AK::StreamMgr::IAkLowLevelIOHook::BatchOpen for more information about the sementics of the Open operation.
 /// \sa 
 /// - AkFileOpenData
 /// - AK::StreamMgr::IAkLowLevelIOHook::BatchOpen
@@ -523,7 +523,7 @@ namespace AK
 		/// AK::StreamMgr::IAkFileLocationResolver implementations query this string. They may use it to 
 		/// construct a file path (for e.g. SDK/samples/SoundEngine/Common/AkFileLocationBase.cpp), or to
 		/// find a language-specific file within a look-up table (for e.g. SDK/samples/SoundEngine/Common/AkFilePackageLUT.cpp).
-		/// \return Current language.
+		/// \return Current language in string format, as specified in AK::StreamMgr::SetCurrentLanguage().
 		/// \sa AK::StreamMgr::SetCurrentLanguage()
 		AK_EXTERNAPIFUNC( const AkOSChar *, GetCurrentLanguage )();
 

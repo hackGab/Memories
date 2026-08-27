@@ -63,6 +63,9 @@ WwiseMetadataMedia::WwiseMetadataMedia(WwiseMetadataLoader& Loader) :
 	Path(Loader.GetString(this, "Path"_wwise_db, WwiseRequiredMetadata::Optional)),
 	CachePath(Loader.GetString(this, "CachePath"_wwise_db, WwiseRequiredMetadata::Optional)),
 	PrefetchSize(Loader.GetWwiseShortId(this, "PrefetchSize"_wwise_db, WwiseRequiredMetadata::Optional))
+#if WWISE_2025_1_OR_LATER
+,	bContainsPrefetch(Loader.GetBool(this, "ContainsPrefetch"_wwise_db, WwiseRequiredMetadata::Optional))
+#endif
 {
 	if (Path.IsEmpty() && Location == WwiseMetadataMediaLocation::Loose)
 	{
@@ -76,5 +79,11 @@ WwiseMetadataMedia::WwiseMetadataMedia(WwiseMetadataLoader& Loader) :
 	{
 		Loader.Fail("Path+Memory"_wwise_db);
 	}
+#if WWISE_2025_1_OR_LATER
+	if (PrefetchSize == 0 && bContainsPrefetch)
+	{
+	    Loader.Fail("!Prefetch+ContainsPrefetch"_wwise_db);
+	}
+#endif
 	Loader.LogParsed("Media"_wwise_db, Id);
 }

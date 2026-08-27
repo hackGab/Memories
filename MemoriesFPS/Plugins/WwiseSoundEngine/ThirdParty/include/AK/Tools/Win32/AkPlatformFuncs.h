@@ -84,10 +84,6 @@ namespace AK
 
 #define AK_INFINITE                             INFINITE
 
-#define AkMax(x1, x2)	(((x1) > (x2))? (x1): (x2))
-#define AkMin(x1, x2)	(((x1) < (x2))? (x1): (x2))
-#define AkClamp(x, min, max)  ((x) < (min)) ? (min) : (((x) > (max) ? (max) : (x)))
-
 namespace AKPLATFORM
 {
 	// Simple automatic event API
@@ -122,6 +118,12 @@ namespace AKPLATFORM
 	inline void AkWaitForEvent( AkEvent & in_event )
 	{
         AKVERIFY( ::WaitForSingleObject( in_event, INFINITE ) == WAIT_OBJECT_0 );
+	}
+
+	/// Platform Independent Helper
+	inline bool AkWaitForEvent( AkEvent & in_event, AkUInt32 in_dwMilliseconds )
+	{
+        return ::WaitForSingleObject( in_event, in_dwMilliseconds ) == WAIT_OBJECT_0;
 	}
 
 	/// Platform Independent Helper
@@ -168,168 +170,7 @@ namespace AKPLATFORM
     // Threads
     // ------------------------------------------------------------------
 
-	/// Platform Independent Helper
-	inline bool AkIsValidThread( AkThread * in_pThread )
-	{
-		return (*in_pThread != AK_NULL_THREAD);
-	}
-
-	/// Platform Independent Helper
-	inline void AkClearThread( AkThread * in_pThread )
-	{
-		*in_pThread = AK_NULL_THREAD;
-	}
-
-	/// Platform Independent Helper
-    inline void AkCloseThread( AkThread * in_pThread )
-    {
-        AKASSERT( in_pThread );
-        AKASSERT( *in_pThread );
-        AKVERIFY( ::CloseHandle( *in_pThread ) );
-        AkClearThread( in_pThread );
-    }
-
 #define AkExitThread( _result ) return _result;
-
-	/// Platform Independent Helper
-	inline void AkGetDefaultThreadProperties( AkThreadProperties & out_threadProperties )
-	{
-		out_threadProperties.nPriority = AK_THREAD_PRIORITY_NORMAL;
-		out_threadProperties.uStackSize= AK_DEFAULT_STACK_SIZE;
-		out_threadProperties.dwAffinityMask = 0;
-	}
-
-	/// Set the name of a thread: see http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-	inline void AkSetThreadName( AkThread in_threadHnd, DWORD in_dwThreadID, LPCSTR in_szThreadName )
-	{
-		AK_UNUSEDVAR(in_threadHnd);
-		const DWORD MS_VC_EXCEPTION=0x406D1388;
-
-#pragma pack(push,8)
-		typedef struct tagTHREADNAME_INFO
-		{
-			DWORD dwType;
-			LPCSTR szName;
-			DWORD dwThreadID;
-			DWORD dwFlags;
-		} THREADNAME_INFO;
-#pragma pack(pop)
-
-		THREADNAME_INFO info;
-		info.dwType = 0x1000;
-		info.szName = in_szThreadName;
-		info.dwThreadID = in_dwThreadID;
-		info.dwFlags = 0;
-
-		__try
-		{
-			RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
-		}
-#pragma warning(suppress: 6312 6322)
-		__except(EXCEPTION_CONTINUE_EXECUTION)
-		{
-		}
-
-#if defined(AK_XBOX) || defined(_GAMING_DESKTOP) // also applicable on Windows when Win7 support is dropped. SetThreadDescription is a Win10 only API
-		wchar_t wszThreadName[32];
-		AkUInt32 maxStrLen = (sizeof(wszThreadName) / sizeof(wchar_t)) - 1;
-		AkUInt32 nameStrLen = AkMin((int)strlen(in_szThreadName), maxStrLen);
-		MultiByteToWideChar(CP_UTF8, 0, in_szThreadName, nameStrLen, wszThreadName, maxStrLen);
-		wszThreadName[nameStrLen] = '\0';
- 		SetThreadDescription(in_threadHnd, wszThreadName);
-#endif
-	}
-
-	/// Platform Independent Helper
-	inline void AkCreateThread( 
-		AkThreadRoutine pStartRoutine,					// Thread routine.
-		void * pParams,									// Routine params.
-		const AkThreadProperties & in_threadProperties,	// Properties. NULL for default.
-		AkThread * out_pThread,							// Returned thread handle.
-		const char * in_szThreadName )						// Opt thread name.
-    {
-		AKASSERT( out_pThread != NULL );
-		AKASSERT( (in_threadProperties.nPriority >= THREAD_PRIORITY_LOWEST && in_threadProperties.nPriority <= THREAD_PRIORITY_HIGHEST)
-			|| ( in_threadProperties.nPriority == THREAD_PRIORITY_TIME_CRITICAL )
-			|| ( in_threadProperties.nPriority == THREAD_MODE_BACKGROUND_BEGIN ) );
-
-		DWORD dwThreadID;
-        *out_pThread = ::CreateThread( NULL,							// No security attributes
-                                       in_threadProperties.uStackSize,	// StackSize (0 uses system default)
-                                       pStartRoutine,                   // Thread start routine
-                                       pParams,                         // Thread function parameter
-                                       CREATE_SUSPENDED,                // Creation flags: create suspended so we can set priority/affinity before starting
-                                       &dwThreadID );
-
-		// ::CreateThread() return NULL if it fails.
-        if ( !*out_pThread )
-        {
-			AkClearThread( out_pThread );
-            return;
-        }
-
-		// Set thread name.
-		if (in_szThreadName)
-		{
-			AkSetThreadName(*out_pThread, dwThreadID, in_szThreadName);
-		}
-
-		// Set properties.
-		if ( !::SetThreadPriority( *out_pThread, in_threadProperties.nPriority ) &&
-			 in_threadProperties.nPriority != THREAD_MODE_BACKGROUND_BEGIN )
-		{
-			AKASSERT( !"Failed setting thread priority" );
-			AkCloseThread( out_pThread );
-			AkClearThread(out_pThread);
-			return;
-		}
-		if (in_threadProperties.dwAffinityMask)
-		{
-			AkUInt32 dwAffinityMask = in_threadProperties.dwAffinityMask;
-			DWORD_PTR procAffinity, sysAffinity;
-			if (::GetProcessAffinityMask(::GetCurrentProcess(), &procAffinity, &sysAffinity))
-			{
-				// To avoid errors in SetThreadAffinityMask, make sure the user-supplied mask is a subset of what is allowed by the process
-				dwAffinityMask &= procAffinity;
-			}
-			if (!::SetThreadAffinityMask(*out_pThread, dwAffinityMask))
-			{
-				AKASSERT(!"Failed setting thread affinity mask");
-				AkCloseThread(out_pThread);
-				AkClearThread(out_pThread);
-				return;
-			}
-		}
-
-		// Thread is ready, start it up.
-		if (!::ResumeThread(*out_pThread))
-		{
-			AKASSERT(!"Failed to start the thread");
-			AkCloseThread(out_pThread);
-			AkClearThread(out_pThread);
-			return;
-		}
-	}
-
-	/// Platform Independent Helper
-    inline void AkWaitForSingleThread( AkThread * in_pThread )
-    {
-        AKASSERT( in_pThread );
-        AKASSERT( *in_pThread );
-        ::WaitForSingleObject( *in_pThread, INFINITE );
-    }
-
-	/// Returns the calling thread's ID.
-	inline AkThreadID CurrentThread()
-	{
-		return ::GetCurrentThreadId();
-	}
-
-	/// Platform Independent Helper
-    inline void AkSleep( AkUInt32 in_ulMilliseconds )
-    {
-		::Sleep( in_ulMilliseconds );
-    }
 
     // Time functions
     // ------------------------------------------------------------------
@@ -453,9 +294,6 @@ namespace AKPLATFORM
 		va_end(args);
 		return r;
 	}
-
-	/// Stack allocations.
-	#define AkAlloca( _size_ ) _alloca( _size_ )
 
 	/// Output a debug message on the console
 #if ! defined(AK_OPTIMIZED)

@@ -55,12 +55,12 @@ void FWwiseSoundBankCookedData::SerializeBulkData(FArchive& Ar, const FWwisePack
 }
 
 #if WITH_EDITORONLY_DATA && UE_5_5_OR_LATER
-void FWwiseSoundBankCookedData::PreSave(FObjectPreSaveContext& SaveContext, FCbWriter& Writer) const
+void FWwiseSoundBankCookedData::GetPlatformCookDependencies(FWwiseCookEventContext& Context, FCbWriter& Writer) const
 {
 	Writer << "SB";
 	Writer.BeginObject();
 	Writer << "Bank" << SoundBankId << "ContainsMedia" << bContainsMedia << "Type" << static_cast<uint8>(SoundBankType);
-	SaveContext.AddCookBuildDependency(PackagedFile.GetCookDependency());
+	WwiseCookEventContext::AddLoadBuildDependency(Context,PackagedFile.GetCookDependency());
 	PackagedFile.FillCbObject(Writer);
 	Writer.EndObject();
 }

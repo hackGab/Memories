@@ -20,6 +20,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/WwiseReconcile.h"
 #include "IWwiseReconcileColumn.h"
 #include "Widgets/SWindow.h"
+#include "Widgets/Input/SCheckBox.h"
 
 class SWwiseReconcileListView;
 
@@ -62,11 +63,16 @@ public:
 		return Columns;
 	}
 private:
+	void OnForceDeleteCheckboxChanged(ECheckBoxState newState);
+	void OnReconcileItemDoubleClicked(TSharedPtr<FWwiseReconcileItem> item);
+
 	FReply ReconcileAssets();
 
 	FReply CloseWindow();
 
 	void SetupColumns(SHeaderRow& HeaderRow);
+
+	bool CanReconcileItems() const;
 
 	/** Generate a row in the tree view */
 	TSharedRef<ITableRow> GenerateRow(TSharedPtr<FWwiseReconcileItem> Item, const TSharedRef<STableViewBase>& OwnerTable);
@@ -83,4 +89,12 @@ private:
 	TMap<FName, TSharedPtr<IWwiseReconcileColumn>> Columns;
 
 	TWeakPtr<SWindow> Window;
+
+	TSharedPtr<SCheckBox> ForceDeleteAssetsCheckbox;
+
+	EVisibility GetDestructiveActionWarningVisibility() const;
+	EVisibility GetManualActionWarningVisibility() const;
+
+	/** True if all elements in the list are assets being referenced by another asset somewhere */
+	bool bOnlyReferencedAssets = true;
 };

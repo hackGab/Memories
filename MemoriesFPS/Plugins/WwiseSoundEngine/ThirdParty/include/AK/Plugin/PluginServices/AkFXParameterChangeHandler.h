@@ -48,7 +48,7 @@ namespace AK
 
 		inline void SetParamChange( AkPluginParamID in_ID )
 		{
-			AKASSERT( in_ID <= T_MAXNUMPARAMS );
+			AKASSERT( in_ID < T_MAXNUMPARAMS );
 			const AkUInt32 uByteIndex = in_ID/8;
 			const AkUInt32 uBitMask = 1<<(in_ID-uByteIndex*8);
 			m_uParamBitArray[uByteIndex] |= uBitMask;
@@ -56,7 +56,7 @@ namespace AK
 
 		inline bool HasChanged( AkPluginParamID in_ID )
 		{
-			AKASSERT( in_ID <= T_MAXNUMPARAMS );
+			AKASSERT( in_ID < T_MAXNUMPARAMS );
 			const AkUInt32 uByteIndex = in_ID/8;
 			const AkUInt32 uBitMask = 1<<(in_ID-uByteIndex*8);
 			return (m_uParamBitArray[uByteIndex] & uBitMask) > 0;
@@ -76,7 +76,7 @@ namespace AK
 
 		inline void ResetParamChange( AkPluginParamID in_ID )
 		{
-			AKASSERT( in_ID <= T_MAXNUMPARAMS );
+			AKASSERT( in_ID < T_MAXNUMPARAMS );
 			const AkUInt32 uByteIndex = in_ID/8;
 			const AkUInt32 uBitMask = 1<<(in_ID-uByteIndex*8);
 			m_uParamBitArray[uByteIndex] &= ~uBitMask;

@@ -101,7 +101,7 @@ namespace WwiseBrowserHelpers
 
 	EWwiseItemType::Type GetTypeFromClass(UClass* Class);
 	bool CanCreateAsset(const FWwiseTreeItemPtr& Item);
-	FLinearColor GetTextColor(bool UpToDate);
+	FLinearColor GetTextColor(bool bUpToDate, bool bRequireAttention = false);
 
 	const FName WwiseBrowserColumnId = TEXT("WwiseItem");
 }

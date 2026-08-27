@@ -31,7 +31,7 @@ UMovieSceneWwiseGameParameterSection::UMovieSceneWwiseGameParameterSection(const
 
 #if WITH_EDITOR
 	FMovieSceneChannelMetaData Metadata;
-	Metadata.SetIdentifiers("GameParameter", NSLOCTEXT("MovieSceneWwiseGameParameterSectionEditorData", "GameParameter", "GameParameter"));
+	Metadata.SetIdentifiers("Wwise Game Parameter", NSLOCTEXT("MovieSceneWwiseGameParameterSectionEditorData", "Wwise Game Parameter", "Wwise Game Parameter"));
 	Channels.Add(GameParameterChannel, Metadata, TMovieSceneExternalValue<float>());
 #else
 	Channels.Add(GameParameterChannel);
@@ -56,6 +56,7 @@ float UMovieSceneWwiseGameParameterSection::GetEndTime() const
 
 void UMovieSceneWwiseGameParameterSection::PostLoad()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UMovieSceneWwiseGameParameterSection::PostLoad"));
 	Super::PostLoad();
 	const int32 AkVersion = GetLinkerCustomVersion(FAkCustomVersion::GUID);
 

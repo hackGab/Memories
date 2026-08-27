@@ -27,15 +27,14 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "AkAcousticPortal.h"
 #include "AkAudioEvent.h"
 #include "AkAudioModule.h"
-#include "Wwise/WwiseFileHandlerModule.h"
 #include "Wwise/WwiseIOHook.h"
 #include "Wwise/WwiseResourceLoader.h"
-#include "Wwise/WwiseResourceLoaderImpl.h"
 #include "Wwise/API/WwiseMonitorAPI.h"
 #include "Wwise/API/WwiseSoundEngineAPI.h"
 #include "Wwise/API/WwiseSpatialAudioAPI.h"
 #include "Wwise/API/WwiseStreamMgrAPI.h"
 #include "Wwise/Stats/Global.h"
+#include "Wwise/WwiseAllowShrinking.h"
 #include "WwiseInitBankLoader/WwiseInitBankLoader.h"
 
 #include "AkCallbackInfoPool.h"
@@ -133,6 +132,7 @@ namespace FAkAudioDevice_Helpers
 
 	AKRESULT RegisterGameObject(AkGameObjectID in_gameObjId, const FString& Name)
 	{
+		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice_Helpers::RegisterGameObject"));
 		AKRESULT Result;
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 		if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
@@ -166,6 +166,7 @@ namespace FAkAudioDevice_Helpers
 
 	void GlobalCallback(AK::IAkGlobalPluginContext* Context, AkGlobalCallbackLocation Location, void* Cookie)
 	{
+		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice_Helpers::GlobalCallback"));
 		const FAkAudioDeviceDelegates::FOnAkGlobalCallback* Delegate = DelegateLocationMap.Find(Location);
 		if (Delegate && Delegate->IsBound())
 		{
@@ -175,6 +176,7 @@ namespace FAkAudioDevice_Helpers
 
 	void UnregisterGlobalCallbackDelegate(FAkAudioDeviceDelegates::FOnAkGlobalCallback* Delegate, FDelegateHandle Handle, AkGlobalCallbackLocation Location)
 	{
+		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice_Helpers::UnregisterGlobalCallbackDelegate"));
 		if (!Delegate)
 			return;
 
@@ -190,6 +192,7 @@ namespace FAkAudioDevice_Helpers
 
 	void UnregisterAllGlobalCallbacks()
 	{
+		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice_Helpers::UnregisterAllGlobalCallbacks"));
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 
 		if (LIKELY(SoundEngine))
@@ -379,6 +382,7 @@ static bool GetInfoErrorMessageTranslatorFunction(IWwiseSoundEngineAPI::TagInfor
 
 FDelegateHandle FAkAudioDevice::RegisterGlobalCallback(FAkAudioDeviceDelegates::FOnAkGlobalCallback::FDelegate Callback, AkGlobalCallbackLocation Location)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterGlobalCallback"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return {};
 
@@ -396,6 +400,7 @@ FDelegateHandle FAkAudioDevice::RegisterGlobalCallback(FAkAudioDeviceDelegates::
 
 void FAkAudioDevice::UnregisterGlobalCallback(FDelegateHandle Handle, AkGlobalCallbackLocation Location)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnregisterGlobalCallback"));
 	const auto& Delegate = FAkAudioDevice_Helpers::DelegateLocationMap.Find(Location);
 	FAkAudioDevice_Helpers::UnregisterGlobalCallbackDelegate(Delegate, Handle, Location);
 }
@@ -405,6 +410,7 @@ AKRESULT FAkAudioDevice::RegisterOutputDeviceMeteringCallback(AkOutputDeviceID O
 															  AkMeteringFlags MeteringFlags,
 															  void* Cookie)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterOutputDeviceMeteringCallback"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -413,6 +419,7 @@ AKRESULT FAkAudioDevice::RegisterOutputDeviceMeteringCallback(AkOutputDeviceID O
 
 AKRESULT FAkAudioDevice::UnregisterOutputDeviceMeteringCallback(AkOutputDeviceID OutputID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnregisterOutputDeviceMeteringCallback"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -422,6 +429,7 @@ AKRESULT FAkAudioDevice::UnregisterOutputDeviceMeteringCallback(AkOutputDeviceID
 #if WITH_EDITORONLY_DATA
 UAkComponent* FAkAudioDevice::CreateListener(UWorld* World, FEditorViewportClient* ViewportClient)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::CreateListener"));
 	if (!IsRunningGame())
 	{
 		FString ComponentName = TEXT("AkListener_") + World->GetName();
@@ -466,6 +474,7 @@ void FAkAudioDevice::LoadAudioObjectsAfterInitialization(TWeakObjectPtr<UAkAudio
 
 void FAkAudioDevice::LoadDelayedObjects()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::LoadDelayedObjects"));
 	if (AudioObjectsToLoadAfterInitialization.Num() > 0)
 	{
 		SCOPED_AKAUDIO_EVENT_F_3(TEXT("LoadDelayedObjects: Loading %d Object%s"), (int)AudioObjectsToLoadAfterInitialization.Num(), AudioObjectsToLoadAfterInitialization.Num() > 1 ? TEXT("s") : TEXT(""));
@@ -569,6 +578,7 @@ bool FAkAudioDevice::Init()
 	{
 		ProjectLoadedHandle = waapiClient->OnProjectLoaded.AddLambda([this, waapiClient]
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init ProjectLoaded"));
 			if (!waapiClient->IsConnected())
 				return;
 
@@ -595,6 +605,7 @@ bool FAkAudioDevice::Init()
 
 		ConnectionLostHandle = waapiClient->OnConnectionLost.AddLambda([this, waapiClient]
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init ConnectionLost"));
 			if (!waapiClient->IsConnected())
 				return;
 
@@ -607,6 +618,7 @@ bool FAkAudioDevice::Init()
 
 		ClientBeginDestroyHandle = waapiClient->OnClientBeginDestroy.AddLambda([this, waapiClient]
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init ClientBeginDestroy"));
 			if (ProjectLoadedHandle.IsValid())
 			{
 				waapiClient->OnProjectLoaded.Remove(ProjectLoadedHandle);
@@ -619,12 +631,24 @@ bool FAkAudioDevice::Init()
 				ConnectionLostHandle.Reset();
 			}
 		});
+		
 	}
 #endif // AK_SUPPORT_WAAPI
+
+#if UE_EDITOR
+	if (auto* akSettingsPerUser = GetDefault<UAkSettingsPerUser>())
+	{
+		AutoConnectToWAAPIHandler = akSettingsPerUser->OnAutoConnectToWaapiChanged.AddLambda([this]()
+		{
+			SetLocalOutput();
+		});
+	}
+#endif
 
 	FWorldDelegates::OnPreWorldInitialization.AddLambda(
 		[&](UWorld* World, const UWorld::InitializationValues IVS)
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init PreWorldInitialization"));
 			WorldVolumesUpdatedMap.Add(World, false);
 		}
 	);
@@ -632,6 +656,7 @@ bool FAkAudioDevice::Init()
 	FWorldDelegates::OnPostWorldInitialization.AddLambda(
 		[&](UWorld* World, const UWorld::InitializationValues IVS)
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init PostWorldInitialization"));
 			World->AddOnActorSpawnedHandler(FOnActorSpawned::FDelegate::CreateRaw(this, &FAkAudioDevice::OnActorSpawned));
 		}
 	);
@@ -639,6 +664,7 @@ bool FAkAudioDevice::Init()
 	FWorldDelegates::OnWorldCleanup.AddLambda(
 		[this](UWorld* World, bool bSessionEnded, bool bCleanupResources)
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init WorldCleanup"));
 			CleanupComponentMapsForWorld(World);
 			if (WorldVolumesUpdatedMap.Contains(World))
 				WorldVolumesUpdatedMap.Remove(World);
@@ -648,6 +674,7 @@ bool FAkAudioDevice::Init()
 	FWorldDelegates::OnWorldPostActorTick.AddLambda(
 		[&](UWorld* World, ELevelTick TickType, float DeltaSeconds)
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init WorldPostActorTick"));
 			if (WorldVolumesUpdatedMap.Contains(World))
 				WorldVolumesUpdatedMap[World] = false;
 			else
@@ -664,6 +691,7 @@ bool FAkAudioDevice::Init()
 
 		auto MapChangedHandler = [this](UWorld* World, EMapChangeType MapChangeType)
 		{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init MapChangedHandler"));
 			if (World && World->AllowAudioPlayback() && World->WorldType == EWorldType::Editor)
 			{
 				if (MapChangeType == EMapChangeType::TearDownWorld)
@@ -701,6 +729,7 @@ bool FAkAudioDevice::Init()
 		{
 			FModuleManager::Get().OnModulesChanged().AddLambda([this, MapChangedHandler](FName InModuleName, EModuleChangeReason Reason)
 			{
+				SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init ModulesChanged"));
 				if (InModuleName == kLevelEditorModuleName && Reason == EModuleChangeReason::ModuleLoaded)
 				{
 					auto& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>(kLevelEditorModuleName);
@@ -712,6 +741,7 @@ bool FAkAudioDevice::Init()
 		FWorldDelegates::OnPostWorldInitialization.AddLambda(
 			[this](UWorld* World, const UWorld::InitializationValues IVS)
 			{
+				SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init PostWorldInitialization"));
 				if (World && World->AllowAudioPlayback() && World->WorldType == EWorldType::Editor && EditorListener == nullptr)
 				{
 					EditorListener = CreateListener(World);
@@ -733,6 +763,7 @@ bool FAkAudioDevice::Init()
 		FWorldDelegates::OnWorldTickStart.AddLambda(
 			[&](UWorld* World, ELevelTick LevelTick, float Tick)
 			{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init WorldTickStart"));
 				if(World->WorldType != EWorldType::EditorPreview)
 				{
 					return;
@@ -759,6 +790,7 @@ bool FAkAudioDevice::Init()
 		FEditorDelegates::OnEditorCameraMoved.AddLambda(
 			[&](const FVector& Location, const FRotator& Rotation, ELevelViewportType ViewportType, int32 ViewIndex)
 			{
+			SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::Init EditorCameraMoved"));
 				auto& allViewportClient = GEditor->GetAllViewportClients();
 				if (allViewportClient[ViewIndex]->Viewport && allViewportClient[ViewIndex]->Viewport->HasFocus())
 				{
@@ -802,6 +834,7 @@ bool FAkAudioDevice::Init()
 #if WITH_EDITORONLY_DATA
 void FAkAudioDevice::BeginPIE(const bool bIsSimulating)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::BeginPIE"));
 	CleanDefaultListeners();
 	if (!bIsSimulating && EditorListener != nullptr)
 	{
@@ -815,6 +848,7 @@ void FAkAudioDevice::BeginPIE(const bool bIsSimulating)
 
 void FAkAudioDevice::PausePIE(const bool bIsSimulating)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::PausePIE"));
 	for (auto& Event: EventToPlayingIDMap)
 	{
 		for (auto PlayingID: Event.Value)
@@ -827,7 +861,7 @@ void FAkAudioDevice::PausePIE(const bool bIsSimulating)
 					auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 					if (LIKELY(SoundEngine))
 					{
-						SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Pause, PlayingID);
+						SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Pause, PlayingID);
 					}
 				}
 			}
@@ -837,6 +871,7 @@ void FAkAudioDevice::PausePIE(const bool bIsSimulating)
 
 void FAkAudioDevice::ResumePie(const bool bIsSimulating)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::ResumePie"));
 	for (auto& Event: EventToPlayingIDMap)
 	{
 		for (auto PlayingID: Event.Value)
@@ -849,7 +884,7 @@ void FAkAudioDevice::ResumePie(const bool bIsSimulating)
 					auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 					if (LIKELY(SoundEngine))
 					{
-						SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Resume, PlayingID);
+						SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Resume, PlayingID);
 					}
 				}
 			}
@@ -857,9 +892,10 @@ void FAkAudioDevice::ResumePie(const bool bIsSimulating)
 	}
 }
 
-void FAkAudioDevice::ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType in_ActionType, uint32 PlayingID,
+void FAkAudioDevice::ExecuteActionOnPlayingID(AkActionOnEventType in_ActionType, uint32 PlayingID,
                                               AkTimeMs in_uTransitionDuration, AkCurveInterpolation in_eFadeCurve)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ExecuteActionOnPlayingID"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (LIKELY(SoundEngine))
 	{
@@ -870,6 +906,7 @@ void FAkAudioDevice::ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventTy
 
 void FAkAudioDevice::OnSwitchBeginPIEAndSIE(const bool bIsSimulating)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::OnSwitchBeginPIEAndSIE"));
 	if(EditorListener != nullptr)
 	{
 		if (bIsSimulating)
@@ -900,6 +937,7 @@ void FAkAudioDevice::OnSwitchBeginPIEAndSIE(const bool bIsSimulating)
 
 void FAkAudioDevice::EndPIE(const bool bIsSimulating)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::EndPIE"));
 	//Reset Unreal Global gameobject to avoid complications from removing Spatial Audio listener
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (LIKELY(SoundEngine))
@@ -959,6 +997,7 @@ void FAkAudioDevice::UpdateRoomsForPortals()
 
 void FAkAudioDevice::CleanupComponentMapsForWorld(UWorld* World)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::CleanupComponentMapsForWorld"));
 	LateReverbIndex.Clear(World);
 	RoomIndex.Clear(World);
 	WorldPortalsMap.Remove(World);
@@ -971,7 +1010,7 @@ void FAkAudioDevice::CleanupComponentMapsForWorld(UWorld* World)
  */
 bool FAkAudioDevice::Update( float DeltaTime )
 {
-	SCOPED_AKAUDIO_EVENT_2(TEXT("FAkAudioDevice::Update"));
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::Update"));
 	if (m_bSoundEngineInitialized)
 	{
 		UpdateRoomsForPortals();
@@ -1007,7 +1046,13 @@ bool FAkAudioDevice::Update( float DeltaTime )
  */
 void FAkAudioDevice::Teardown()
 {
-	SCOPED_AKAUDIO_EVENT_2(TEXT("FAkAudioDevice::Teardown"));
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::Teardown"));
+
+	if (m_EngineExiting)
+	{
+		return;
+	}
+	
 #if AK_SUPPORT_WAAPI
 	if (auto waapiClient = FAkWaapiClient::Get())
 	{
@@ -1035,6 +1080,19 @@ void FAkAudioDevice::Teardown()
 			ClientBeginDestroyHandle.Reset();
 		}
 
+#if UE_EDITOR
+		if (AutoConnectToWAAPIHandler.IsValid())
+		{
+			const UAkSettingsPerUser* AkSettingsPerUser = GetDefault<UAkSettingsPerUser>();
+			if (AkSettingsPerUser)
+			{
+				AkSettingsPerUser->OnAutoConnectToWaapiChanged.Remove(AutoConnectToWAAPIHandler);
+			}
+			
+			AutoConnectToWAAPIHandler.Reset();
+		}
+#endif
+
 		OnWwiseProjectModification.Clear();
 	}
 #endif // AK_SUPPORT_WAAPI
@@ -1047,17 +1105,21 @@ void FAkAudioDevice::Teardown()
 		if (LIKELY(SoundEngine))
 		{
 			SoundEngine->UnregisterGameObj(DUMMY_GAMEOBJ);
+		}
+		
+		auto* FileHandler = IWwiseFileHandlerModule::GetModule();
 
-			if (SoundEngine->IsInitialized())
-			{
-				FAkAudioDevice_Helpers::UnregisterAllGlobalCallbacks();
-
-				SoundEngine->StopAll();
-				SoundEngine->RenderAudio();
-			}
+		if (LIKELY(FileHandler))
+		{
+			FileHandler->RegisterTermCallback();
+		}
+		FAkSoundEngineInitialization::Finalize(IOHook);
+		if (LIKELY(FileHandler))
+		{
+			FileHandler->OnPostTerm();
 		}
 
-		FAkSoundEngineInitialization::Finalize(IOHook);
+		FAkAudioDevice_Helpers::UnregisterAllGlobalCallbacks();
 
 		if (LIKELY(CallbackManager))
 		{
@@ -1113,6 +1175,7 @@ void FAkAudioDevice::Teardown()
  */
 void FAkAudioDevice::StopAllSounds(bool bShouldStopUISounds)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopAllSounds"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return;
 
@@ -1138,6 +1201,7 @@ void FAkAudioDevice::StopAllSounds(bool bShouldStopUISounds)
 
 void FAkAudioDevice::StopAllSounds(EAkAudioContext AudioContext)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopAllSounds"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return;
 
@@ -1164,6 +1228,7 @@ void FAkAudioDevice::StopAllSounds(EAkAudioContext AudioContext)
  */
 void FAkAudioDevice::Flush(UWorld* WorldToFlush)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::Flush"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return;
 
@@ -1191,6 +1256,7 @@ bool FAkAudioDevice::WorldSpatialAudioVolumesUpdated(UWorld* World)
  */
 void FAkAudioDevice::ClearSoundBanksAndMedia()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::ClearSoundBanksAndMedia"));
 	if (m_bSoundEngineInitialized)
 	{
 		StopAllSounds();
@@ -1213,6 +1279,7 @@ AKRESULT FAkAudioDevice::LoadBank(
 	AkBankID& out_bankID
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::LoadBank"));
 	AKRESULT eResult = AK_Fail;
 	if (EnsureInitialized()) // ensure audiolib is initialized
 	{
@@ -1237,6 +1304,7 @@ AKRESULT FAkAudioDevice::LoadBank(
 	AkBankID &          out_bankID
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::LoadBank"));
 	if (EnsureInitialized()) // ensure audiolib is initialized
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1253,6 +1321,7 @@ AKRESULT FAkAudioDevice::LoadBank(
 	FWaitEndBankAction* LoadBankLatentAction
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::LoadBank"));
 	if (EnsureInitialized()) // ensure audiolib is initialized
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1271,6 +1340,7 @@ AKRESULT FAkAudioDevice::LoadBankAsync(
 	AkBankID &          out_bankID
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::LoadBankAsync"));
 	if (EnsureInitialized()) // ensure audiolib is initialized
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1289,6 +1359,7 @@ AKRESULT FAkAudioDevice::LoadBankFromMemory(
 	AkBankID& OutBankID
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::LoadBankFromMemory"));
 	if (EnsureInitialized() && MemoryPtr && MemorySize > 0)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1304,6 +1375,7 @@ AKRESULT FAkAudioDevice::UnloadBank(
 	const FString&      in_BankName
     )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnloadBank"));
 	AKRESULT eResult = AK_Fail;
 	if ( m_bSoundEngineInitialized )
 	{
@@ -1325,6 +1397,7 @@ AKRESULT FAkAudioDevice::UnloadBank(
 	void *              in_pCookie
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnloadBank"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1340,6 +1413,7 @@ AKRESULT FAkAudioDevice::UnloadBank(
 	FWaitEndBankAction* UnloadBankLatentAction
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnloadBank"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1355,6 +1429,7 @@ AKRESULT FAkAudioDevice::UnloadBankFromMemory(
 	const void* in_memoryPtr
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnloadBankFromMemory"));
 	if (EnsureInitialized() && in_memoryPtr)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1374,6 +1449,7 @@ AKRESULT FAkAudioDevice::UnloadBankFromMemoryAsync(
 	uint32 BankType
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnloadBankFromMemoryAsync"));
 	if (EnsureInitialized() && in_memoryPtr)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1390,6 +1466,7 @@ AKRESULT FAkAudioDevice::UnloadBankAsync(
 	const FOnAkBankCallback& BankUnloadedCallback
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnloadBankAsync"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -1435,6 +1512,7 @@ AkUInt32 FAkAudioDevice::GetShortID(UAkAudioType* AudioAsset, const FString& Bac
 
 AKRESULT FAkAudioDevice::SetMedia(AkSourceSettings* in_pSourceSettings, uint32 in_uNumSourceSettings)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetMedia"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -1443,6 +1521,7 @@ AKRESULT FAkAudioDevice::SetMedia(AkSourceSettings* in_pSourceSettings, uint32 i
 
 AKRESULT FAkAudioDevice::TryUnsetMedia(AkSourceSettings* in_pSourceSettings, uint32 in_uNumSourceSettings, AKRESULT* out_pUnsetResults)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::TryUnsetMedia"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -1582,6 +1661,7 @@ bool FAkAudioDevice::GetLanguageCookedDataFromString(const FString& WwiseLanguag
 
 bool FAkAudioDevice::SetCurrentAudioCulture(const FString& NewAudioCulture, EAudioCultureType InAudioCultureType)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetCurrentAudioCulture"));
 	FString NewWwiseLanguage;
 
 	if (InAudioCultureType == EAudioCultureType::Unreal)
@@ -1628,6 +1708,7 @@ bool FAkAudioDevice::SetCurrentAudioCulture(const FString& NewAudioCulture, EAud
 
 void FAkAudioDevice::SetCurrentAudioCultureAsync(const FString& NewAudioCulture, FSetCurrentAudioCultureAction* LatentAction, EAudioCultureType InAudioCultureType)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetCurrentAudioCultureAsync"));
 	FString NewWwiseLanguage;
 
 	if (InAudioCultureType == EAudioCultureType::Unreal)
@@ -1668,6 +1749,7 @@ void FAkAudioDevice::SetCurrentAudioCultureAsync(const FString& NewAudioCulture,
 
 void FAkAudioDevice::SetCurrentAudioCultureAsync(const FString& NewAudioCulture, const FOnSetCurrentAudioCultureCompleted& CompletedCallback, EAudioCultureType InAudioCultureType)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetCurrentAudioCultureAsync"));
 	FString NewWwiseLanguage;
 
 	if (InAudioCultureType == EAudioCultureType::Unreal)
@@ -1822,6 +1904,7 @@ bool FAkAudioDevice::FindWwiseLanguage(const FString& NewAudioCulture, FString& 
 
 void FAkAudioDevice::UpdateSetCurrentAudioCultureAsyncTasks()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::UpdateSetCurrentAudioCultureAsyncTasks"));
 	if(AudioCultureAsyncTasks.Num() == 0)
 	{
 		return;
@@ -1846,6 +1929,7 @@ void FAkAudioDevice::UpdateSetCurrentAudioCultureAsyncTasks()
 
 void FAkAudioDevice::CleanDefaultListeners()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::CleanDefaultListeners"));
 	auto ListenerArray = m_defaultListeners.Array();
 	for(int i = 0; i < ListenerArray.Num();)
 	{
@@ -1874,6 +1958,7 @@ AkPlayingID FAkAudioDevice::PostEventWithCallbackPackageOnAkGameObject(
 	EAkAudioContext AudioContext
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::PostEventWithCallbackPackageOnAkGameObject"));
 	AkPlayingID PlayingID = AK_INVALID_PLAYING_ID;
 
 	if (m_bSoundEngineInitialized && GameObject && CallbackManager)
@@ -1897,6 +1982,7 @@ AkPlayingID FAkAudioDevice::PostEventWithCallbackPackageOnAkGameObject(
 
 void FAkAudioDevice::SAComponentAddedRemoved(UWorld* World)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::SAComponentAddedRemoved"));
 	if (World != nullptr)
 	{
 		if (WorldVolumesUpdatedMap.Contains(World))
@@ -1994,6 +2080,7 @@ AKRESULT FAkAudioDevice::SeekOnEvent(
 	AkPlayingID PlayingID      /*= AK_INVALID_PLAYING_ID*/
 )
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::SeekOnEvent"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -2030,6 +2117,7 @@ AKRESULT FAkAudioDevice::SeekOnEvent(
 	AkPlayingID PlayingID      /*= AK_INVALID_PLAYING_ID*/
 )
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::SeekOnEvent"));
     if (m_bSoundEngineInitialized && Component)
     {
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -2047,6 +2135,7 @@ AKRESULT FAkAudioDevice::SeekOnEvent(
 
 void FAkAudioDevice::UpdateAllSpatialAudioPortals(UWorld* InWorld)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::UpdateAllSpatialAudioPortals"));
 #ifdef AK_ENABLE_PORTALS
 	auto Portals = WorldPortalsMap.Find(InWorld);
 	if (Portals != nullptr)
@@ -2064,6 +2153,7 @@ void FAkAudioDevice::UpdateAllSpatialAudioPortals(UWorld* InWorld)
 
 void FAkAudioDevice::SetSpatialAudioPortal(UAkPortalComponent* in_Portal)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetSpatialAudioPortal"));
 	if(!IsValid(in_Portal) || IsRunningCommandlet())
 		return;
 
@@ -2124,9 +2214,12 @@ void FAkAudioDevice::SetSpatialAudioPortal(UAkPortalComponent* in_Portal)
 				AkComponentHelpers::GetPrimitiveTransformAndExtent(*Parent, Params.Transform, Params.Extent);
 			}
 
-			Params.bEnabled = in_Portal->GetCurrentState() == AkAcousticPortalState::Open;
+			Params.bEnabled = in_Portal->GetCurrentState() == EAkAcousticPortalState::Open;
 			Params.FrontRoom = in_Portal->GetFrontRoomID();
 			Params.BackRoom = in_Portal->GetBackRoomID();
+#if WWISE_2025_1_OR_LATER
+			Params.AdjacentRoomBleed = in_Portal->AdjacentRoomBleed;
+#endif
 
 			SpatialAudio->SetPortal(portalID, Params, TCHAR_TO_ANSI(*nameStr));
 		}
@@ -2136,6 +2229,7 @@ void FAkAudioDevice::SetSpatialAudioPortal(UAkPortalComponent* in_Portal)
 
 void FAkAudioDevice::RemoveSpatialAudioPortal(UAkPortalComponent* in_Portal)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemoveSpatialAudioPortal"));
 	if (IsRunningCommandlet())
 		return;
 	auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
@@ -2189,6 +2283,7 @@ void FAkAudioDevice::GetAuxSendValuesAtLocation(FVector Loc, TArray<AkAuxSendVal
 
 void FAkAudioDevice::PostEventAtLocationEndOfEventCallback(AkCallbackType in_eType, AkCallbackInfo* in_pCallbackInfo)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::PostEventAtLocationEndOfEventCallback"));
 	if (auto* Device = FAkAudioDevice::Get())
 	{
 		Device->RemovePlayingID(((AkEventCallbackInfo*)in_pCallbackInfo)->eventID, ((AkEventCallbackInfo*)in_pCallbackInfo)->playingID);
@@ -2206,6 +2301,12 @@ void FAkAudioDevice::PostEventAtLocationEndOfEventCallback(AkCallbackType in_eTy
 
 UAkComponent* FAkAudioDevice::SpawnAkComponentAtLocation( class UAkAudioEvent* in_pAkEvent, FVector Location, FRotator Orientation, bool AutoPost, bool AutoDestroy, UWorld* in_World)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SpawnAkComponentAtLocation"));
+	if (in_pAkEvent == NULL)
+	{
+		UE_LOG(LogAkAudio, Warning, TEXT("SpawnAkComponentAtLocation: The specified event was null. Aborting."));
+		return NULL;
+	}
 	UAkComponent * AkComponent = NULL;
 	if (in_World)
 	{
@@ -2231,7 +2332,7 @@ UAkComponent* FAkAudioDevice::SpawnAkComponentAtLocation( class UAkAudioEvent* i
 		{
 			if (AkComponent->PostAssociatedAkEvent(0, FOnAkPostEventCallback()) == AK_INVALID_PLAYING_ID && AutoDestroy)
 			{
-				AkComponent->ConditionalBeginDestroy();
+				AkComponent->DestroyComponent();
 				AkComponent = NULL;
 			}
 		}
@@ -2252,6 +2353,7 @@ AKRESULT FAkAudioDevice::PostTrigger(
 	AActor * in_pActor
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::PostTrigger"));
 	AkGameObjectID GameObjID = AK_INVALID_GAME_OBJECT;
 	AKRESULT eResult = GetGameObjectID( in_pActor, GameObjID );
 	if ( m_bSoundEngineInitialized && eResult == AK_Success)
@@ -2269,6 +2371,7 @@ AKRESULT FAkAudioDevice::PostTrigger(
 	AActor* in_pActor
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::PostTrigger"));
 	AkGameObjectID GameObjID = AK_INVALID_GAME_OBJECT;
 	AKRESULT eResult = GetGameObjectID(in_pActor, GameObjID);
 	if (m_bSoundEngineInitialized && in_TriggerValue && eResult == AK_Success)
@@ -2296,6 +2399,7 @@ AKRESULT FAkAudioDevice::SetRTPCValue(
 	AActor * in_pActor = NULL
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2325,6 +2429,7 @@ AKRESULT FAkAudioDevice::SetRTPCValue(
 	AActor * in_pActor = NULL
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2351,7 +2456,7 @@ AKRESULT FAkAudioDevice::SetRTPCValue(
 	AActor * in_pActor = NULL
 )
 {
-
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized && in_RtpcValue)
 	{
@@ -2378,6 +2483,7 @@ AKRESULT FAkAudioDevice::SetRTPCValueByPlayingID(
 	int32 in_interpolationTimeMs
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetRTPCValueByPlayingID"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2409,6 +2515,7 @@ AKRESULT FAkAudioDevice::GetRTPCValue(
 	AK::SoundEngine::Query::RTPCValue_type&	io_rValueType		///< In/Out value, the user must specify the requested type. The function will return in this variable the type of the returned value.				);
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2440,6 +2547,7 @@ AKRESULT FAkAudioDevice::GetRTPCValue(
 	AK::SoundEngine::Query::RTPCValue_type&	io_rValueType		///< In/Out value, the user must specify the requested type. The function will return in this variable the type of the returned value.				);
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2459,6 +2567,7 @@ AKRESULT FAkAudioDevice::GetRTPCValue(
 	AK::SoundEngine::Query::RTPCValue_type&	io_rValueType		///< In/Out value, the user must specify the requested type. The function will return in this variable the type of the returned value.				);
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized && in_RtpcValue)
 	{
@@ -2472,6 +2581,7 @@ AKRESULT FAkAudioDevice::GetRTPCValue(
 
 AKRESULT FAkAudioDevice::ResetRTPCValue(const UAkRtpc* in_RtpcValue, AkGameObjectID in_gameObjectID, int32 in_interpolationTimeMs)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ResetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized && in_RtpcValue)
 	{
@@ -2485,6 +2595,7 @@ AKRESULT FAkAudioDevice::ResetRTPCValue(const UAkRtpc* in_RtpcValue, AkGameObjec
 
 AKRESULT FAkAudioDevice::ResetRTPCValue(AkRtpcID in_rtpcID, AkGameObjectID in_gameObjectID, int32 in_interpolationTimeMs)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ResetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized && in_rtpcID)
 	{
@@ -2498,6 +2609,7 @@ AKRESULT FAkAudioDevice::ResetRTPCValue(AkRtpcID in_rtpcID, AkGameObjectID in_ga
 
 AKRESULT FAkAudioDevice::ResetRTPCValue(const TCHAR* in_pszRtpcName, AkGameObjectID in_gameObjectID, int32 in_interpolationTimeMs)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ResetRTPCValue"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2521,6 +2633,7 @@ AKRESULT FAkAudioDevice::SetState(
 	const TCHAR * in_pszState
     )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetState"));
 	AKRESULT eResult = AK_Success;
 	if ( m_bSoundEngineInitialized )
 	{
@@ -2546,6 +2659,7 @@ AKRESULT FAkAudioDevice::SetState(
 	AkStateID in_State
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetState"));
 	AKRESULT eResult = AK_Success;
 	if ( m_bSoundEngineInitialized )
 	{
@@ -2561,6 +2675,7 @@ AKRESULT FAkAudioDevice::SetState(
 	const UAkStateValue* in_stateValue
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetState"));
 	AKRESULT eResult = AK_Success;
 	if (m_bSoundEngineInitialized && in_stateValue)
 	{
@@ -2586,6 +2701,7 @@ AKRESULT FAkAudioDevice::SetSwitch(
 	AActor * in_pActor
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetSwitch"));
 	AKRESULT eResult = AK_Success;
 	if ( m_bSoundEngineInitialized)
 	{
@@ -2613,6 +2729,7 @@ AKRESULT FAkAudioDevice::SetSwitch(
 	AActor * in_pActor
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetSwitch"));
 	AkGameObjectID GameObjID = DUMMY_GAMEOBJ;
 	// Switches must be bound to a game object. passing DUMMY_GAMEOBJ as default game object.
 	AKRESULT eResult = GetGameObjectID( in_pActor, GameObjID );
@@ -2631,6 +2748,7 @@ AKRESULT FAkAudioDevice::SetSwitch(
 	AActor * in_pActor
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetSwitch"));
 	AkGameObjectID GameObjID = DUMMY_GAMEOBJ;
 	// Switches must be bound to a game object. passing DUMMY_GAMEOBJ as default game object.
 	AKRESULT eResult = GetGameObjectID(in_pActor, GameObjID);
@@ -2644,15 +2762,15 @@ AKRESULT FAkAudioDevice::SetSwitch(
 	return eResult;
 }
 
-static AK::SoundEngine::MultiPositionType GetSoundEngineMultiPositionType(AkMultiPositionType in_eType)
+static AkMultiPositionType GetSoundEngineMultiPositionType(EAkMultiPositionType in_eType)
 {
     switch (in_eType)
     {
-    case AkMultiPositionType::SingleSource: return AK::SoundEngine::MultiPositionType_SingleSource;
-    case AkMultiPositionType::MultiSources: return AK::SoundEngine::MultiPositionType_MultiSources;
-    case AkMultiPositionType::MultiDirections: return AK::SoundEngine::MultiPositionType_MultiDirections;
+    case EAkMultiPositionType::SingleSource: return AkMultiPositionType_SingleSource;
+    case EAkMultiPositionType::MultiSources: return AkMultiPositionType_MultiSources;
+    case EAkMultiPositionType::MultiDirections: return AkMultiPositionType_MultiDirections;
         // Unknown multi position type!
-    default: check(false); return AK::SoundEngine::MultiPositionType_SingleSource;
+    default: check(false); return AkMultiPositionType_SingleSource;
     }
 }
 
@@ -2669,9 +2787,10 @@ static AK::SoundEngine::MultiPositionType GetSoundEngineMultiPositionType(AkMult
 AKRESULT FAkAudioDevice::SetMultiplePositions(
     UAkComponent* in_pGameObjectAkComponent,
     TArray<FTransform> in_aPositions,
-    AkMultiPositionType in_eMultiPositionType /*= AkMultiPositionType::MultiDirections*/
+    EAkMultiPositionType in_eMultiPositionType /*= AkMultiPositionType::MultiDirections*/
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetMultiplePositions"));
 	if (!in_pGameObjectAkComponent)
 	{
 		return AK_Fail;
@@ -2698,9 +2817,10 @@ AKRESULT FAkAudioDevice::SetMultiplePositions(
 	UAkComponent* in_pGameObjectAkComponent,
 	const TArray<ChannelConfig>& in_aChannelConfigurations,
 	const TArray<FTransform>& in_aPositions,
-	AkMultiPositionType in_eMultiPositionType /*= AkMultiPositionType::MultiDirections*/
+	EAkMultiPositionType in_eMultiPositionType /*= AkMultiPositionType::MultiDirections*/
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetMultiplePositions"));
 	if (!in_pGameObjectAkComponent)
 	{
 		return AK_Fail;
@@ -2731,19 +2851,19 @@ AKRESULT FAkAudioDevice::SetMultiplePositions(
 
 AKRESULT FAkAudioDevice::SetMultiplePositions(
 	UAkComponent* in_pGameObjectAkComponent,
-	const TArray<AkChannelConfiguration>& in_aChannelConfigurations,
+	const TArray<EAkChannelConfiguration>& in_aChannelConfigurations,
 	const TArray<FTransform>& in_aPositions,
-	AkMultiPositionType in_eMultiPositionType
+	EAkMultiPositionType in_eMultiPositionType
 )
 {
-	return SetMultiplePositions<AkChannelConfiguration>(in_pGameObjectAkComponent, in_aChannelConfigurations, in_aPositions, in_eMultiPositionType);
+	return SetMultiplePositions<EAkChannelConfiguration>(in_pGameObjectAkComponent, in_aChannelConfigurations, in_aPositions, in_eMultiPositionType);
 }
 
 AKRESULT FAkAudioDevice::SetMultiplePositions(
 	UAkComponent* in_pGameObjectAkComponent,
 	const TArray<FAkChannelMask>& in_channelMasks,
 	const TArray<FTransform>& in_aPositions,
-	AkMultiPositionType in_eMultiPositionType
+	EAkMultiPositionType in_eMultiPositionType
 )
 {
 	return SetMultiplePositions<FAkChannelMask>(in_pGameObjectAkComponent, in_channelMasks, in_aPositions, in_eMultiPositionType);
@@ -2763,9 +2883,10 @@ AKRESULT FAkAudioDevice::SetMultiplePositions(
     AkGameObjectID in_GameObjectID,
     const AkSoundPosition * in_pPositions,
     AkUInt16 in_NumPositions,
-    AK::SoundEngine::MultiPositionType in_eMultiPositionType /*= AK::SoundEngine::MultiDirections*/
+    AkMultiPositionType in_eMultiPositionType /*= AK::SoundEngine::MultiDirections*/
     )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetMultiplePositions"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -2786,9 +2907,10 @@ AKRESULT FAkAudioDevice::SetMultiplePositions(
     AkGameObjectID in_GameObjectID,
     const AkChannelEmitter * in_pPositions,
     AkUInt16 in_NumPositions,
-    AK::SoundEngine::MultiPositionType in_eMultiPositionType /*= AK::SoundEngine::MultiDirections*/
+    AkMultiPositionType in_eMultiPositionType /*= AK::SoundEngine::MultiDirections*/
     )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetMultiplePositions"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -2807,6 +2929,7 @@ AKRESULT FAkAudioDevice::SetAuxSends(
 	TArray<AkAuxSendValue>& in_AuxSendValues
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetAuxSends"));
 	AKRESULT eResult = AK_Success;
 	if ( m_bSoundEngineInitialized )
 	{
@@ -2819,90 +2942,90 @@ AKRESULT FAkAudioDevice::SetAuxSends(
 	return eResult;
 }
 
-void FAkAudioDevice::GetChannelConfig(AkChannelConfiguration ChannelConfiguration, AkChannelConfig& config)
+void FAkAudioDevice::GetChannelConfig(EAkChannelConfiguration ChannelConfiguration, AkChannelConfig& config)
 {
 	switch (ChannelConfiguration)
 	{
-	case AkChannelConfiguration::Ak_MainMix:
+	case EAkChannelConfiguration::Ak_MainMix:
 		config.eConfigType = AK_ChannelConfigType_UseDeviceMain;
 		break;
-	case AkChannelConfiguration::Ak_Passthrough:
+	case EAkChannelConfiguration::Ak_Passthrough:
 		config.eConfigType = AK_ChannelConfigType_UseDevicePassthrough;
 		break;
-	case AkChannelConfiguration::Ak_LFE:
+	case EAkChannelConfiguration::Ak_LFE:
 		config.SetStandard(AK_SPEAKER_SETUP_0POINT1);
 		break;
-	case AkChannelConfiguration::AK_Audio_Objects:
+	case EAkChannelConfiguration::AK_Audio_Objects:
 		config.SetObject();
 		break;
-	case AkChannelConfiguration::Ak_1_0:
+	case EAkChannelConfiguration::Ak_1_0:
 		config.SetStandard(AK_SPEAKER_SETUP_MONO);
 		break;
-	case AkChannelConfiguration::Ak_2_0:
+	case EAkChannelConfiguration::Ak_2_0:
 		config.SetStandard(AK_SPEAKER_SETUP_STEREO);
 		break;
-	case AkChannelConfiguration::Ak_2_1:
+	case EAkChannelConfiguration::Ak_2_1:
 		config.SetStandard(AK_SPEAKER_SETUP_2POINT1);
 		break;
-	case AkChannelConfiguration::Ak_3_0:
+	case EAkChannelConfiguration::Ak_3_0:
 		config.SetStandard(AK_SPEAKER_SETUP_3STEREO);
 		break;
-	case AkChannelConfiguration::Ak_3_1:
+	case EAkChannelConfiguration::Ak_3_1:
 		config.SetStandard(AK_SPEAKER_SETUP_3POINT1);
 		break;
-	case AkChannelConfiguration::Ak_4_0:
+	case EAkChannelConfiguration::Ak_4_0:
 		config.SetStandard(AK_SPEAKER_SETUP_4);
 		break;
-	case AkChannelConfiguration::Ak_4_1:
+	case EAkChannelConfiguration::Ak_4_1:
 		config.SetStandard(AK_SPEAKER_SETUP_4POINT1);
 		break;
-	case AkChannelConfiguration::Ak_5_0:
+	case EAkChannelConfiguration::Ak_5_0:
 		config.SetStandard(AK_SPEAKER_SETUP_5);
 		break;
-	case AkChannelConfiguration::Ak_5_1:
+	case EAkChannelConfiguration::Ak_5_1:
 		config.SetStandard(AK_SPEAKER_SETUP_5POINT1);
 		break;
-	case AkChannelConfiguration::Ak_7_1:
+	case EAkChannelConfiguration::Ak_7_1:
 		config.SetStandard(AK_SPEAKER_SETUP_7POINT1);
 		break;
-	case AkChannelConfiguration::Ak_5_1_2:
+	case EAkChannelConfiguration::Ak_5_1_2:
 		config.SetStandard(AK_SPEAKER_SETUP_DOLBY_5_1_2);
 		break;
-	case AkChannelConfiguration::Ak_7_1_2:
+	case EAkChannelConfiguration::Ak_7_1_2:
 		config.SetStandard(AK_SPEAKER_SETUP_DOLBY_7_1_2);
 		break;
-	case AkChannelConfiguration::Ak_7_1_4:
+	case EAkChannelConfiguration::Ak_7_1_4:
 		config.SetStandard(AK_SPEAKER_SETUP_DOLBY_7_1_4);
 		break;
-	case AkChannelConfiguration::Ak_Auro_9_1:
+	case EAkChannelConfiguration::Ak_Auro_9_1:
 		config.SetStandard(AK_SPEAKER_SETUP_AURO_9POINT1);
 		break;
-	case AkChannelConfiguration::Ak_Auro_10_1:
+	case EAkChannelConfiguration::Ak_Auro_10_1:
 		config.SetStandard(AK_SPEAKER_SETUP_AURO_10POINT1);
 		break;
-	case AkChannelConfiguration::Ak_Auro_11_1:
+	case EAkChannelConfiguration::Ak_Auro_11_1:
 		config.SetStandard(AK_SPEAKER_SETUP_AURO_11POINT1);
 		break;
-	case AkChannelConfiguration::Ak_Auro_13_1:
+	case EAkChannelConfiguration::Ak_Auro_13_1:
 		config.SetStandard(AK_SPEAKER_SETUP_AURO_13POINT1_751);
 		break;
-	case AkChannelConfiguration::Ak_Ambisonics_1st_order:
+	case EAkChannelConfiguration::Ak_Ambisonics_1st_order:
 		config.SetAmbisonic(4);
 		break;
-	case AkChannelConfiguration::Ak_Ambisonics_2nd_order:
+	case EAkChannelConfiguration::Ak_Ambisonics_2nd_order:
 		config.SetAmbisonic(9);
 		break;
-	case AkChannelConfiguration::Ak_Ambisonics_3rd_order:
+	case EAkChannelConfiguration::Ak_Ambisonics_3rd_order:
 		config.SetAmbisonic(16);
 		break;
-	case AkChannelConfiguration::Ak_Ambisonics_4th_order:
+	case EAkChannelConfiguration::Ak_Ambisonics_4th_order:
 		config.SetAmbisonic(25);
 		break;
-	case AkChannelConfiguration::Ak_Ambisonics_5th_order:
+	case EAkChannelConfiguration::Ak_Ambisonics_5th_order:
 		config.SetAmbisonic(36);
 		break;
 
-	case AkChannelConfiguration::Ak_Parent:
+	case EAkChannelConfiguration::Ak_Parent:
 	default:
 		config.Clear();
 		break;
@@ -2926,6 +3049,7 @@ AKRESULT FAkAudioDevice::SetInSpatialAudioRoom(
 	AkRoomID in_RoomID
 )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetInSpatialAudioRoom"));
 	AKRESULT eResult = AK_Success;
 #ifdef AK_ENABLE_ROOMS
 	if (m_bSoundEngineInitialized)
@@ -2944,6 +3068,7 @@ AKRESULT FAkAudioDevice::SetBusConfig(
 	AkChannelConfig	in_Config
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetBusConfig"));
 	AKRESULT eResult = AK_Fail;
 	if (in_BusName.IsEmpty())
 	{
@@ -2966,6 +3091,7 @@ AKRESULT FAkAudioDevice::SetPanningRule(
 	AkPanningRule		in_ePanningRule
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetPanningRule"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -2983,6 +3109,7 @@ AkOutputDeviceID FAkAudioDevice::GetOutputID(
 	AkUInt32 in_idDevice
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetOutputID"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_INVALID_OUTPUT_DEVICE_ID;
 
@@ -2991,6 +3118,7 @@ AkOutputDeviceID FAkAudioDevice::GetOutputID(
 
 AKRESULT FAkAudioDevice::ReplaceMainOutput(const AkOutputSettings& MainOutputSettings)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ReplaceMainOutput"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -3005,6 +3133,7 @@ AKRESULT FAkAudioDevice::GetSpeakerAngles(
 	AkOutputDeviceID in_idOutput
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetSpeakerAngles"));
 	AKRESULT eResult = AK_Fail;
 
 	if (m_bSoundEngineInitialized)
@@ -3033,6 +3162,7 @@ AKRESULT FAkAudioDevice::SetSpeakerAngles(
 	AkOutputDeviceID in_idOutput
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetSpeakerAngles"));
 	AKRESULT eResult = AK_Fail;
 
 	if (m_bSoundEngineInitialized)
@@ -3052,6 +3182,7 @@ AKRESULT FAkAudioDevice::SetGameObjectOutputBusVolume(
 	float in_fControlValue	
 	)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetGameObjectOutputBusVolume"));
 	AKRESULT eResult = AK_Success;
 
 	if (m_bSoundEngineInitialized)
@@ -3085,6 +3216,7 @@ FAkAudioDevice * FAkAudioDevice::Get()
 	}
 	else
 	{
+		SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::Get Loading AkAudio"));
 		FAkAudioModule* ModulePtr = FModuleManager::LoadModulePtr<FAkAudioModule>(TEXT("AkAudio"));
 		UE_CLOG(!ModulePtr, LogAkAudio, Warning, TEXT("No AkAudio module"));
 		UE_CLOG(FAkAudioModule::AkAudioModuleInstance != ModulePtr, LogAkAudio, Warning, TEXT("AkAudio instance (%p) differs from loaded module (%p)."), FAkAudioModule::AkAudioModuleInstance, ModulePtr);
@@ -3099,6 +3231,7 @@ FAkAudioDevice * FAkAudioDevice::Get()
  */
 AkUInt32 FAkAudioDevice::GetSampleRate()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetSampleRate"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return 0;
 
@@ -3112,6 +3245,7 @@ AkUInt32 FAkAudioDevice::GetSampleRate()
  */
 AKRESULT FAkAudioDevice::SetOfflineRendering(bool bEnable)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetOfflineRendering"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -3125,6 +3259,7 @@ AKRESULT FAkAudioDevice::SetOfflineRendering(bool bEnable)
  */
 AKRESULT FAkAudioDevice::SetOfflineRenderingFrameTime(AkReal32 FrameTimeInSeconds)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetOfflineRenderingFrameTime"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -3140,6 +3275,7 @@ AKRESULT FAkAudioDevice::SetOfflineRenderingFrameTime(AkReal32 FrameTimeInSecond
  */
 AKRESULT FAkAudioDevice::RegisterCaptureCallback(AkCaptureCallbackFunc Callback, AkOutputDeviceID OutputId /*= AK_INVALID_OUTPUT_DEVICE_ID*/, void* Cookie /*= nullptr*/)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterCaptureCallback"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -3155,6 +3291,7 @@ AKRESULT FAkAudioDevice::RegisterCaptureCallback(AkCaptureCallbackFunc Callback,
  */
 AKRESULT FAkAudioDevice::UnregisterCaptureCallback(AkCaptureCallbackFunc Callback, AkOutputDeviceID OutputId /*= AK_INVALID_OUTPUT_DEVICE_ID*/, void* Cookie /*= nullptr*/)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnregisterCaptureCallback"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -3168,6 +3305,7 @@ AKRESULT FAkAudioDevice::UnregisterCaptureCallback(AkCaptureCallbackFunc Callbac
  */
 void FAkAudioDevice::StopGameObject( UAkComponent * in_pComponent )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopGameObject"));
 	AkGameObjectID gameObjId = DUMMY_GAMEOBJ;
 	if ( in_pComponent )
 	{
@@ -3184,6 +3322,7 @@ void FAkAudioDevice::StopGameObject( UAkComponent * in_pComponent )
  */
 void FAkAudioDevice::StopGameObjectID(AkGameObjectID in_gameObjectID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopGameObjectID"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -3200,12 +3339,13 @@ void FAkAudioDevice::StopGameObjectID(AkGameObjectID in_gameObjectID)
  */
 void FAkAudioDevice::PausePlayingID(AkPlayingID in_playingID, AkTimeMs in_uTransitionDuration, AkCurveInterpolation in_eFadeCurve)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::PausePlayingID"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 		if (UNLIKELY(!SoundEngine)) return;
 
-		SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Pause, in_playingID, in_uTransitionDuration, in_eFadeCurve );
+		SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Pause, in_playingID, in_uTransitionDuration, in_eFadeCurve );
 	}
 }
 
@@ -3216,12 +3356,13 @@ void FAkAudioDevice::PausePlayingID(AkPlayingID in_playingID, AkTimeMs in_uTrans
  */
 void FAkAudioDevice::ResumePlayingID( AkPlayingID in_playingID, AkTimeMs in_uTransitionDuration, AkCurveInterpolation in_eFadeCurve)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ResumePlayingID"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 		if (UNLIKELY(!SoundEngine)) return;
 
-		SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Resume, in_playingID, in_uTransitionDuration, in_eFadeCurve );
+		SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Resume, in_playingID, in_uTransitionDuration, in_eFadeCurve );
 	}
 }
 
@@ -3236,12 +3377,13 @@ void FAkAudioDevice::StopPlayingID( AkPlayingID in_playingID,
                                     AkTimeMs in_uTransitionDuration /*= 0*/, 
                                     AkCurveInterpolation in_eFadeCurve /*= AkCurveInterpolation_Linear*/)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopPlayingID"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 		if (UNLIKELY(!SoundEngine)) return;
 
-		SoundEngine->ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Stop, in_playingID, in_uTransitionDuration, in_eFadeCurve );
+		SoundEngine->ExecuteActionOnPlayingID(AkActionOnEventType_Stop, in_playingID, in_uTransitionDuration, in_eFadeCurve );
 	}
 }
 
@@ -3252,6 +3394,7 @@ void FAkAudioDevice::StopPlayingID( AkPlayingID in_playingID,
  */
 void FAkAudioDevice::RegisterComponent( UAkComponent * in_pComponent )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterComponent"));
 	if (m_bSoundEngineInitialized && in_pComponent)
 	{
 		FString WwiseGameObjectName = TEXT("");
@@ -3276,6 +3419,7 @@ void FAkAudioDevice::RegisterComponent( UAkComponent * in_pComponent )
  */
 void FAkAudioDevice::RegisterComponent(AkGameObjectID GameObjectID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterComponent"));
 	if (m_bSoundEngineInitialized && GameObjectID)
 	{
 		FAkAudioDevice_Helpers::RegisterGameObject(GameObjectID, "");
@@ -3292,6 +3436,7 @@ void FAkAudioDevice::RegisterComponent(AkGameObjectID GameObjectID)
  */
 void FAkAudioDevice::UnregisterComponent( UAkComponent * in_pComponent )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnregisterComponent"));
 	if (m_bSoundEngineInitialized && in_pComponent)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -3328,6 +3473,7 @@ void FAkAudioDevice::UnregisterComponent( UAkComponent * in_pComponent )
 
 void FAkAudioDevice::UnregisterComponent( AkGameObjectID GameObjectId )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::UnregisterComponent"));
 	if (m_bSoundEngineInitialized && GameObjectId)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -3345,6 +3491,7 @@ void FAkAudioDevice::UnregisterComponent( AkGameObjectID GameObjectId )
 
 AKRESULT FAkAudioDevice::SetGeometry(AkGeometrySetID GeometrySetID, const AkGeometryParams& Params)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetGeometry"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -3359,6 +3506,7 @@ AKRESULT FAkAudioDevice::SetGeometry(AkGeometrySetID GeometrySetID, const AkGeom
 
 AKRESULT FAkAudioDevice::SetGeometryInstance(AkGeometryInstanceID GeometryInstanceID, const AkGeometryInstanceParams& Params)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetGeometryInstance"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -3373,6 +3521,7 @@ AKRESULT FAkAudioDevice::SetGeometryInstance(AkGeometryInstanceID GeometryInstan
 
 AKRESULT FAkAudioDevice::RemoveGeometrySet(AkGeometrySetID GeometrySetID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemoveGeometrySet"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -3387,6 +3536,7 @@ AKRESULT FAkAudioDevice::RemoveGeometrySet(AkGeometrySetID GeometrySetID)
 
 AKRESULT FAkAudioDevice::RemoveGeometryInstance(AkGeometryInstanceID GeometryInstanceID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemoveGeometryInstance"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -3401,6 +3551,7 @@ AKRESULT FAkAudioDevice::RemoveGeometryInstance(AkGeometryInstanceID GeometryIns
 
 AKRESULT FAkAudioDevice::SetEarlyReflectionsAuxBus(UAkComponent* in_pComponent, const AkUInt32 AuxBusID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetEarlyReflectionsAuxBus"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized && in_pComponent)
 	{
@@ -3416,6 +3567,7 @@ AKRESULT FAkAudioDevice::SetEarlyReflectionsAuxBus(UAkComponent* in_pComponent, 
 
 AKRESULT FAkAudioDevice::SetEarlyReflectionsVolume(UAkComponent* in_pComponent, float in_fSendVolume)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetEarlyReflectionsVolume"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized && in_pComponent)
 	{
@@ -3431,6 +3583,7 @@ AKRESULT FAkAudioDevice::SetEarlyReflectionsVolume(UAkComponent* in_pComponent, 
 
 AKRESULT FAkAudioDevice::SetReflectionsOrder(int Order, bool RefreshPaths)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetReflectionsOrder"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -3444,6 +3597,7 @@ AKRESULT FAkAudioDevice::SetReflectionsOrder(int Order, bool RefreshPaths)
 
 AKRESULT FAkAudioDevice::SetMultipleObstructionAndOcclusion(AkGameObjectID in_Object, AkGameObjectID in_listener, AkObstructionOcclusionValues* ObstructionAndOcclusionValues, AkUInt32 in_uNumObstructionAndOcclusion)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetMultipleObstructionAndOcclusion"));
 	AKRESULT eResult = AK_Fail;
 	if(m_bSoundEngineInitialized)
 	{
@@ -3457,6 +3611,7 @@ AKRESULT FAkAudioDevice::SetMultipleObstructionAndOcclusion(AkGameObjectID in_Ob
 
 AKRESULT FAkAudioDevice::SetObjectObstructionAndOcclusion(AkGameObjectID in_Object, AkGameObjectID in_listener, AkReal32 Obstruction, AkReal32 Occlusion)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetObjectObstructionAndOcclusion"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized)
 	{
@@ -3468,8 +3623,9 @@ AKRESULT FAkAudioDevice::SetObjectObstructionAndOcclusion(AkGameObjectID in_Obje
 	return eResult;
 }
 
-AKRESULT FAkAudioDevice::SetPortalObstructionAndOcclusion(const UAkPortalComponent* in_pPortal, float in_fObstructionValue, float in_fOcclusionValue)
+AKRESULT FAkAudioDevice::SetPortalObstructionAndOcclusion(const UAkPortalComponent* in_pPortal, float in_fObstructionValue, float in_fOcclusionValue, bool in_bTransition)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetPortalObstructionAndOcclusion"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized && in_pPortal)
 	{
@@ -3481,7 +3637,7 @@ AKRESULT FAkAudioDevice::SetPortalObstructionAndOcclusion(const UAkPortalCompone
 			if (UNLIKELY(!SpatialAudio)) return AK_NotInitialized;
 
 			const AkPortalID portalID = in_pPortal->GetPortalID();
-			eResult = SpatialAudio->SetPortalObstructionAndOcclusion(portalID, in_fObstructionValue, in_fOcclusionValue);
+			eResult = SpatialAudio->SetPortalObstructionAndOcclusion(portalID, in_fObstructionValue, in_fOcclusionValue, in_bTransition);
 		}
 	}
 	return eResult;
@@ -3489,6 +3645,7 @@ AKRESULT FAkAudioDevice::SetPortalObstructionAndOcclusion(const UAkPortalCompone
 
 AKRESULT FAkAudioDevice::SetGameObjectToPortalObstruction(const UAkComponent* in_pComponent, const UAkPortalComponent* in_pPortal, float in_fObstructionValue)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetGameObjectToPortalObstruction"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized && in_pComponent && in_pPortal)
 	{
@@ -3509,6 +3666,7 @@ AKRESULT FAkAudioDevice::SetGameObjectToPortalObstruction(const UAkComponent* in
 
 AKRESULT FAkAudioDevice::SetPortalToPortalObstruction(const UAkPortalComponent* in_pPortal0, const UAkPortalComponent* in_pPortal1, float in_fObstructionValue)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetPortalToPortalObstruction"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized && in_pPortal0 && in_pPortal1)
 	{
@@ -3529,6 +3687,7 @@ AKRESULT FAkAudioDevice::SetPortalToPortalObstruction(const UAkPortalComponent* 
 
 void FAkAudioDevice::UpdateDefaultActiveListeners()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::UpdateDefaultActiveListeners"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -3555,6 +3714,7 @@ void FAkAudioDevice::UpdateDefaultActiveListeners()
 
 AKRESULT FAkAudioDevice::SetPosition(UAkComponent* in_akComponent, const AkSoundPosition& in_SoundPosition)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetPosition"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -3568,6 +3728,7 @@ AKRESULT FAkAudioDevice::SetPosition(UAkComponent* in_akComponent, const AkSound
 
 AKRESULT FAkAudioDevice::AddRoom(UAkRoomComponent* in_pRoom, const AkRoomParams& in_RoomParams)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::AddRoom"));
 	AKRESULT result = AK_Fail;
 
 	if (ShouldNotifySoundEngine(in_pRoom->GetWorld()->WorldType))
@@ -3589,6 +3750,7 @@ AKRESULT FAkAudioDevice::AddRoom(UAkRoomComponent* in_pRoom, const AkRoomParams&
 
 AKRESULT FAkAudioDevice::UpdateRoom(UAkRoomComponent* in_pRoom, const AkRoomParams& in_RoomParams)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::UpdateRoom"));
 	AKRESULT result = AK_Fail;
 
 	if (ShouldNotifySoundEngine(in_pRoom->GetWorld()->WorldType))
@@ -3612,6 +3774,7 @@ AKRESULT FAkAudioDevice::UpdateRoom(UAkRoomComponent* in_pRoom, const AkRoomPara
 
 AKRESULT FAkAudioDevice::RemoveRoom(UAkRoomComponent* in_pRoom)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemoveRoom"));
 	AKRESULT result = AK_Fail;
 
 	if (ShouldNotifySoundEngine(in_pRoom->GetWorld()->WorldType) &&
@@ -3631,6 +3794,7 @@ AKRESULT FAkAudioDevice::RemoveRoom(UAkRoomComponent* in_pRoom)
 
 AKRESULT FAkAudioDevice::SetGameObjectRadius(UAkComponent* in_akComponent, float in_outerRadius, float in_innerRadius)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetGameObjectRadius"));
 	if (!m_bSoundEngineInitialized)
 		return AK_Fail;
 
@@ -3642,6 +3806,7 @@ AKRESULT FAkAudioDevice::SetGameObjectRadius(UAkComponent* in_akComponent, float
 
 AKRESULT FAkAudioDevice::SetImageSource(AAkSpotReflector* in_pSpotReflector, const AkImageSourceSettings& in_ImageSourceInfo, AkUniqueID in_AuxBusID, UAkComponent* in_AkComponent)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetImageSource"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
@@ -3655,6 +3820,7 @@ AKRESULT FAkAudioDevice::SetImageSource(AAkSpotReflector* in_pSpotReflector, con
 
 AKRESULT FAkAudioDevice::RemoveImageSource(AAkSpotReflector* in_pSpotReflector, AkUniqueID in_AuxBusID, UAkComponent* in_AkComponent)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemoveImageSource"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
@@ -3668,6 +3834,7 @@ AKRESULT FAkAudioDevice::RemoveImageSource(AAkSpotReflector* in_pSpotReflector, 
 
 AKRESULT FAkAudioDevice::ClearImageSources(AkUniqueID in_AuxBusID, UAkComponent* in_AkComponent)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::ClearImageSources"));
 	if (m_bSoundEngineInitialized)
 	{
 		auto* SpatialAudio = IWwiseSpatialAudioAPI::Get();
@@ -3681,6 +3848,7 @@ AKRESULT FAkAudioDevice::ClearImageSources(AkUniqueID in_AuxBusID, UAkComponent*
 
 void FAkAudioDevice::SetListeners(UAkComponent* in_pEmitter, const TArray<TWeakObjectPtr<UAkComponent>>& in_listenerSet)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetListeners"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return;
 
@@ -3697,6 +3865,7 @@ void FAkAudioDevice::SetListeners(UAkComponent* in_pEmitter, const TArray<TWeakO
 
 bool FAkAudioDevice::SetSpatialAudioListener(UAkComponent* in_pListener)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetSpatialAudioListener"));
 #if WITH_EDITOR
 	if (in_pListener == EditorListener)
 	{
@@ -3726,6 +3895,7 @@ UAkComponent* FAkAudioDevice::GetAkComponent(class USceneComponent* AttachToComp
 
 UAkComponent* FAkAudioDevice::GetAkComponent( class USceneComponent* AttachToComponent, FName AttachPointName, const FVector * Location, EAttachLocation::Type LocationType, bool& ComponentCreated )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetAkComponent"));
 	if (!AttachToComponent)
 	{
 		return NULL;
@@ -3850,6 +4020,7 @@ UAkComponent* FAkAudioDevice::GetAkComponent( class USceneComponent* AttachToCom
 */
 void FAkAudioDevice::CancelEventCallbackCookie(void* in_cookie)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::CancelEventCallbackCookie"));
 	if (m_bSoundEngineInitialized)
 	{
 		CallbackManager->CancelEventCallback(in_cookie);
@@ -3863,6 +4034,7 @@ void FAkAudioDevice::CancelEventCallbackCookie(void* in_cookie)
 */
 void FAkAudioDevice::CancelEventCallbackDelegate(const FOnAkPostEventCallback& in_Delegate)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::CancelEventCallbackDelegate"));
 	if (m_bSoundEngineInitialized)
 	{
 		CallbackManager->CancelEventCallback(in_Delegate);
@@ -3871,6 +4043,7 @@ void FAkAudioDevice::CancelEventCallbackDelegate(const FOnAkPostEventCallback& i
 
 AKRESULT FAkAudioDevice::SetAttenuationScalingFactor(AActor* Actor, float ScalingFactor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetAttenuationScalingFactor"));
 	AKRESULT eResult = AK_Fail;
 
 	if ( m_bSoundEngineInitialized && Actor )
@@ -3895,6 +4068,7 @@ AKRESULT FAkAudioDevice::SetAttenuationScalingFactor(AActor* Actor, float Scalin
 
 AKRESULT FAkAudioDevice::SetAttenuationScalingFactor(UAkGameObject* AkGameObject, float ScalingFactor)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetAttenuationScalingFactor"));
 	AKRESULT eResult = AK_Fail;
 	if ( m_bSoundEngineInitialized && AkGameObject)
 	{
@@ -3912,6 +4086,7 @@ AKRESULT FAkAudioDevice::SetAttenuationScalingFactor(UAkGameObject* AkGameObject
 
 AKRESULT FAkAudioDevice::SetDistanceProbe(UAkComponent* Listener, UAkComponent* DistanceProbe)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::SetDistanceProbe"));
 	AKRESULT eResult = AK_Fail;
 	if (m_bSoundEngineInitialized && Listener)
 	{
@@ -3929,7 +4104,28 @@ AkErrorMessageTranslator* FAkAudioDevice::m_UnrealErrorTranslator;
 
 AKRESULT FAkAudioDevice::RegisterGameObject(AkGameObjectID GameObjectID, const FString& Name)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterGameObject"));
 	return FAkAudioDevice_Helpers::RegisterGameObject(GameObjectID, Name);
+}
+
+void FAkAudioDevice::CleanupUnfinishedResourceUnload()
+{
+	FScopeLock Lock(&ResourceUnloadFuturesCriticalSection);
+	for (auto Num = ResourceUnloadFutures.Num() - 1; Num >= 0; --Num)
+	{
+		if (ResourceUnloadFutures[Num].IsReady())
+		{
+			ResourceUnloadFutures.RemoveAt(Num, 1, EWwiseAllowShrinking::No);
+		}
+	}
+}
+
+void FAkAudioDevice::AddUnfinishedResourceUnload(FWwiseResourceUnloadFuture&& ResourceUnload)
+{
+	CleanupUnfinishedResourceUnload();
+	
+	FScopeLock Lock(&ResourceUnloadFuturesCriticalSection);
+	ResourceUnloadFutures.Emplace(MoveTemp(ResourceUnload));
 }
 
 bool FAkAudioDevice::EnsureInitialized()
@@ -3942,6 +4138,10 @@ bool FAkAudioDevice::EnsureInitialized()
 		return true;
 	}
 	if (UNLIKELY(bPermanentInitializationFailure))
+	{
+		return false;
+	}
+	if (UNLIKELY(m_EngineExiting))
 	{
 		return false;
 	}
@@ -4064,6 +4264,7 @@ bool FAkAudioDevice::EnsureInitialized()
 	auto* GlobalCallbacks = FWwiseGlobalCallbacks::Get();
 	GlobalCallbacks->ProfilerConnectSync([this](AK::IAkGlobalPluginContext* InContext) mutable
 	{
+		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::EnsureInitialized ProfileConnect"));
 		bWwiseProfilerConnected = true;
 		UE_LOG(LogAkAudio, Verbose, TEXT("Wwise Profiler connected."))
 		return EWwiseDeferredAsyncResult::KeepRunning;
@@ -4071,6 +4272,7 @@ bool FAkAudioDevice::EnsureInitialized()
 	
 	GlobalCallbacks->ProfilerDisconnectSync([this](AK::IAkGlobalPluginContext* InContext) mutable
 	{
+		SCOPED_AKAUDIO_EVENT_4(TEXT("FAkAudioDevice::EnsureInitialized ProfilerDisconnect"));
 		bWwiseProfilerConnected = false;
 		UE_LOG(LogAkAudio, Verbose, TEXT("Wwise Profiler disconnected."))
 		return EWwiseDeferredAsyncResult::KeepRunning;
@@ -4118,7 +4320,7 @@ void FAkAudioDevice::SetLocalOutput()
 #if WITH_EDITORONLY_DATA && !defined(AK_OPTIMIZED)
 	const UAkSettingsPerUser* AkSettingsPerUser = GetDefault<UAkSettingsPerUser>();
 
-	if (AkSettingsPerUser->WaapiTranslatorTimeout > 0)
+	if (AkSettingsPerUser->WaapiTranslatorTimeout > 0 && AkSettingsPerUser->AutoConnectToWAAPI)
 	{
 #if AK_SUPPORT_WAAPI
 		auto* WAAPI = IWAAPI::Get();
@@ -4148,6 +4350,7 @@ void FAkAudioDevice::SetLocalOutput()
 
 void FAkAudioDevice::AddDefaultListener(UAkComponent* in_pListener)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::AddDefaultListener"));
 	bool bAlreadyInSet;
 	m_defaultListeners.Add(in_pListener, &bAlreadyInSet);
 	if (!bAlreadyInSet)
@@ -4174,6 +4377,7 @@ void FAkAudioDevice::AddDefaultListener(UAkComponent* in_pListener)
 
 void FAkAudioDevice::RemoveDefaultListener(UAkComponent* in_pListener)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemoveDefaultListener"));
 	for (TObjectIterator<UAkComponent> Emitter; Emitter; ++Emitter)
 	{
 		Emitter->OnListenerUnregistered(in_pListener);
@@ -4208,6 +4412,7 @@ void FAkAudioDevice::RemoveDefaultListener(UAkComponent* in_pListener)
 
 void FAkAudioDevice::OnActorSpawned(AActor* SpawnedActor)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::OnActorSpawned"));
 	APlayerCameraManager* AsPlayerCameraManager = Cast<APlayerCameraManager>(SpawnedActor);
 	if (AsPlayerCameraManager && AsPlayerCameraManager->GetWorld()->AllowAudioPlayback())
 	{
@@ -4244,6 +4449,7 @@ void* FAkAudioDevice::AllocatePermanentMemory( int32 Size, bool& AllocatedInPool
 
 AKRESULT FAkAudioDevice::GetGameObjectID( AActor * in_pActor, AkGameObjectID& io_GameObject )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetGameObjectID"));
 	if ( IsValid(in_pActor) )
 	{
 		UAkComponent * pComponent = GetAkComponent( in_pActor->GetRootComponent(), FName(), NULL, EAttachLocation::KeepRelativeOffset );
@@ -4262,6 +4468,7 @@ AKRESULT FAkAudioDevice::GetGameObjectID( AActor * in_pActor, AkGameObjectID& io
 
 AKRESULT FAkAudioDevice::GetGameObjectID( AActor * in_pActor, AkGameObjectID& io_GameObject, bool in_bStopWhenOwnerDestroyed )
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetGameObjectID"));
 	if ( IsValid(in_pActor) )
 	{
 		UAkComponent * pComponent = GetAkComponent( in_pActor->GetRootComponent(), FName(), NULL, EAttachLocation::KeepRelativeOffset );
@@ -4281,6 +4488,7 @@ AKRESULT FAkAudioDevice::GetGameObjectID( AActor * in_pActor, AkGameObjectID& io
 
 void FAkAudioDevice::Suspend(bool in_bRenderAnyway /* = false */)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::Suspend"));
 	if (!m_isSuspended)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4293,6 +4501,7 @@ void FAkAudioDevice::Suspend(bool in_bRenderAnyway /* = false */)
 
 void FAkAudioDevice::WakeupFromSuspend()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::WakeupFromSuspend"));
 	if (m_isSuspended)
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4305,6 +4514,7 @@ void FAkAudioDevice::WakeupFromSuspend()
 
 void FAkAudioDevice::StartOutputCapture(const FString& Filename)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StartOutputCapture"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4316,6 +4526,7 @@ void FAkAudioDevice::StartOutputCapture(const FString& Filename)
 
 void FAkAudioDevice::StopOutputCapture()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopOutputCapture"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4327,6 +4538,7 @@ void FAkAudioDevice::StopOutputCapture()
 
 void FAkAudioDevice::StartProfilerCapture(const FString& Filename)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StartProfilerCapture"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4338,6 +4550,7 @@ void FAkAudioDevice::StartProfilerCapture(const FString& Filename)
 
 void FAkAudioDevice::AddOutputCaptureMarker(const FString& MarkerText)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::AddOutputCaptureMarker"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4349,6 +4562,7 @@ void FAkAudioDevice::AddOutputCaptureMarker(const FString& MarkerText)
 
 void FAkAudioDevice::StopProfilerCapture()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopProfilerCapture"));
 	if ( m_bSoundEngineInitialized )
 	{
 		auto* SoundEngine = IWwiseSoundEngineAPI::Get();
@@ -4360,6 +4574,7 @@ void FAkAudioDevice::StopProfilerCapture()
 
 AKRESULT FAkAudioDevice::RegisterPluginDLL(const FString& in_DllName, const FString& in_DllPath)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RegisterPluginDLL"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return AK_NotInitialized;
 
@@ -4396,6 +4611,7 @@ FAkAudioDevice::SetCurrentAudioCultureAsyncTask::SetCurrentAudioCultureAsyncTask
 
 bool FAkAudioDevice::SetCurrentAudioCultureAsyncTask::Start()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::SetCurrentAudioCultureAsyncTask::Start"));
 	UE_LOG(LogAkAudio, Verbose, TEXT("Switching Wwise language to '%s'"), *Language.GetLanguageName().ToString());
 
 	auto* StreamMgr = IWwiseStreamMgrAPI::Get();
@@ -4407,6 +4623,7 @@ bool FAkAudioDevice::SetCurrentAudioCultureAsyncTask::Start()
 
 	AsyncTask(ENamedThreads::AnyNormalThreadNormalTask, [this]()
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FAkAudioDevice::SetCurrentAudioCultureAsyncTask::Start AsyncTask"));
 		FWwiseResourceLoaderPtr ResourceLoader = FWwiseResourceLoader::Get();
 		if (UNLIKELY(!ResourceLoader))
 		{
@@ -4445,6 +4662,7 @@ void FAkAudioDevice::SetCurrentAudioCultureAsyncTask::Update()
 
 void FAkAudioDevice::AddPlayingID(uint32 EventID, uint32 PlayingID, EAkAudioContext AudioContext)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::AddPlayingID"));
 	FScopeLock Lock(&EventToPlayingIDMapCriticalSection);
 	auto& PlayingIDArray = EventToPlayingIDMap.FindOrAdd(EventID);
 	PlayingIDArray.Add(PlayingID);
@@ -4453,6 +4671,7 @@ void FAkAudioDevice::AddPlayingID(uint32 EventID, uint32 PlayingID, EAkAudioCont
 
 bool FAkAudioDevice::IsPlayingIDActive(uint32 EventID, uint32 PlayingID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::IsPlayingIDActive"));
 	FScopeLock Lock(&EventToPlayingIDMapCriticalSection);
 	auto* PlayingIDArray = EventToPlayingIDMap.Find(EventID);
 	if (PlayingIDArray && PlayingIDArray->Contains(PlayingID))
@@ -4465,12 +4684,14 @@ bool FAkAudioDevice::IsPlayingIDActive(uint32 EventID, uint32 PlayingID)
 
 bool FAkAudioDevice::IsEventIDActive(uint32 EventID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::IsEventIDActive"));
 	FScopeLock Lock(&EventToPlayingIDMapCriticalSection);
 	return EventToPlayingIDMap.Contains(EventID);
 }
 
 void FAkAudioDevice::RemovePlayingID(uint32 EventID, uint32 PlayingID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemovePlayingID"));
 	FScopeLock Lock(&EventToPlayingIDMapCriticalSection);
 	auto* PlayingIDArray = EventToPlayingIDMap.Find(EventID);
 	if (PlayingIDArray)
@@ -4480,13 +4701,14 @@ void FAkAudioDevice::RemovePlayingID(uint32 EventID, uint32 PlayingID)
 		if (PlayingIDArray->Num() == 0)
 		{
 			EventToPlayingIDMap.Remove(EventID);
-			PlayingIDToAudioContextMap.Remove(PlayingID);
 		}
+		PlayingIDToAudioContextMap.Remove(PlayingID);
 	}
 }
 
 void FAkAudioDevice::StopEventID(uint32 EventID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::StopEventID"));
 	auto* SoundEngine = IWwiseSoundEngineAPI::Get();
 	if (UNLIKELY(!SoundEngine)) return;
 
@@ -4510,6 +4732,7 @@ FOnSwitchValueLoaded& FAkAudioDevice::GetOnSwitchValueLoaded(uint32 SwitchID)
 
 void FAkAudioDevice::BroadcastOnSwitchValueLoaded(UAkGroupValue* GroupValue)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::BroadcastOnSwitchValueLoaded"));
 	FOnSwitchValueLoaded* EventToBroadcast = OnSwitchValueLoadedMap.Find(GroupValue->GetShortID());
 	if (EventToBroadcast)
 	{
@@ -4519,6 +4742,7 @@ void FAkAudioDevice::BroadcastOnSwitchValueLoaded(UAkGroupValue* GroupValue)
 
 void FAkAudioDevice::AddPortalConnectionToOutdoors(const UWorld* in_world, UAkPortalComponent* in_pPortal)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::AddPortalConnectionToOutdoors"));
 	if (in_world == nullptr)
 	{
 		return;
@@ -4529,6 +4753,7 @@ void FAkAudioDevice::AddPortalConnectionToOutdoors(const UWorld* in_world, UAkPo
 
 void FAkAudioDevice::RemovePortalConnectionToOutdoors(const UWorld* in_world, AkPortalID in_portalID)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::RemovePortalConnectionToOutdoors"));
 	if (in_world == nullptr)
 	{
 		return;
@@ -4545,6 +4770,7 @@ void FAkAudioDevice::RemovePortalConnectionToOutdoors(const UWorld* in_world, Ak
 
 void FAkAudioDevice::GetObsOccServicePortalMap(const TWeakObjectPtr<UAkRoomComponent> InRoom, const UWorld* InWorld, AkObstructionAndOcclusionService::PortalMap& OutPortalMap)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("FAkAudioDevice::GetObsOccServicePortalMap"));
 	PortalComponentMap* ConnectedPortals = nullptr;
 
 	if (InRoom.IsValid())

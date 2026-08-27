@@ -27,14 +27,18 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "UObject/AssetRegistryTagsContext.h"
 #endif
 
+#if UE_5_7_OR_LATER
+#include "Cooker/CookDependencyContext.h"
+#endif
+
 #if WITH_EDITORONLY_DATA
 #include "Wwise/WwiseResourceCooker.h"
 #endif
 
+bool UAkAudioType::bWaitForResourceUnload = false;
+
 UAkAudioType::~UAkAudioType()
 {
-	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAudioType Dtor"));
-	ResourceUnload.Wait();
 }
 
 void UAkAudioType::Serialize(FArchive& Ar)
@@ -57,6 +61,7 @@ void UAkAudioType::Serialize(FArchive& Ar)
 
 void UAkAudioType::PostLoad()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAudioType::PostLoad"));
 	Super::PostLoad();
 
 	if (LIKELY(bAutoLoad))
@@ -74,6 +79,7 @@ void UAkAudioType::PostLoad()
 
 void UAkAudioType::BeginDestroy()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkAudioType::BeginDestroy"));
 	if (HasAnyFlags(RF_ClassDefaultObject))
 	{
 		return Super::BeginDestroy();
@@ -88,11 +94,38 @@ void UAkAudioType::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+bool UAkAudioType::IsReadyForFinishDestroy()
+{
+	if (!bWaitForResourceUnload)
+	{
+		return true;
+	}
+	if (IsEngineExitRequested() || !FAkAudioDevice::IsInitialized())		// Resource unload will be waited during teardown.
+	{
+		return true;
+	}
+	if (!ResourceUnload.IsValid())
+	{
+		return true;
+	}
+	if (ResourceUnload.IsReady())
+	{
+		return true;
+	}
+	return false;
+}
+
 void UAkAudioType::FinishDestroy()
 {
+	SCOPED_AKAUDIO_EVENT_2(TEXT("UAkAudioType::FinishDestroy"));
+	UE_LOG(LogAkAudio, VeryVerbose, TEXT("UAkAudioType::FinishDestroy[%p]"), this);
+
+	if (ResourceUnload.IsValid() && !ResourceUnload.IsReady())
 	{
-		SCOPED_AKAUDIO_EVENT_2(TEXT("UAkAudioType::FinishDestroy"));
-		UE_LOG(LogAkAudio, VeryVerbose, TEXT("UAkAudioType::FinishDestroy[%p]"), this);
+		if (auto* AudioDevice = FAkAudioDevice::Get())
+		{
+			AudioDevice->AddUnfinishedResourceUnload(MoveTemp(ResourceUnload));
+		}
 	}
 	Super::FinishDestroy();
 }

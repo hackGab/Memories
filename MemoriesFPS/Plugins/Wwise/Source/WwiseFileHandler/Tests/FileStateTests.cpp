@@ -21,6 +21,8 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "Wwise/Mock/WwiseMockFileState.h"
 #include <atomic>
 
+#include "Wwise/Stats/FileHandler.h"
+
 WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smoke", "[ApplicationContextMask][SmokeFilter]")
 {
 	SECTION("Static")
@@ -42,18 +44,18 @@ WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smok
 	SECTION("Loading Streaming File")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(10);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		auto File{ MakeShared<FWwiseMockFileState>(10) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
 
 		bool bDeleted{ false };
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &Done, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &Done, &bDeleted](bool bResult) mutable
 		{
 			CHECK(bResult);
-			CHECK(File.State == FWwiseFileState::EState::Opened);
-			File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+			CHECK(File->State == FWwiseFileState::EState::Opened);
+			File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 				[&File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
-					CHECK(File.State == FWwiseFileState::EState::Closed);
+					CHECK(File->State == FWwiseFileState::EState::Closed);
 					bDeleted = true;
 					Callback();
 				},
@@ -69,18 +71,18 @@ WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smok
 	SECTION("Streaming File")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(20);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		auto File{ MakeShared<FWwiseMockFileState>(20) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
 		
 		bool bDeleted{ false };
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Streaming, [&File, &Done, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Streaming, [File, &Done, &bDeleted](bool bResult) mutable
 		{
 			CHECK(bResult);
-			CHECK(File.State == FWwiseFileState::EState::Loaded);
-			File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Streaming,
-				[&File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
+			CHECK(File->State == FWwiseFileState::EState::Loaded);
+			File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Streaming,
+				[File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
-					CHECK(File.State == FWwiseFileState::EState::Closed);
+					CHECK(File->State == FWwiseFileState::EState::Closed);
 					bDeleted = true;
 					Callback();
 				},
@@ -96,7 +98,7 @@ WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smok
 	SECTION("Delete in Decrement")
 	{
 		FEventRef Done;
-		auto* File = new FWwiseMockFileState(30);
+		auto File { MakeShared<FWwiseMockFileState>(30) };
 
 		bool bDeleted{ false };
 		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [File, &Done, &bDeleted](bool bResult) mutable
@@ -107,7 +109,6 @@ WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smok
 				[File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
 					CHECK(File->State == FWwiseFileState::EState::Closed);
-					delete File;
 					bDeleted = true;
 					Callback();
 				},
@@ -123,20 +124,20 @@ WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smok
 	SECTION("Ordered callbacks")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(40);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		auto File{ MakeShared<FWwiseMockFileState>(40) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
 
 		int Order = 0;
 		constexpr const int Count = 10;
 
 		for (int NumOp = 0; NumOp < Count; ++NumOp)
 		{
-			File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [NumOp, &Order](bool bResult) mutable
+			File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [NumOp, &Order](bool bResult) mutable
 			{
 				CHECK(NumOp*4+0 == Order);
 				Order++;
 			});
-			File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+			File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 				[](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
 					Callback();
@@ -146,12 +147,12 @@ WWISE_TEST_CASE(FileHandler_FileState_Smoke, "Wwise::FileHandler::FileState_Smok
 					CHECK(NumOp*4+1 == Order);
 					Order++;
 				});
-			File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [NumOp, &Order](bool bResult) mutable
+			File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [NumOp, &Order](bool bResult) mutable
 			{
 				CHECK(NumOp*4+2 == Order);
 				Order++;
 			});
-			File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+			File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 				[&Done](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
 					Callback();
@@ -172,17 +173,17 @@ WWISE_TEST_CASE(FileHandler_FileState, "Wwise::FileHandler::FileState", "[Applic
 	SECTION("Reloading Streaming File")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(1000);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		auto File{ MakeShared<FWwiseMockFileState>(1000) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
 
 		bool bDeleted{ false };
 		bool bInitialDecrementDone{ false };
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &bDeleted](bool bResult) mutable
 		{
 			CHECK(bResult);
-			CHECK(File.State == FWwiseFileState::EState::Opened);
+			CHECK(File->State == FWwiseFileState::EState::Opened);
 		});
-		File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+		File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 			[](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 			{
 				CHECK(false);
@@ -192,14 +193,14 @@ WWISE_TEST_CASE(FileHandler_FileState, "Wwise::FileHandler::FileState", "[Applic
 			{
 				bInitialDecrementDone = true;
 			});
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &bDeleted](bool bResult) mutable
 		{
 			CHECK(bResult);
 		});
-		File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+		File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 			[&File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 			{
-				CHECK(File.State == FWwiseFileState::EState::Closed);
+				CHECK(File->State == FWwiseFileState::EState::Closed);
 				bDeleted = true;
 				Callback();
 			},
@@ -215,15 +216,15 @@ WWISE_TEST_CASE(FileHandler_FileState, "Wwise::FileHandler::FileState", "[Applic
 	SECTION("Restreaming File")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(1010);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		auto File{ MakeShared<FWwiseMockFileState>(1010) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
 
 		bool bDeleted{ false };
 		bool bInitialDecrementDone{ false };
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Streaming, [&File, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Streaming, [&File, &bDeleted](bool bResult) mutable
 		{
 		});
-		File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Streaming,
+		File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Streaming,
 			[](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 			{
 				// Delete State should never be called, since the last one should delete our object 
@@ -234,13 +235,13 @@ WWISE_TEST_CASE(FileHandler_FileState, "Wwise::FileHandler::FileState", "[Applic
 			{
 				bInitialDecrementDone = true;
 			});
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Streaming, [&File, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Streaming, [&File, &bDeleted](bool bResult) mutable
 		{
 		});
-		File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Streaming,
+		File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Streaming,
 			[&File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 			{
-				CHECK(File.State == FWwiseFileState::EState::Closed);
+				CHECK(File->State == FWwiseFileState::EState::Closed);
 				bDeleted = true;
 				Callback();
 			},
@@ -256,19 +257,19 @@ WWISE_TEST_CASE(FileHandler_FileState, "Wwise::FileHandler::FileState", "[Applic
 	SECTION("Deferring Unload")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(10);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
-		File.UnloadFromSoundEngineDeferCount = 1;
+		auto File{ MakeShared<FWwiseMockFileState>(10) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		File->UnloadFromSoundEngineDeferCount = 1;
 
 		bool bDeleted{ false };
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &Done, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &Done, &bDeleted](bool bResult) mutable
 		{
 			CHECK(bResult);
-			CHECK(File.State == FWwiseFileState::EState::Opened);
-			File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+			CHECK(File->State == FWwiseFileState::EState::Opened);
+			File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 				[&File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
-					CHECK(File.State == FWwiseFileState::EState::Closed);
+					CHECK(File->State == FWwiseFileState::EState::Closed);
 					bDeleted = true;
 					Callback();
 				},
@@ -284,19 +285,19 @@ WWISE_TEST_CASE(FileHandler_FileState, "Wwise::FileHandler::FileState", "[Applic
 	SECTION("Deferring Close")
 	{
 		FEventRef Done;
-		FWwiseMockFileState File(10);
-		File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
-		File.CloseFileDeferCount = 1;
+		auto File{ MakeShared<FWwiseMockFileState>(10) };
+		File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+		File->CloseFileDeferCount = 1;
 
 		bool bDeleted{ false };
-		File.IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &Done, &bDeleted](bool bResult) mutable
+		File->IncrementCountAsync(EWwiseFileStateOperationOrigin::Loading, [&File, &Done, &bDeleted](bool bResult) mutable
 		{
 			CHECK(bResult);
-			CHECK(File.State == FWwiseFileState::EState::Opened);
-			File.DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
+			CHECK(File->State == FWwiseFileState::EState::Opened);
+			File->DecrementCountAsync(EWwiseFileStateOperationOrigin::Loading,
 				[&File, &bDeleted](FWwiseFileState::FDecrementCountCallback&& Callback) mutable
 				{
-					CHECK(File.State == FWwiseFileState::EState::Closed);
+					CHECK(File->State == FWwiseFileState::EState::Closed);
 					bDeleted = true;
 					Callback();
 				},
@@ -320,63 +321,86 @@ WWISE_TEST_CASE(FileHandler_FileState_Stress, "Wwise::FileHandler::FileState_Str
 {
 	SECTION("Stress Open and Streams")
 	{
-		constexpr const int StateCount = 10;
-		constexpr const int LoadCount = 10;
-		constexpr const int WiggleCount = 2;
+		constexpr const int StateCount = 200;
+		constexpr const int LoadCount = 35;
+		constexpr const int WiggleCount = 5;
 
 		FEventRef Dones[StateCount];
-		FWwiseMockFileState* Files[StateCount];
+		std::atomic<int> DoneCounts[StateCount];
+		TSharedPtr<FWwiseMockFileState> Files[StateCount];
 		for (int StateIter = 0; StateIter < StateCount; ++StateIter)
 		{
 			FEventRef& Done(Dones[StateIter]);
-			Files[StateIter] = new FWwiseMockFileState(10000 + StateIter);
-			FWwiseMockFileState& File = *Files[StateIter];
-			File.bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
+			auto& DoneCount(DoneCounts[StateIter]);
+			DoneCount = 0;
+			
+			Files[StateIter] = MakeShared<FWwiseMockFileState>(10000 + StateIter);
+			auto File = Files[StateIter];
+			File->bIsStreamedState = FWwiseMockFileState::OptionalBool::True;
 
 			for (int LoadIter = 0; LoadIter < LoadCount; ++LoadIter)
 			{
 				const EWwiseFileStateOperationOrigin FirstOp = (StateIter&1)==0 ? EWwiseFileStateOperationOrigin::Loading : EWwiseFileStateOperationOrigin::Streaming;
 				const EWwiseFileStateOperationOrigin SecondOp = (StateIter&1)==1 ? EWwiseFileStateOperationOrigin::Loading : EWwiseFileStateOperationOrigin::Streaming;
-				FFunctionGraphTask::CreateAndDispatchWhenReady([Op = FirstOp, &Done, &File, WiggleCount]() mutable
+				FFunctionGraphTask::CreateAndDispatchWhenReady([Op = FirstOp, &Done, &DoneCount, File, WiggleCount]() mutable
 				{
 					for (int WiggleIter = 0; WiggleIter < WiggleCount; ++WiggleIter)
 					{
-						File.IncrementCountAsync(Op, [](bool){});
-						File.DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
+						File->IncrementCountAsync(Op, [](bool){});
+						File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
 					}
-					File.IncrementCountAsync(Op, [Op, &Done, &File, WiggleCount](bool)
+					File->IncrementCountAsync(Op, [Op, &Done, &DoneCount, File, WiggleCount](bool)
 					{
 						for (int WiggleIter = 0; WiggleIter < WiggleCount; ++WiggleIter)
 						{
-							File.DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
-							File.IncrementCountAsync(Op, [](bool){});
+							File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
+							File->IncrementCountAsync(Op, [](bool){});
 						}
-						File.DecrementCountAsync(Op, [&Done](FWwiseFileState::FDecrementCountCallback&& InCallback)
+						File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback)
 						{
-							Done->Trigger();
 							InCallback();
-						}, []{});
+						}, [&Done, &DoneCount]
+						{
+							++DoneCount;
+						});
 					});
 				});
-				FFunctionGraphTask::CreateAndDispatchWhenReady([Op = SecondOp, &Done, &File, WiggleCount]() mutable
+				FFunctionGraphTask::CreateAndDispatchWhenReady([Op = SecondOp, &Done, &DoneCount, File, WiggleCount, LoadIter]() mutable
 				{
 					for (int WiggleIter = 0; WiggleIter < WiggleCount; ++WiggleIter)
 					{
-						File.IncrementCountAsync(Op, [](bool){});
-						File.DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
+						File->IncrementCountAsync(Op, [](bool){});
+						File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
 					}
-					File.IncrementCountAsync(Op, [Op, &Done, &File, WiggleCount](bool)
+					File->IncrementCountAsync(Op, [Op, &Done, &DoneCount, File, WiggleCount, LoadIter](bool)
 					{
 						for (int WiggleIter = 0; WiggleIter < WiggleCount; ++WiggleIter)
 						{
-							File.DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
-							File.IncrementCountAsync(Op, [](bool){});
+							File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback){ InCallback(); }, []{});
+							File->IncrementCountAsync(Op, [](bool){});
 						}
-						File.DecrementCountAsync(Op, [&Done](FWwiseFileState::FDecrementCountCallback&& InCallback)
+						File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback)
 						{
-							Done->Trigger();
 							InCallback();
-						}, []{});
+						}, [Op, File, &Done, &DoneCount, LoadIter, WiggleCount]
+						{
+							++DoneCount;
+							if (LoadIter == LoadCount - 1)
+							{
+								FFunctionGraphTask::CreateAndDispatchWhenReady([Op, &Done, &DoneCount, File, WiggleCount]() mutable
+								{
+									File->IncrementCountAsync(Op, [](bool){});
+									File->DecrementCountAsync(Op, [](FWwiseFileState::FDecrementCountCallback&& InCallback)
+									{
+										InCallback();
+									}, [&Done]
+									{
+										Done->Trigger();		// This can be triggered earlier than the last operation 
+									});
+								});
+								
+							}
+						});
 					});
 				});
 			}
@@ -385,10 +409,14 @@ WWISE_TEST_CASE(FileHandler_FileState_Stress, "Wwise::FileHandler::FileState_Str
 		for (int StateIter = 0; StateIter < StateCount; ++StateIter)
 		{
 			FEventRef& Done(Dones[StateIter]);
-			FWwiseMockFileState* File = Files[StateIter];
-		
-			CHECK(Done->Wait(100000));
-			delete File;
+			const auto Multiplicand = UE_LOG_ACTIVE(LogWwiseFileHandler, VeryVerbose) ? 80 : 1;
+			CHECK(Done->Wait(5000 * Multiplicand));
+		}
+		FPlatformProcess::Sleep(0.05f);
+		for (int StateIter = 0; StateIter < StateCount; ++StateIter)
+		{
+			auto& DoneCount(DoneCounts[StateIter]);
+			CHECK(DoneCount == LoadCount * 2);
 		}
 	}	
 }

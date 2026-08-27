@@ -20,54 +20,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 
-public class WwiseUEPlatform_2024_1_Linux : WwiseUEPlatform
+public class WwiseUEPlatform_2024_1_Linux : WwiseUEPlatform_Linux
 {
 	public WwiseUEPlatform_2024_1_Linux(ReadOnlyTargetRules in_TargetRules, string in_ThirdPartyFolder) : base(in_TargetRules, in_ThirdPartyFolder) {}
-
-	public override string GetLibraryFullPath(string LibName, string LibPath)
-	{
-		return Path.Combine(LibPath, "lib" + LibName + ".a");
-	}
-
-	public override bool SupportsAkAutobahn { get { return false; } }
-
-	public override bool SupportsCommunication { get { return true; } }
-
-	public override bool SupportsDeviceMemory { get { return false; } }
-
-	public override string AkPlatformLibDir { get { return "Linux_x64"; } }
-
-	public override string DynamicLibExtension { get { return "so"; } }
-
-	public override List<string> GetAdditionalWwiseLibs()
-	{
-		return new List<string>();
-	}
-	
-	public override List<string> GetPublicSystemLibraries()
-	{
-		return new List<string>();
-	}
-
-	public override List<string> GetPublicDelayLoadDLLs()
-	{
-		return new List<string>();
-	}
-
-	public override List<string> GetPublicDefinitions()
-	{
-		return new List<string>
-		{
-		};
-	}
-
-	public override Tuple<string, string> GetAdditionalPropertyForReceipt(string ModuleDirectory)
-	{
-		return null;
-	}
-
-	public override List<string> GetPublicFrameworks()
-	{
-		return new List<string>();
-	}
 }

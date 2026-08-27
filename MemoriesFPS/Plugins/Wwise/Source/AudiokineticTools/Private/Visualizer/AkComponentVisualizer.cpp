@@ -59,7 +59,7 @@ namespace FAkComponentVisualizer_Helper
 
 #if AK_SUPPORT_WAAPI
 				TSharedPtr<FJsonObject> result;
-				if (waapiClient->Call(ak::wwise::core::object::get, args, options, result, 500, true))
+				if (waapiClient->Call(ak::wwise::core::object::get, args, options, result, true))
 				{
 					TArray<TSharedPtr<FJsonValue>> ReturnArray = result->GetArrayField(WwiseWaapiHelper::RETURN);
 					if (ReturnArray.Num() > 0)

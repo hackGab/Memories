@@ -38,24 +38,24 @@ struct FAkOutdoorsRoomParameters
 
 public:
 
+	/** Wwise Auxiliary Bus associated with the Outdoors Room. Default is null. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|Spatial Audio")
-	UAkAuxBus* ReverbAuxBus = nullptr;
+	TObjectPtr<UAkAuxBus> ReverbAuxBus = nullptr;
 
-	/** Maximum send level to the Wwise Auxiliary Bus associated to this Room */
+	/** Maximum send level to the Wwise Auxiliary Bus associated with the Outdoors Room. Valid range is 0.0f-1.0f. Default value is 1. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|Spatial Audio", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float ReverbLevel = 1.0f;
 
 	/**
-	* The transmission loss value in wwise, on emitters in the Room, when no audio paths to the
-	* listener are found via sound propagation in Wwise Spatial Audio. This value can be thought of as
-	* 'thickness', as it relates to how much sound energy is transmitted through the wall. Valid range 0.0f-1.0f.
+	* The transmission loss value in Wwise, on emitters in the Outdoors Room, when no audio paths to the
+	* listener are found via sound propagation in Wwise Spatial Audio. Valid range 0.0f-1.0f. Default value is 0.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|Spatial Audio", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float TransmissionLoss = 0.0f;
 
 	/**
-	* Send level for sounds that are posted on the room. Valid range: (0.f-1.f).
-	* A value of 0 disables the aux send.
+	* Send level for sounds that are posted on the room. Valid range is 0.f-1.f.
+	* A value of 0 disables the aux send. Default value is 0.
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audiokinetic|Spatial Audio", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float AuxSendLevel = 0.0f;
@@ -213,7 +213,7 @@ public:
     */
     UFUNCTION(BlueprintCallable, Category = "Audiokinetic")
     static void SetMultiplePositions(UAkComponent* GameObjectAkComponent, TArray<FTransform> Positions,
-                                     AkMultiPositionType MultiPositionType = AkMultiPositionType::MultiDirections);
+                                     EAkMultiPositionType MultiPositionType = EAkMultiPositionType::MultiDirections);
 
     /** Sets multiple positions to a single game object, with flexible assignment of input channels.
     *  Setting multiple positions on a single game object is a way to simulate multiple emission sources while using the resources of only one voice.
@@ -227,9 +227,9 @@ public:
     */
     UFUNCTION(BlueprintCallable, Category = "Audiokinetic")
     static void SetMultipleChannelEmitterPositions(UAkComponent* GameObjectAkComponent,
-			TArray<AkChannelConfiguration> ChannelMasks,
+			TArray<EAkChannelConfiguration> ChannelMasks,
 			TArray<FTransform> Positions,
-			AkMultiPositionType MultiPositionType = AkMultiPositionType::MultiDirections
+			EAkMultiPositionType MultiPositionType = EAkMultiPositionType::MultiDirections
 	);
 
 	/** Sets multiple positions to a single game object, with flexible assignment of input channels.
@@ -246,7 +246,7 @@ public:
 	static void SetMultipleChannelMaskEmitterPositions(UAkComponent* GameObjectAkComponent,
 			TArray<FAkChannelMask> ChannelMasks,
 			TArray<FTransform> Positions,
-			AkMultiPositionType MultiPositionType = AkMultiPositionType::MultiDirections
+			EAkMultiPositionType MultiPositionType = EAkMultiPositionType::MultiDirections
 	);
 
 	/**
@@ -318,9 +318,10 @@ public:
 	* @param PortalComponent - The portal through which sound path need to pass to get obstructed and occluded.
 	* @param ObstructionValue - The obstruction value. Can be 0 to 1.
 	* @param OcclusionValue - The occlusion value. Can be 0 to 1.
+	* @param Transition - Transition obstruction and occlusion through portals.  Default false.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|Spatial Audio")
-	static void SetPortalObstructionAndOcclusion(UAkPortalComponent* PortalComponent, float ObstructionValue, float OcclusionValue);
+	static void SetPortalObstructionAndOcclusion(UAkPortalComponent* PortalComponent, float ObstructionValue, float OcclusionValue, bool Transition = false);
 
 	/**
 	* Sets the obstruction value of sounds going from this game object through this portal.
@@ -352,7 +353,7 @@ public:
 	static FAkOutdoorsRoomParameters GetCurrentOutdoorsRoomParameters();
 
 	/**
-	* Set the parameters of the defaut Outdoors Room.
+	* Sets the parameters of the defaut Outdoors Room.
 	*
 	* @param InOutdoorsRoomParameters - Structure containing the new parameters of the Outdoors Room.
 	*/
@@ -360,12 +361,12 @@ public:
 	static void SetOutdoorsRoomParameters(FAkOutdoorsRoomParameters InOutdoorsRoomParameters);
 
 	/**
-	 * Reset the Outdoors Room parameters to their default values.
+	 * Resets the Outdoors Room parameters to their default values.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|Spatial Audio")
 	static void ResetOutdoorsRoomParams();
 
-	/** Posts a Wwise Event attached to and following the root component of the specified actor.
+	/** Posts an Event on the Outdoors Room.
 	 *
 	 * @param AkEvent - Event to play.
 	 */
@@ -376,7 +377,7 @@ public:
 	);
 
 	/**
-	 * Stop all sounds for the outdoors room.
+	 * Stops all sounds for the Outdoors Room.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintCosmetic, Category = "Audiokinetic|Spatial Audio")
 	static void StopOutdoors();
@@ -411,6 +412,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|Spatial Audio")
 	static void SetSmoothingConstant(float InSmoothingConstantMs, UAkGameObject* InGameObject = nullptr);
 
+	/**
+	 * Set a global scaling factor that manipulates reverb send values, affecting the proportion of audio sent to adjacent rooms
+	 * versus the proportion sent to the emitter's current room. Calls AK::SpatialAudio::SetAdjacentRoomBleed.
+	 *
+	 * @param InAdjacentRoomBleed - The global scaling factor for adjacent room bleed. Valid range: (0.0 - infinity).
+	 *
+	 * This updates the initialization setting specified in AkSpatialAudioInitSettings::fAdjacentRoomBleed.
+	 * This value is multiplied by AkPortalParams::AdjacentRoomBleed, which is used to scale reverb bleed for individual portals.
+	 * When calculating reverb send amounts, each portal's aperture is multiplied by fAdjacentRoomBleed, altering its perceived size:
+	 * - 1.0 (default): Maintain portals at its true geometric size (no scaling).
+	 * - > 1.0: Increases the perceived size of all portals, allowing more bleed into adjacent rooms.
+	 * - < 1.0: Decreases the perceived size of all portals, reducing bleed into adjacent rooms.
+	 * Note: Values approaching 0 may result in abrupt portal transitions.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Audiokinetic|Spatial Audio")
+	static void SetAdjacentRoomBleed(float InAdjacentRoomBleed);
 
 	/**
 	* Set the output bus volume (direct) to be used for the specified game object.
@@ -433,7 +450,7 @@ public:
 	* @return Always returns AK_Success
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic")
-	static void SetBusConfig(const FString& BusName, AkChannelConfiguration ChannelConfiguration);
+	static void SetBusConfig(const FString& BusName, EAkChannelConfiguration ChannelConfiguration);
 
 	/**
 	*  Set the panning rule of the specified output.
@@ -443,7 +460,7 @@ public:
 	* @param PanRule	Panning rule.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Audiokinetic")
-	static void SetPanningRule(PanningRule PanRule);
+	static void SetPanningRule(EPanningRule PanRule);
 	
 	/**
 	* Adds an output to the sound engine. Use this to add controller-attached headphones, controller speakers, DVR output, etc.
@@ -653,7 +670,7 @@ public:
 
 	/** Sets an Effect ShareSet at the specified audio node and Effect slot index.
 	*
-	* @param InAudioNodeID Can be a member of the Actor-Mixer or Interactive Music Hierarchy (not a bus).
+	* @param InAudioNodeID Can be a member of the Containers Hierarchy (not a bus).
 	* @param InEffectIndex Effect slot index (0-3)
 	* @param InEffectShareSet Effect ShareSet asset
 	* @return Always returns True.

@@ -84,7 +84,7 @@ export const ak = {
         cli: {
             /** Adds a new platform to a project. The platform must not already exist. */
             addNewPlatform: "ak.wwise.cli.addNewPlatform",
-            /** External sources conversion. Converts the external sources files for the specified project. Optionally, additional WSOURCES can be specified. External Sources are a special type of source that you can put in a sound object in Wwise. It indicates that the real sound data will be provided at runtime. While external source conversion can be triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. Refer to \ref integrating_external_sources. */
+            /** External sources conversion. Converts the external sources files for the specified project. Optionally, additional WSOURCES can be specified. External Sources are a special type of source that you can put in a sound object in Wwise. It indicates that the real sound data will be provided at runtime. While external source conversion can be triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. See \ref integrating_external_sources. */
             convertExternalSource: "ak.wwise.cli.convertExternalSource",
             /** Creates a blank new project. The project must not already exist. If the directory does not exist, it is created. */
             createNewProject: "ak.wwise.cli.createNewProject",
@@ -123,9 +123,9 @@ export const ak = {
             audio: {
                 /** Creates a converted audio file. When errors occur, this function returns a list of messages with corresponding levels of severity. */
                 convert: "ak.wwise.core.audio.convert",
-                /** Creates Wwise objects and imports audio files. This function does not return an error when something fails during the import process, please refer to the log for the result of each import command. This function uses the same importation processor available through the Tab Delimited import in the Audio File Importer. The function returns an array of all objects created, replaced or re-used. Use the options to specify how the objects are returned. For more information, refer to \ref waapi_import. */
+                /** Creates Wwise objects and imports audio files. This function does not return an error when something fails during the import process, please see the log for the result of each import command. This function uses the same importation processor available through the Tab Delimited import in the Audio File Importer. The function returns an array of all objects created, replaced or re-used. Use the options to specify how the objects are returned. For more information, see \ref waapi_import. */
                 import_: "ak.wwise.core.audio.import",
-                /** Creates Wwise objects and imports audio files. This function does not return an error when something fails during the import process, please refer to the log for the result of each import command. This function uses the same importation processor available through the Tab Delimited import in the Audio File Importer. The function returns an array of all objects created, replaced or re-used. Use the options to specify how the objects are returned. For more information, refer to \ref waapi_import. */
+                /** Creates Wwise objects and imports audio files. This function does not return an error when something fails during the import process, please see the log for the result of each import command. This function uses the same importation processor available through the Tab Delimited import in the Audio File Importer. The function returns an array of all objects created, replaced or re-used. Use the options to specify how the objects are returned. For more information, see \ref waapi_import. */
                 import: "ak.wwise.core.audio.import",
                 /** Scripted object creation and audio file import from a tab-delimited file. */
                 importTabDelimited: "ak.wwise.core.audio.importTabDelimited",
@@ -173,25 +173,31 @@ export const ak = {
                 addItem: "ak.wwise.core.log.addItem",
                 /** Clears the logs on the specified channel. */
                 clear: "ak.wwise.core.log.clear",
-                /** Retrieves the latest log for a specific channel. Refer to \ref ak_wwise_core_log_itemadded to be notified when an item is added to the log. The log is empty when used in WwiseConsole. */
+                /** Retrieves the latest log for a specific channel. See \ref ak_wwise_core_log_itemadded to be notified when an item is added to the log. The log is empty when used in WwiseConsole. */
                 get: "ak.wwise.core.log.get",
-                /** Sent when an item is added to the log. This could be used to retrieve items added to the SoundBank generation log. To retrieve the complete log, refer to \ref ak_wwise_core_log_get. */
+                /** Sent when an item is added to the log. This could be used to retrieve items added to the SoundBank generation log. To retrieve the complete log, see \ref ak_wwise_core_log_get. */
                 itemAdded: "ak.wwise.core.log.itemAdded"
+            },
+            mediaPool: {
+                /** Retrieve files from Media Pool. Use the return options to specify which properties of the files to return. */
+                get: "ak.wwise.core.mediaPool.get",
+                /** Retrieve all fields present in the Media Pool. You can then use the fields to query the Media Pool. The Media Pool discovers some fields when it scans audio files. Others, such as WAV fields, are always available. */
+                getFields: "ak.wwise.core.mediaPool.getFields"
             },
             object: {
                 /** Sent when an attenuation curve is changed. */
                 attenuationCurveChanged: "ak.wwise.core.object.attenuationCurveChanged",
                 /** Sent when an attenuation curve's link/unlink is changed. */
                 attenuationCurveLinkChanged: "ak.wwise.core.object.attenuationCurveLinkChanged",
-                /** Sent when an object is added as a child to another object. */
+                /** Sent when an object is added as a child to another object. See \ref ak_wwise_core_object_structurechanged to receive changes in batch. */
                 childAdded: "ak.wwise.core.object.childAdded",
-                /** Sent when an object is removed from the children of another object. */
+                /** Sent when an object is removed from the children of another object. See \ref ak_wwise_core_object_structurechanged to receive changes in batch. */
                 childRemoved: "ak.wwise.core.object.childRemoved",
                 /** Copies an object to the given parent. Note that if a Work Unit is copied, the operation cannot be undone and the project will be saved. */
                 copy: "ak.wwise.core.object.copy",
-                /** Creates an object of type 'type', as a child of 'parent'. Refer to \ref waapi_import for more information about creating objects. Also refer to \ref ak_wwise_core_audio_import to import audio files to Wwise. To create Effect or Source plug-ins, use \ref ak_wwise_core_object_set, and refer to \ref wobjects_index for the classId. */
+                /** Creates an object of type 'type', as a child of 'parent'. See \ref waapi_import for more information about creating objects. Also see \ref ak_wwise_core_audio_import to import audio files to Wwise. To create Effect or Source plug-ins, use \ref ak_wwise_core_object_set, and see \ref wobjects_index for the classId. */
                 create: "ak.wwise.core.object.create",
-                /** Sent when an object is created. */
+                /** Sent when an object is created. See \ref ak_wwise_core_object_structurechanged to receive changes in batch. */
                 created: "ak.wwise.core.object.created",
                 /** Sent when one or many curves are changed. */
                 curveChanged: "ak.wwise.core.object.curveChanged",
@@ -201,13 +207,13 @@ export const ak = {
                 delete: "ak.wwise.core.object.delete",
                 /** Compares properties and lists of the source object with those in the target object. */
                 diff: "ak.wwise.core.object.diff",
-                /** Performs a query and returns the data, as specified in the options, for each object in the query result. The query can specify either a 'waql' argument or a 'from' argument with an optional 'transform' argument. Refer to \ref waql_introduction or \ref waapi_query for more information. Refer to \ref waapi_query_return to learn about options. */
+                /** Performs a query and returns the data, as specified in the options, for each object in the query result. The query can specify either a 'waql' argument or a 'from' argument with an optional 'transform' argument. See \ref waql_introduction or \ref waapi_query for more information. See \ref waapi_query_return to learn about options. */
                 get: "ak.wwise.core.object.get",
                 /** Gets the specified attenuation curve for a given attenuation object. */
                 getAttenuationCurve: "ak.wwise.core.object.getAttenuationCurve",
                 /** Retrieves the list of property and reference names for an object. */
                 getPropertyAndReferenceNames: "ak.wwise.core.object.getPropertyAndReferenceNames",
-                /** Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, refer to \ref ak_wwise_core_object_get and \ref waapi_query_return. */
+                /** Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, see \ref ak_wwise_core_object_get and \ref waapi_query_return. */
                 getPropertyInfo: "ak.wwise.core.object.getPropertyInfo",
                 /**
                  * Retrieves the list of property and reference names for an object.
@@ -222,21 +228,21 @@ export const ak = {
                 isPropertyEnabled: "ak.wwise.core.object.isPropertyEnabled",
                 /** Moves an object to the given parent. Returns the moved object. */
                 move: "ak.wwise.core.object.move",
-                /** Sent when an object is renamed. Publishes the renamed object. */
+                /** Sent when an object is renamed. Publishes the renamed object. See \ref ak_wwise_core_object_structurechanged to receive changes in batch. */
                 nameChanged: "ak.wwise.core.object.nameChanged",
                 /** Sent when the object's notes are changed. */
                 notesChanged: "ak.wwise.core.object.notesChanged",
-                /** Pastes properties, references and lists from one object to any number of target objects. Only those properties, references and lists which differ between source and target are pasted. Refer to \ref wobjects_index for more information on the properties, references and lists available on each object type. */
+                /** Pastes properties, references and lists from one object to any number of target objects. Only those properties, references and lists which differ between source and target are pasted. See \ref wobjects_index for more information on the properties, references and lists available on each object type. */
                 pasteProperties: "ak.wwise.core.object.pasteProperties",
-                /** Sent following an object's deletion. */
+                /** Sent following an object's deletion. See \ref ak_wwise_core_object_structurechanged to receive changes in batch. */
                 postDeleted: "ak.wwise.core.object.postDeleted",
-                /** Sent prior to an object's deletion. */
+                /** Sent prior to an object's deletion. See \ref ak_wwise_core_object_structurechanged to receive changes in batch. */
                 preDeleted: "ak.wwise.core.object.preDeleted",
                 /** Sent when the watched property of an object changes. */
                 propertyChanged: "ak.wwise.core.object.propertyChanged",
                 /** Sent when an object reference is changed. */
                 referenceChanged: "ak.wwise.core.object.referenceChanged",
-                /** Allows for batch processing of the following operations: Object creation in a child hierarchy, Object creation in a list, Setting name, notes, properties and references. Refer to \ref waapi_import for more information about creating objects. Also refer to \ref ak_wwise_core_audio_import to import audio files to Wwise. */
+                /** Allows for batch processing of the following operations: Object creation in a child hierarchy, Object creation in a list, Setting name, notes, properties and references. See \ref waapi_import for more information about creating objects. Also see \ref ak_wwise_core_audio_import to import audio files to Wwise. */
                 set: "ak.wwise.core.object.set",
                 /** Sets the specified attenuation curve for a given attenuation object. */
                 setAttenuationCurve: "ak.wwise.core.object.setAttenuationCurve",
@@ -246,16 +252,18 @@ export const ak = {
                 setName: "ak.wwise.core.object.setName",
                 /** Sets the object's notes. */
                 setNotes: "ak.wwise.core.object.setNotes",
-                /** Sets a property value of an object for a specific platform. Refer to \ref wobjects_index for more information on the properties available on each object type. Refer to \ref ak_wwise_core_object_setreference to set a reference to an object. Refer to \ref ak_wwise_core_object_get to obtain the value of a property for an object. */
+                /** Sets a property value of an object for a specific platform. See \ref wobjects_index for more information on the properties available on each object type. See \ref ak_wwise_core_object_setreference to set a reference to an object. See \ref ak_wwise_core_object_get to obtain the value of a property for an object. */
                 setProperty: "ak.wwise.core.object.setProperty",
-                /** Sets the randomizer values of a property of an object for a specific platform. Refer to \ref wobjects_index for more information on the properties available on each object type. */
+                /** Sets the randomizer values of a property of an object for a specific platform. See \ref wobjects_index for more information on the properties available on each object type. */
                 setRandomizer: "ak.wwise.core.object.setRandomizer",
-                /** Sets an object's reference value. Refer to \ref wobjects_index for more information on the references available on each object type. */
+                /** Sets an object's reference value. See \ref wobjects_index for more information on the references available on each object type. */
                 setReference: "ak.wwise.core.object.setReference",
                 /** Sets the State Group objects associated with an object. Note, this will remove any previously associated State Group. */
                 setStateGroups: "ak.wwise.core.object.setStateGroups",
                 /** Set the state properties of an object. Note, this will remove any previous state property, including the default ones. */
-                setStateProperties: "ak.wwise.core.object.setStateProperties"
+                setStateProperties: "ak.wwise.core.object.setStateProperties",
+                /** Sent when the project structure changes. Publishes a summary of the changes. The publication is sent after the undo stack is modified. The changes are grouped in batch and redundant changes are collapsed. */
+                structureChanged: "ak.wwise.core.object.structureChanged"
             },
             /** Verify if WAAPI is currently available. */
             ping: "ak.wwise.core.ping",
@@ -271,7 +279,7 @@ export const ak = {
                  */
                 getProperties: "ak.wwise.core.plugin.getProperties",
                 /**
-                 * Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, refer to \ref ak_wwise_core_object_get and \ref waapi_query_return.
+                 * Retrieves information about an object property. Note that this function does not return the value of a property. To retrieve the value of a property, see \ref ak_wwise_core_object_get and \ref waapi_query_return.
                  * \deprecated in favor of ak.wwise.core.object.getPropertyInfo
                  */
                 getProperty: "ak.wwise.core.plugin.getProperty"
@@ -293,27 +301,27 @@ export const ak = {
                 getAudioObjects: "ak.wwise.core.profiler.getAudioObjects",
                 /** Retrieves the busses at a specific profiler capture time. */
                 getBusses: "ak.wwise.core.profiler.getBusses",
-                /** Retrieves CPU usage statistics at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the CPU tab. To ensure the CPU data is received, refer to \ref ak_wwise_core_profiler_enableprofilerdata. The returned data includes "Inclusive" and "Exclusive" values, where "Inclusive" refers to the time spent in the element plus the time spent in any called elements, and "Exclusive" values pertain to execution only within the element itself. */
+                /** Retrieves CPU usage statistics at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the CPU tab. To ensure the CPU data is received, see \ref ak_wwise_core_profiler_enableprofilerdata. The returned data includes "Inclusive" and "Exclusive" values, where "Inclusive" refers to the time spent in the element plus the time spent in any called elements, and "Exclusive" values pertain to execution only within the element itself. */
                 getCpuUsage: "ak.wwise.core.profiler.getCpuUsage",
                 /** Returns the current time of the specified profiler cursor, in milliseconds. */
                 getCursorTime: "ak.wwise.core.profiler.getCursorTime",
                 /** Retrieves the game objects at a specific profiler capture time. */
                 getGameObjects: "ak.wwise.core.profiler.getGameObjects",
-                /** Retrieves the loaded media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Loaded Media tab. To ensure the Loaded Media data is received, refer to \ref ak_wwise_core_profiler_enableprofilerdata. */
+                /** Retrieves the loaded media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Loaded Media tab. To ensure the Loaded Media data is received, see \ref ak_wwise_core_profiler_enableprofilerdata. */
                 getLoadedMedia: "ak.wwise.core.profiler.getLoadedMedia",
-                /** Retrieves the Meter data for all registered busses, aux busses and devices. Only the master audio bus is registered by default. Use \ref ak_wwise_core_profiler_registermeter for other busses, before retrieval of the meter data. */
+                /** Retrieves the Meter data for all registered busses, aux busses and devices. Only the Main Audio Bus is registered by default. Use \ref ak_wwise_core_profiler_registermeter for other busses, before retrieval of the meter data. */
                 getMeters: "ak.wwise.core.profiler.getMeters",
-                /** Retrieves the Performance Monitor statistics at a specific profiler capture time. Refer to \ref globalcountersids for the available counters. */
+                /** Retrieves the Performance Monitor statistics at a specific profiler capture time. See \ref globalcountersids for the available counters. */
                 getPerformanceMonitor: "ak.wwise.core.profiler.getPerformanceMonitor",
                 /** Retrieves active RTPCs at a specific profiler capture time. */
                 getRTPCs: "ak.wwise.core.profiler.getRTPCs",
-                /** Retrieves the streaming media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Streams tab. To ensure the Streams data is received, refer to \ref ak_wwise_core_profiler_enableprofilerdata. */
+                /** Retrieves the streaming media at a specific profiler capture time. This data can also be found in the Advanced Profiler, under the Streams tab. To ensure the Streams data is received, see \ref ak_wwise_core_profiler_enableprofilerdata. */
                 getStreamedMedia: "ak.wwise.core.profiler.getStreamedMedia",
                 /** Retrieves all parameters affecting voice volume, highpass and lowpass for a voice path, resolved from pipeline IDs. */
                 getVoiceContributions: "ak.wwise.core.profiler.getVoiceContributions",
                 /** Retrieves the voices at a specific profiler capture time. */
                 getVoices: "ak.wwise.core.profiler.getVoices",
-                /** Registers a bus, an aux bus or device to receive meter data. Only the master audio bus is registered by default. Use \ref ak_wwise_core_profiler_getmeters to retrieve the meter data after registering. Every call to ak.wwise.core.profiler.registerMeter must have a matching call to \ref ak_wwise_core_profiler_unregistermeter. */
+                /** Registers a bus, an aux bus or device to receive meter data. Only the Main Audio Bus is registered by default. Use \ref ak_wwise_core_profiler_getmeters to retrieve the meter data after registering. Every call to ak.wwise.core.profiler.registerMeter must have a matching call to \ref ak_wwise_core_profiler_unregistermeter. */
                 registerMeter: "ak.wwise.core.profiler.registerMeter",
                 /** Saves profiler as a .prof file according to the given file path. */
                 saveCapture: "ak.wwise.core.profiler.saveCapture",
@@ -355,11 +363,11 @@ export const ak = {
                 setActiveSource: "ak.wwise.core.sound.setActiveSource"
             },
             soundbank: {
-                /** Converts the external sources files for the project as detailed in the wsources file, and places them into either the default folder, or the folder specified by the output argument. External Sources are a special type of source that you can put in a Sound object in Wwise. It indicates that the real sound data will be provided at run time. While External Source conversion is also triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. Please refer to Wwise SDK help page "Integrating External Sources". */
+                /** Converts the external sources files for the project as detailed in the wsources file, and places them into either the default folder, or the folder specified by the output argument. External Sources are a special type of source that you can put in a Sound object in Wwise. It indicates that the real sound data will be provided at run time. While External Source conversion is also triggered by SoundBank generation, this operation can be used to process sources not contained in the Wwise Project. Please see Wwise SDK help page "Integrating External Sources". */
                 convertExternalSources: "ak.wwise.core.soundbank.convertExternalSources",
                 /** Generate a list of SoundBanks with the import definition specified in the WAAPI request. If you do not write the SoundBanks to disk, subscribe to \ref ak_wwise_core_soundbank_generated to receive SoundBank structure info and the bank data as base64. Note: This is a synchronous operation. */
                 generate: "ak.wwise.core.soundbank.generate",
-                /** Sent when a single SoundBank is generated. This could be sent multiple times during SoundBank generation, for every SoundBank generated and for every platform. To generate SoundBanks, refer to \ref ak_wwise_core_soundbank_generate or \ref ak_wwise_ui_commands_execute with one of the SoundBank generation commands. Refer to \ref globalcommandsids for the list of commands. */
+                /** Sent when a single SoundBank is generated. This could be sent multiple times during SoundBank generation, for every SoundBank generated and for every platform. To generate SoundBanks, see \ref ak_wwise_core_soundbank_generate or \ref ak_wwise_ui_commands_execute with one of the SoundBank generation commands. See \ref globalcommandsids for the list of commands. */
                 generated: "ak.wwise.core.soundbank.generated",
                 /** Sent when all SoundBanks are generated. Note: This notification is only sent when SoundBanks have been generated, it is not a reliable way to determine when \ref ak_wwise_core_soundbank_generate has completed. */
                 generationDone: "ak.wwise.core.soundbank.generationDone",
@@ -433,6 +441,12 @@ export const ak = {
                 redo: "ak.wwise.core.undo.redo",
                 /** Undoes the last operation in the Undo stack. */
                 undo: "ak.wwise.core.undo.undo"
+            },
+            workUnit: {
+                /** Load a Work Unit that was previously unloaded. The Undo history will be cleared. */
+                load: "ak.wwise.core.workUnit.load",
+                /** Unload a Work Unit. No object contained in the Work Unit will be available after this call. If the Work Unit is modified and not saved, the function will return error. The Undo history will be cleared. */
+                unload: "ak.wwise.core.workUnit.unload"
             }
         },
         debug: {
@@ -456,7 +470,7 @@ export const ak = {
             validateCall: "ak.wwise.debug.validateCall"
         },
         ui: {
-            /** Bring Wwise main window to foreground. Refer to SetForegroundWindow and AllowSetForegroundWindow on MSDN for more information on the restrictions. Refer to ak.wwise.core.getInfo to obtain the Wwise process ID for AllowSetForegroundWindow. */
+            /** Bring Wwise main window to foreground. See SetForegroundWindow and AllowSetForegroundWindow on MSDN for more information on the restrictions. See ak.wwise.core.getInfo to obtain the Wwise process ID for AllowSetForegroundWindow. */
             bringToForeground: "ak.wwise.ui.bringToForeground",
             /** Captures a part of the Wwise UI relative to a view. */
             captureScreen: "ak.wwise.ui.captureScreen",
@@ -467,20 +481,24 @@ export const ak = {
                 launch: "ak.wwise.ui.cli.launch"
             },
             commands: {
-                /** Executes a command. Some commands can take a list of objects as parameters. Refer to \ref globalcommandsids for the available commands. */
+                /** Executes a command. Some commands can take a list of objects as parameters. See \ref globalcommandsids for the available commands. */
                 execute: "ak.wwise.ui.commands.execute",
                 /** Sent when a command is executed. The objects for which the command is executed are sent in the publication. */
                 executed: "ak.wwise.ui.commands.executed",
                 /** Gets the list of commands. */
                 getCommands: "ak.wwise.ui.commands.getCommands",
-                /** Registers an array of add-on commands. Registered commands remain until the Wwise process is terminated. Refer to \ref defining_custom_commands for more information about registering commands. Also refer to \ref ak_wwise_ui_commands_executed. */
+                /** Registers an array of add-on commands. Registered commands remain until the Wwise process is terminated. See \ref defining_custom_commands for more information about registering commands. Also see \ref ak_wwise_ui_commands_executed. */
                 register: "ak.wwise.ui.commands.register",
                 /** Unregisters an array of add-on UI commands. */
                 unregister: "ak.wwise.ui.commands.unregister"
             },
-            /** Retrieves the list of objects currently selected by the user in the active view. */
+            /** Retrieves the list of files currently selected by the user in the active view. Note that this function is not available in WwiseConsole. */
+            getSelectedFiles: "ak.wwise.ui.getSelectedFiles",
+            /** Retrieves the list of objects currently selected by the user in the active view. Note that this function is not available in WwiseConsole. */
             getSelectedObjects: "ak.wwise.ui.getSelectedObjects",
             layout: {
+                /** Requests to close a view by its unique id. The view might not yet be closed when returning from this function. */
+                closeView: "ak.wwise.ui.layout.closeView",
                 /** Dock a floating view into a layout. */
                 dockView: "ak.wwise.ui.layout.dockView",
                 /** Retrieves the current layout name. */
@@ -503,6 +521,8 @@ export const ak = {
                 moveSplitter: "ak.wwise.ui.layout.moveSplitter",
                 /** Unregisters a temporary layout, previously registered with \ref ak_wwise_ui_layout_setlayout. */
                 removeLayout: "ak.wwise.ui.layout.removeLayout",
+                /** Reset layouts to their default state. */
+                resetLayouts: "ak.wwise.ui.layout.resetLayouts",
                 /** Registers a new layout from a JSON format. */
                 setLayout: "ak.wwise.ui.layout.setLayout",
                 /** Switches the current layout. */
@@ -525,9 +545,9 @@ export const ak = {
             project: {
                 /** Closes the current project. */
                 close: "ak.wwise.ui.project.close",
-                /** Creates, saves and opens new empty project, specified by path and platform. The project has no factory setting WorkUnit.  Please refer to \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed. */
+                /** Creates, saves and opens new empty project, specified by path and platform. The project has no factory setting WorkUnit.  Please see \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed. */
                 create: "ak.wwise.ui.project.create",
-                /** Opens a project, specified by path. Please refer to \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed. */
+                /** Opens a project, specified by path. Please see \ref ak_wwise_core_project_loaded for further explanations on how to be notified when the operation has completed. */
                 open: "ak.wwise.ui.project.open"
             },
             /** Sent when the selection changes in the project. */

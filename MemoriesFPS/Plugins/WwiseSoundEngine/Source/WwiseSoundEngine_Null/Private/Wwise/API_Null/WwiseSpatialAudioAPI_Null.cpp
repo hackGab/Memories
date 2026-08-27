@@ -182,6 +182,12 @@ AKRESULT FWwiseSpatialAudioAPI_Null::UnsetGameObjectInRoom(
 {
 	return AK_NotImplemented;
 }
+AKRESULT FWwiseSpatialAudioAPI_Null::SetAdjacentRoomBleed(
+	AkReal32 in_fAdjacentRoomBleed
+)
+{
+	return AK_NotImplemented;
+}
 
 AKRESULT FWwiseSpatialAudioAPI_Null::SetReflectionsOrder(
 	AkUInt32 in_uReflectionsOrder,
@@ -194,6 +200,21 @@ AKRESULT FWwiseSpatialAudioAPI_Null::SetReflectionsOrder(
 AKRESULT FWwiseSpatialAudioAPI_Null::SetDiffractionOrder(
 	AkUInt32 in_uDiffractionOrder,
 	bool in_bUpdatePaths
+)
+{
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_Null::SetMaxGlobalReflectionPaths(
+	AkUInt32 in_uMaxGlobalReflectionPaths
+)
+{
+	return AK_NotImplemented;
+}
+
+AKRESULT FWwiseSpatialAudioAPI_Null::SetMaxDiffractionPaths(
+	AkUInt32 in_uMaxDiffractionPaths,
+	AkGameObjectID in_gameObjectID
 )
 {
 	return AK_NotImplemented;
@@ -220,6 +241,14 @@ AKRESULT FWwiseSpatialAudioAPI_Null::SetLoadBalancingSpread(
 	return AK_NotImplemented;
 }
 
+AKRESULT FWwiseSpatialAudioAPI_Null::SetSmoothingConstant(
+	AkReal32 in_fSmoothingConstantMs,
+	AkGameObjectID in_gameObjectID
+)
+{
+	return AK_NotImplemented;
+}
+
 AKRESULT FWwiseSpatialAudioAPI_Null::SetEarlyReflectionsAuxSend(
 	AkGameObjectID in_gameObjectID,
 	AkAuxBusID in_auxBusID
@@ -239,7 +268,8 @@ AKRESULT FWwiseSpatialAudioAPI_Null::SetEarlyReflectionsVolume(
 AKRESULT FWwiseSpatialAudioAPI_Null::SetPortalObstructionAndOcclusion(
 	AkPortalID in_PortalID,
 	AkReal32 in_fObstruction,
-	AkReal32 in_fOcclusion
+	AkReal32 in_fOcclusion,
+	bool in_bTransition
 )
 {
 	return AK_NotImplemented;
@@ -283,27 +313,14 @@ AKRESULT FWwiseSpatialAudioAPI_Null::QueryDiffractionPaths(
 	return AK_NotImplemented;
 }
 
-AKRESULT FWwiseSpatialAudioAPI_Null::SetTransmissionOperation(AkTransmissionOperation in_operation)
-{
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSpatialAudioAPI_Null::SetSmoothingConstant(AkReal32 in_smoothingConstant, AkGameObjectID in_gameObject)
+AKRESULT FWwiseSpatialAudioAPI_Null::SetTransmissionOperation(
+	AkTransmissionOperation in_eOperation
+)
 {
 	return AK_NotImplemented;
 }
 
 AKRESULT FWwiseSpatialAudioAPI_Null::ResetStochasticEngine()
-{
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSpatialAudioAPI_Null::SetMaxGlobalReflectionPaths(AkUInt32 in_maxNumberOfReflectionPaths)
-{
-	return AK_NotImplemented;
-}
-
-AKRESULT FWwiseSpatialAudioAPI_Null::SetMaxDiffractionPaths(AkUInt32 in_maxNumberOfDiffractionPaths, AkGameObjectID in_gameObject)
 {
 	return AK_NotImplemented;
 }

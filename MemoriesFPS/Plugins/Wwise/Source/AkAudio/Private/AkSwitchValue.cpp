@@ -28,7 +28,7 @@ Copyright (c) 2025 Audiokinetic Inc.
 
 void UAkSwitchValue::LoadGroupValue()
 {
-	SCOPED_AKAUDIO_EVENT_2(TEXT("UAkSwitchValue::LoadGroupValue"));
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSwitchValue::LoadGroupValue"));
 	FWwiseResourceLoaderPtr ResourceLoader = FWwiseResourceLoader::Get();
 	if (UNLIKELY(!ResourceLoader))
 	{
@@ -105,6 +105,7 @@ void UAkSwitchValue::Serialize(FArchive& Ar)
 #if WITH_EDITORONLY_DATA
 void UAkSwitchValue::FillInfo()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkSwitchValue::FillInfo"));
 	auto* ResourceCooker = IWwiseResourceCooker::GetDefault();
 	if (UNLIKELY(!ResourceCooker))
 	{

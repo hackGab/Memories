@@ -39,9 +39,6 @@ Copyright (c) 2025 Audiokinetic Inc.
 #include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"
 
-// A standard AAkAcousticPortal is based on a cube brush with verts at [+/-]100 X,Y,Z. 
-static const float kDefaultBrushExtents = 100.f;
-
 // min portal size, in cm. For raycasts
 static const float kMinPortalSize = 10.0f; 
 
@@ -54,6 +51,7 @@ static const float kMinPortalSize = 10.0f;
 UAkPortalComponent::UAkPortalComponent(const class FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent Ctor"));
 	ObstructionRefreshInterval = 0.f;
 
 	PortalState = InitialState;
@@ -88,6 +86,7 @@ UAkPortalComponent::UAkPortalComponent(const class FObjectInitializer& ObjectIni
 
 void UAkPortalComponent::SetDynamic(bool bInDynamic)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::SetDynamic"));
 	bDynamic = bInDynamic;
 #if WITH_EDITOR
 	bWantsOnUpdateTransform = true;
@@ -103,8 +102,19 @@ void UAkPortalComponent::SetDynamic(bool bInDynamic)
 #endif
 }
 
+void UAkPortalComponent::SetTransition(bool bInTransition)
+{
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::SetTransition"));
+	if (ObstructionOcclusionTransition != bInTransition)
+	{
+		ObstructionOcclusionTransition = bInTransition;
+		PortalOcclusionChanged = true;
+	}
+}
+
 void UAkPortalComponent::OnRegister()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::OnRegister"));
 	Super::OnRegister();
 
 #if WITH_EDITOR
@@ -139,6 +149,7 @@ void UAkPortalComponent::OnRegister()
 
 void UAkPortalComponent::OnUnregister()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::OnUnregister"));
 #if WITH_EDITOR
 	if (!HasAnyFlags(RF_Transient))
 	{
@@ -161,6 +172,7 @@ void UAkPortalComponent::OnUnregister()
 #if WITH_EDITOR
 void UAkPortalComponent::BeginDestroy()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::BeginDestroy"));
 	Super::BeginDestroy();
 	if (AkSpatialAudioHelper::GetObjectReplacedEvent())
 	{
@@ -170,6 +182,7 @@ void UAkPortalComponent::BeginDestroy()
 
 void UAkPortalComponent::HandleObjectsReplaced(const TMap<UObject*, UObject*>& ReplacementMap)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::HandleObjectsReplaced"));
 	if (ReplacementMap.Contains(Parent.Get()))
 	{
 		InitializeParent();
@@ -182,24 +195,28 @@ void UAkPortalComponent::HandleObjectsReplaced(const TMap<UObject*, UObject*>& R
 
 void UAkPortalComponent::InitializeComponent()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::InitializeComponent"));
 	Super::InitializeComponent();
 	RegisterVisEnabledCallback();
 }
 
 void UAkPortalComponent::OnComponentCreated()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::OnComponentCreated"));
 	Super::OnComponentCreated();
 	RegisterVisEnabledCallback();
 }
 
 void UAkPortalComponent::PostLoad()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::PostLoad"));
 	Super::PostLoad();
 	RegisterVisEnabledCallback();
 }
 
 void UAkPortalComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::OnComponentDestroyed"));
 	UAkSettingsPerUser* AkSettingsPerUser = GetMutableDefault<UAkSettingsPerUser>();
 	AkSettingsPerUser->OnShowRoomsPortalsChanged.Remove(ShowPortalsChangedHandle);
 	ShowPortalsChangedHandle.Reset();
@@ -282,6 +299,7 @@ void UAkPortalComponent::DestroyDrawComponent()
 
 void UAkPortalComponent::InitializeParent()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::InitializeParent"));
 	USceneComponent* SceneParent = GetAttachParent();
 	if (SceneParent != nullptr)
 	{
@@ -304,6 +322,7 @@ void UAkPortalComponent::InitializeParent()
 
 void UAkPortalComponent::SetSpatialAudioPortal()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::SetSpatialAudioPortal"));
 	FAkAudioDevice* AkAudioDevice = FAkAudioDevice::Get();
 	if (AkAudioDevice != nullptr)
 	{
@@ -314,23 +333,25 @@ void UAkPortalComponent::SetSpatialAudioPortal()
 
 void UAkPortalComponent::EnablePortal()
 {
-	if (PortalState == AkAcousticPortalState::Closed)
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::EnablePortal"));
+	if (PortalState == EAkAcousticPortalState::Closed)
 	{
-		PortalState = AkAcousticPortalState::Open;
+		PortalState = EAkAcousticPortalState::Open;
 		bPortalNeedsUpdate = true;
 	}
 }
 
 void UAkPortalComponent::DisablePortal()
 {
-	if (PortalState == AkAcousticPortalState::Open)
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::DisablePortal"));
+	if (PortalState == EAkAcousticPortalState::Open)
 	{
-		PortalState = AkAcousticPortalState::Closed;
+		PortalState = EAkAcousticPortalState::Closed;
 		bPortalNeedsUpdate = true;
 	}
 }
 
-AkAcousticPortalState UAkPortalComponent::GetCurrentState() const
+EAkAcousticPortalState UAkPortalComponent::GetCurrentState() const
 {
 	return PortalState;
 }
@@ -342,6 +363,7 @@ float UAkPortalComponent::GetPortalOcclusion() const
 
 void UAkPortalComponent::SetPortalOcclusion(float InPortalOcclusion)
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::SetPortalOcclusion"));
 	if (InPortalOcclusion < 0.f)
 	{
 		UE_LOG(LogAkAudio, Warning, TEXT("UAkPortalComponent %s called SetPortalOcclusion with an occlusion value lower than 0 (%.6g). It was clamped to 0."), *GetPortalName(), InPortalOcclusion);
@@ -374,6 +396,7 @@ const TWeakObjectPtr<UAkRoomComponent> UAkPortalComponent::GetOppositeRoomCompon
 
 void UAkPortalComponent::BeginPlay()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::BeginPlay"));
 	Super::BeginPlay();
 
 	ResetPortalState();
@@ -389,6 +412,7 @@ void UAkPortalComponent::BeginPlay()
 
 void UAkPortalComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::TickComponent"));
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	if (bPortalRoomsNeedUpdate)
 	{
@@ -433,7 +457,7 @@ void UAkPortalComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 	{
 		if (PortalOcclusionChanged)
 		{
-			AkAudioDevice->SetPortalObstructionAndOcclusion(this, 0.f, PortalOcclusion);
+			AkAudioDevice->SetPortalObstructionAndOcclusion(this, 0.f, PortalOcclusion, ObstructionOcclusionTransition);
 			PortalOcclusionChanged = false;
 		}
 
@@ -459,20 +483,33 @@ void UAkPortalComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 	}
 }
 
+void UAkPortalComponent::SetAdjacentRoomBleed(float InAdjacentRoomBleed)
+{
+	float NewAdjacentRoomBleed = std::max(InAdjacentRoomBleed, 0.f);
+	if (AdjacentRoomBleed != NewAdjacentRoomBleed)
+	{
+		AdjacentRoomBleed = NewAdjacentRoomBleed;
+		bPortalNeedsUpdate = true;
+	}
+}
+
 void UAkPortalComponent::ResetPortalState()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::ResetPortalState"));
 	PortalState = InitialState;
 	bPortalNeedsUpdate = true;
 }
 
 void UAkPortalComponent::ResetPortalOcclusion()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("UAkPortalComponent::ResetPortalOcclusion"));
 	PortalOcclusion = InitialOcclusion;
 	PortalOcclusionChanged = true;
 }
 
 void UAkPortalComponent::UpdateConnectedRooms()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::UpdateConnectedRooms"));
 	FAkAudioDevice* audioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!audioDevice || !GetWorld()))
 	{
@@ -523,6 +560,7 @@ void UAkPortalComponent::UpdateConnectedRooms()
 
 void UAkPortalComponent::UpdatePortalConnections()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("UAkPortalComponent::UpdatePortalConnections"));
 	FAkAudioDevice* audioDevice = FAkAudioDevice::Get();
 	if (UNLIKELY(!audioDevice || !GetWorld()))
 	{
@@ -856,6 +894,23 @@ void UAkPortalComponent::UpdateTextLocRotVis()
 	UpdateTextVisibility();
 }
 
+void UAkPortalComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (PropertyChangedEvent.Property)
+	{
+		if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UAkPortalComponent, AdjacentRoomBleed))
+		{
+			bPortalNeedsUpdate = true;
+		}
+		if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UAkPortalComponent, ObstructionOcclusionTransition))
+		{
+			PortalOcclusionChanged = true;
+		}
+	}
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
 #endif
 /*------------------------------------------------------------------------------------
 	AAkAcousticPortal
@@ -864,6 +919,7 @@ void UAkPortalComponent::UpdateTextLocRotVis()
 AAkAcousticPortal::AAkAcousticPortal(const class FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkAcousticPortal Ctor"));
 	// Property initialization
 	static const FName CollisionProfileName(TEXT("OverlapAll"));
 	GetBrushComponent()->SetCollisionProfileName(CollisionProfileName);
@@ -886,6 +942,7 @@ AAkAcousticPortal::AAkAcousticPortal(const class FObjectInitializer& ObjectIniti
 
 void AAkAcousticPortal::EnablePortal()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("AAkAcousticPortal::EnablePortal"));
 	if (Portal != nullptr)
 	{
 		Portal->EnablePortal();
@@ -898,6 +955,7 @@ void AAkAcousticPortal::EnablePortal()
 
 void AAkAcousticPortal::DisablePortal()
 {
+	SCOPED_AKAUDIO_EVENT(TEXT("AAkAcousticPortal::DisablePortal"));
 	if (Portal != nullptr)
 	{
 		Portal->DisablePortal();
@@ -908,16 +966,17 @@ void AAkAcousticPortal::DisablePortal()
 	}
 }
 
-AkAcousticPortalState AAkAcousticPortal::GetCurrentState() const
+EAkAcousticPortalState AAkAcousticPortal::GetCurrentState() const
 {
 	if (Portal != nullptr)
 		return Portal->GetCurrentState();
 	UE_LOG(LogAkAudio, Warning, TEXT("AAkAcousticPortal %s called GetCurrentState with uninitialized portal component."), *GetName());
-	return AkAcousticPortalState::Closed;
+	return EAkAcousticPortalState::Closed;
 }
 
 void AAkAcousticPortal::PostRegisterAllComponents()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkAcousticPortal::PostRegisterAllComponents"));
 	Super::PostRegisterAllComponents();
 
 	if (bRequiresStateMigration)
@@ -954,6 +1013,7 @@ void AAkAcousticPortal::PostRegisterAllComponents()
 
 void AAkAcousticPortal::PostLoad()
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkAcousticPortal::PostLoad"));
 	Super::PostLoad();
 	const int32 AkVersion = GetLinkerCustomVersion(FAkCustomVersion::GUID);
 
@@ -970,6 +1030,7 @@ void AAkAcousticPortal::PostLoad()
 
 void AAkAcousticPortal::Serialize(FArchive& Ar)
 {
+	SCOPED_AKAUDIO_EVENT_3(TEXT("AAkAcousticPortal::Serialize"));
 	Ar.UsingCustomVersion(FAkCustomVersion::GUID);
 	Super::Serialize(Ar);
 }
@@ -1015,7 +1076,7 @@ void AAkAcousticPortal::FitRaycast()
 		FVector to = RaycastOrigin + FVector(x, y, z) * RayLength;
 
 		OutHits.Empty();
-		World->LineTraceMultiByObjectType(OutHits, RaycastOrigin, to, (int)GetCollisionChannel(), CollisionParams);
+		World->LineTraceMultiByChannel(OutHits, RaycastOrigin, to, GetCollisionChannel(), CollisionParams);
 
 		if (OutHits.Num() > 0)
 		{
@@ -1038,7 +1099,7 @@ void AAkAcousticPortal::FitRaycast()
 			if (bHit)
 			{
 				OutHits.Empty();
-				World->LineTraceMultiByObjectType(OutHits, ImpactPoint0, ImpactPoint0 + ImpactNormal0 * RayLength, (int)GetCollisionChannel(), CollisionParams);
+				World->LineTraceMultiByChannel(OutHits, ImpactPoint0, ImpactPoint0 + ImpactNormal0 * RayLength, GetCollisionChannel(), CollisionParams);
 
 				bHit = false;
 				FVector ImpactPoint1;
@@ -1179,7 +1240,7 @@ void AAkAcousticPortal::FitPortal()
 			scale.Y = leni / 2.f;
 			scale.Z = lenj / 2.f;
 
-			scale /= kDefaultBrushExtents;
+			scale /= GetBrushComponent()->Brush->Bounds.BoxExtent;
 
 			scale.X = GetActorScale3D().X;
 

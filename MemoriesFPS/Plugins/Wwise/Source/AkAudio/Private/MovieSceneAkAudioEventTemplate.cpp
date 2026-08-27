@@ -49,6 +49,7 @@ struct FMovieSceneAkAudioEventSectionData
 	void Update(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand,
 	            IMovieScenePlayer& Player, FAkAudioDevice* AudioDevice)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::Update"));
 		ensure(AudioDevice != nullptr);
 		const auto PlaybackStatus = Player.GetPlaybackStatus();
 
@@ -223,6 +224,7 @@ private:
 	void ObjectBindingPlay(FAkAudioDevice* AudioDevice, TArrayView<TWeakObjectPtr<>> BoundObjects,
 	                       const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::ObjectBindingPlay"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			const float CurrentTime = GetTimeInSeconds(Context);
@@ -241,6 +243,7 @@ private:
 	void ObjectBindingRetrigger(FAkAudioDevice* AudioDevice, TArrayView<TWeakObjectPtr<>> BoundObjects,
 	                            const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::ObjectBindingRetrigger"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			const float CurrentTime = GetTimeInSeconds(Context);
@@ -258,6 +261,7 @@ private:
 	/** Empty previous retriggered events, play the Wwise event, and seek to the current time. */
 	void MasterPlay(FAkAudioDevice* AudioDevice, const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::MasterPlay"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			EventTracker->PreviousEventStartTime = EventTracker->ClipStartTime;
@@ -273,6 +277,7 @@ private:
 	/** Pause Unbound and bound events with their Playing IDs */
 	void PauseTracker(FAkAudioDevice* AudioDevice, const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::PauseTracker"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			const float CurrentTime = GetTimeInSeconds(Context);
@@ -286,6 +291,7 @@ private:
 	/** Resume and seek to current time on current playing events */
 	void MasterResume(FAkAudioDevice* AudioDevice, const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::MasterResume"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			EventTracker->PreviousEventStartTime = EventTracker->ClipStartTime;
@@ -297,6 +303,7 @@ private:
 	/** Play the Wwise event, store the event start time in the event tracker, and jump to the current time. */
 	void MasterRetrigger(FAkAudioDevice* AudioDevice, const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::MasterRetrigger"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			const float CurrentTime = GetTimeInSeconds(Context);
@@ -319,6 +326,7 @@ private:
 	void ObjectBindingScrub(FAkAudioDevice* AudioDevice, TArrayView<TWeakObjectPtr<>> BoundObjects,
 	                        const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::ObjectBindingScrub"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			auto ProportionalTime = GetProportionalTime(Context);
@@ -346,6 +354,7 @@ private:
 
 	void MasterScrub(FAkAudioDevice* AudioDevice, const FMovieSceneContext& Context)
 	{
+		SCOPED_AKAUDIO_EVENT_3(TEXT("FMovieSceneAkAudioEventSectionData::MasterScrub"));
 		if (EventTracker.IsValid() && EventShouldPlay(Context))
 		{
 			const float CurrentTime = GetTimeInSeconds(Context);

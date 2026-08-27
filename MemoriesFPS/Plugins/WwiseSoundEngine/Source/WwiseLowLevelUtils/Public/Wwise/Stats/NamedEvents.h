@@ -48,7 +48,7 @@ namespace WwiseNamedEvents
 #define SCOPED_WWISE_NAMED_EVENT_F_3(Prefix, Format, ...) SCOPED_NAMED_EVENT_F(TEXT("%s ") Format, WwiseNamedEvents::Color3, Prefix, __VA_ARGS__)
 #define SCOPED_WWISE_NAMED_EVENT_F_4(Prefix, Format, ...) SCOPED_NAMED_EVENT_F(TEXT("%s ") Format, WwiseNamedEvents::Color4, Prefix, __VA_ARGS__)
 
-#define SCOPED_WWISE_NAMED_EVENT(Prefix, Text) SCOPED_WWISE_NAMED_EVENT_F(Prefix, TEXT("%s"), Text)
-#define SCOPED_WWISE_NAMED_EVENT_2(Prefix, Text) SCOPED_WWISE_NAMED_EVENT_F_2(Prefix, TEXT("%s"), Text)
-#define SCOPED_WWISE_NAMED_EVENT_3(Prefix, Text) SCOPED_WWISE_NAMED_EVENT_F_3(Prefix, TEXT("%s"), Text)
-#define SCOPED_WWISE_NAMED_EVENT_4(Prefix, Text) SCOPED_WWISE_NAMED_EVENT_F_4(Prefix, TEXT("%s"), Text)
+#define SCOPED_WWISE_NAMED_EVENT(Prefix, Text) SCOPED_NAMED_EVENT_TCHAR(Prefix TEXT(" ") Text, WwiseNamedEvents::Color1)
+#define SCOPED_WWISE_NAMED_EVENT_2(Prefix, Text) SCOPED_NAMED_EVENT_TCHAR(Prefix TEXT(" ") Text, WwiseNamedEvents::Color2)
+#define SCOPED_WWISE_NAMED_EVENT_3(Prefix, Text) SCOPED_NAMED_EVENT_TCHAR(Prefix TEXT(" ") Text, WwiseNamedEvents::Color3)
+#define SCOPED_WWISE_NAMED_EVENT_4(Prefix, Text) SCOPED_NAMED_EVENT_TCHAR(Prefix TEXT(" ") Text, WwiseNamedEvents::Color4)

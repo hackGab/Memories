@@ -24,7 +24,8 @@ public class WwiseResourceLoader : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] {
-			"WwiseFileHandler"
+			"WwiseEngineUtils",
+			"WwiseFileHandler",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
