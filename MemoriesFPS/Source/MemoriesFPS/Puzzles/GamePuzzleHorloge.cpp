@@ -128,7 +128,7 @@ void AGamePuzzleHorloge::UpdateMinutesStateFromEvent(const FString& HorlogeSymbo
 {
 	FString NormalizedSymbol = NormalizeSymbol(HorlogeSymbole);
 
-	if (int32* IndexPtr = HorlogeLookup.Find(HorlogeSymbole))
+	if (int32* IndexPtr = HorlogeLookup.Find(NormalizedSymbol))
 	{
 		int32 Index = *IndexPtr;
 
