@@ -85,7 +85,6 @@ protected:
     void RotateExteriorLights();
 
 public:
-    // "North", "West", "South", "East"
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TMap<FName, FExteriorLight> ExteriorLights;
 
@@ -95,18 +94,15 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TMap<FName, FChandelierFlame> Flames;
 
-    // Solution: which color each cardinal must be
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TMap<FName, EPuzzleColor> Solution;
 
-    // Called from pedestal (BP) when a player stands on it
     UFUNCTION(BlueprintCallable, Category="Puzzle")
     void OnPedestalActivated(FName CardinalPoint, EPuzzleColor PlayerColor);
 
     void CheckPuzzleSolved();
     void SpawnMissingStatues(int32 MissingCount);
 
-    // Number of active players (set from GameMode or BP)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     int32 CurrentPlayerCount = 4;
 
@@ -116,11 +112,9 @@ public:
     UPROPERTY(BlueprintAssignable, Category="Puzzle")
     FOnPuzzleChandelierSolved OnPuzzleSolved;
 
-    // Class of the statue to spawn
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TSubclassOf<AActor> StatueClass;
 
-    // Spawn points for statues
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TArray<AActor*> StatueSpawnPoints;
 };
