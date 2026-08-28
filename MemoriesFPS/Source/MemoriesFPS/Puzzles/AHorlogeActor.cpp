@@ -162,45 +162,24 @@ void AHorlogeActor::BeginPlay()
 		);
 	}
 	
-	// Hover events
 
+	// Bind click events
 	if (SmallHandMesh)
 	{
-		SmallHandMesh->OnBeginCursorOver.AddDynamic(
-			this,
-			&AHorlogeActor::OnSmallHandHoverBegin
-		);
-
-		SmallHandMesh->OnEndCursorOver.AddDynamic(
-			this,
-			&AHorlogeActor::OnSmallHandHoverEnd
-		);
-
-		SmallHandMesh->OnClicked.AddDynamic(
-			this,
-			&AHorlogeActor::OnSmallHandClicked
-		);
+		SmallHandMesh->OnClicked.AddDynamic(this, &AHorlogeActor::OnSmallHandClicked);
+		SmallHandMesh->OnBeginCursorOver.AddDynamic(this, &AHorlogeActor::OnSmallHandHoverBegin);
+		SmallHandMesh->OnEndCursorOver.AddDynamic(this, &AHorlogeActor::OnSmallHandHoverEnd);
 	}
 
 	if (BigHandMesh)
 	{
-		BigHandMesh->OnBeginCursorOver.AddDynamic(
-			this,
-			&AHorlogeActor::OnBigHandHoverBegin
-		);
-
-		BigHandMesh->OnEndCursorOver.AddDynamic(
-			this,
-			&AHorlogeActor::OnBigHandHoverEnd
-		);
-
-		BigHandMesh->OnClicked.AddDynamic(
-			this,
-			&AHorlogeActor::OnBigHandClicked
-		);
+		BigHandMesh->OnClicked.AddDynamic(this, &AHorlogeActor::OnBigHandClicked);
+		BigHandMesh->OnBeginCursorOver.AddDynamic(this, &AHorlogeActor::OnBigHandHoverBegin);
+		BigHandMesh->OnEndCursorOver.AddDynamic(this, &AHorlogeActor::OnBigHandHoverEnd);
 	}
 	
 	// Initial clock position
+	RandomizeClockTime();
 
 	SmallHandRotation = GetContinuousHourRotation();
 	BigHandRotation = GetMinuteRotation();
@@ -697,18 +676,22 @@ void AHorlogeActor::OnSmallHandHoverEnd(
 	);
 }
 
-// Big hand hover
 void AHorlogeActor::LockClock()
 {
 	bIsLocked = true;
 
-	// Son de verrouillage
 	if (AudioSuccess)
+	{
 		AudioSuccess->Play();
+	}
 
-	// Petit flash visuel
 	if (LogoDynMat)
-		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, SuccessColor);
+	{
+		LogoDynMat->SetVectorParameterValue(
+			LogoEmissiveParamName,
+			SuccessColor
+		);
+	}
 }
 void AHorlogeActor::ActivatePuzzleEntry()
 {
@@ -832,7 +815,84 @@ void AHorlogeActor::PlaySuccessCue()
 		);
 	}
 }
+void AHorlogeActor::RandomizeClockTime()
+{
+	AGamePuzzleHorloge* Puzzle =
+		Cast<AGamePuzzleHorloge>(
+			UGameplayStatics::GetActorOfClass(
+				GetWorld(),
+				AGamePuzzleHorloge::StaticClass()
+			)
+		);
 
+	if (!Puzzle)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("No GamePuzzleHorloge found for clock %s"),
+			*Symbole
+		);
+		return;
+	}
+
+	// Find this clock's solution
+	FHorlogeSolutionConfig* Solution =
+		Puzzle->HorlogeSolutionLookup.Find(Symbole);
+
+	if (!Solution)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("No solution found for clock %s"),
+			*Symbole
+		);
+		return;
+	}
+
+	const int32 SolutionHours =
+		FMath::RoundToInt(Solution->ShouldBeTimeHours);
+
+	const int32 SolutionMinutes =
+		FMath::RoundToInt(Solution->ShouldBeTimeMinutes);
+
+	int32 NewHours;
+	int32 NewMinutes;
+
+	// Try several times to find a sufficiently different time
+	for (int32 Attempt = 0; Attempt < 100; ++Attempt)
+	{
+		NewHours = FMath::RandRange(0, 11);
+		NewMinutes = FMath::RandRange(0, 59);
+
+		const int32 HourDifference =
+			FMath::Abs(NewHours - SolutionHours);
+
+		const int32 MinuteDifference =
+			FMath::Abs(NewMinutes - SolutionMinutes);
+
+		if (HourDifference >= MinimumHourDifference ||
+			MinuteDifference >= MinimumMinuteDifference)
+		{
+			break;
+		}
+	}
+
+	Hours = NewHours;
+	Minutes = NewMinutes;
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Clock %s randomized to %02d:%02d | Solution = %02d:%02d"),
+		*Symbole,
+		Hours,
+		Minutes,
+		SolutionHours,
+		SolutionMinutes
+	);
+}
 // Fail cue
 
 void AHorlogeActor::PlayFailCue()

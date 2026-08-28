@@ -120,4 +120,10 @@ public:
 	void VerifyPuzzleSolution(FHorlogeState& HorlogeState);
 
 	void GetAllHorloges();
+	
+private:
+	void RandomizeHorloge(
+	 AHorlogeActor* HorlogeActor,
+	 const FHorlogeSolutionConfig& Solution
+ );
 };
