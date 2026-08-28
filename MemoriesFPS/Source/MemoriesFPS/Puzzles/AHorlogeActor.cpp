@@ -754,6 +754,10 @@ void AHorlogeActor::OnSmallHandClicked(
 	FKey ButtonPressed
 )
 {
+	if (ButtonPressed != EKeys::LeftMouseButton)
+	{
+		return;
+	}
 	DebugMessage(
 		TEXT("Clicked Small Hand"),
 		FColor::Red
@@ -767,6 +771,11 @@ void AHorlogeActor::OnBigHandClicked(
 	FKey ButtonPressed
 )
 {
+	if (ButtonPressed != EKeys::LeftMouseButton)
+	{
+		return;
+	}
+
 	DebugMessage(
 		TEXT("Clicked Big Hand"),
 		FColor::Red
