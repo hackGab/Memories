@@ -9,18 +9,35 @@
 void AGamePuzzleHorloge::BeginPlay()
 {
 	Super::BeginPlay();
-	GetAllHorloges();
 	
 	HorlogeSolutionLookup.Empty();
+	FoundHorloges.Empty();
+	HorlogeLookup.Empty();
+	HorlogeActorLookup.Empty();
+	
 	nbHorlogesToSolve = 0;
 	nbHorlogesAreSolve = 0;
 	isPuzzleHorlogeResolve = false;
 
 	for (const FHorlogeSolutionConfig& Solution : HorlogeSolutions)
 	{
-		HorlogeSolutionLookup.Add(Solution.HorlogeSymbole, Solution);
+		HorlogeSolutionLookup.Add(
+		   Solution.HorlogeSymbole,
+		   Solution
+	   );
+
 		nbHorlogesToSolve++;
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("SOLUTION REGISTERED: '%s' -> %f:%f"),
+			*Solution.HorlogeSymbole,
+			Solution.ShouldBeTimeHours,
+			Solution.ShouldBeTimeMinutes
+		);
 	}
+	GetAllHorloges();
 }
 
 
@@ -63,7 +80,17 @@ void AGamePuzzleHorloge::OnMinutesTimeChanged(const FString& HorlogeSymbole, dou
 FString AGamePuzzleHorloge::NormalizeSymbol(const FString& RawSymbol)
 {
 	FString Normalized = RawSymbol;
-	RawSymbol.Split(TEXT("_"), nullptr, &Normalized, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+
+	int32 UnderscoreIndex = INDEX_NONE;
+
+	if (RawSymbol.FindLastChar(TEXT('_'), UnderscoreIndex))
+	{
+		// Pour l'instant on conserve le symbole complet.
+		// Cette fonction pourra être utilisée si nécessaire.
+	}
+
+	Normalized.TrimStartAndEndInline();
+
 	return Normalized;
 }
 
@@ -72,13 +99,13 @@ void AGamePuzzleHorloge::UpdateHoursStateFromEvent(const FString& HorlogeSymbole
 {
 	FString NormalizedSymbol = NormalizeSymbol(HorlogeSymbole);
 
-	if (int32* IndexPtr = HorlogeLookup.Find(HorlogeSymbole))
+	if (int32* IndexPtr = HorlogeLookup.Find(NormalizedSymbol))
 	{
 		int32 Index = *IndexPtr;
 
 		if (!FoundHorloges.IsValidIndex(Index))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UpdateHoursStateFromEvent: FoundHorloges is empty or invalid."));
+			UE_LOG(LogTemp, Warning, TEXT("Horloge with symbole %s not found in FoundHorloges."), *HorlogeSymbole)
 			return;
 		}
 		// Évite de rotate une aiguille qui est déjà dans la bonne direction
@@ -101,7 +128,7 @@ void AGamePuzzleHorloge::UpdateMinutesStateFromEvent(const FString& HorlogeSymbo
 {
 	FString NormalizedSymbol = NormalizeSymbol(HorlogeSymbole);
 
-	if (int32* IndexPtr = HorlogeLookup.Find(HorlogeSymbole))
+	if (int32* IndexPtr = HorlogeLookup.Find(NormalizedSymbol))
 	{
 		int32 Index = *IndexPtr;
 
@@ -153,15 +180,21 @@ void AGamePuzzleHorloge::VerifyPuzzleSolution(FHorlogeState& HorlogeState)
 		HorlogeState.bIsSolved = true;
 		nbHorlogesAreSolve++;
 
-		UE_LOG(LogTemp, Log, TEXT("Horloge %s is in the correct state: [%f:%f]"),
-			*HorlogeState.HorlogeSymbole,
-			HorlogeState.timeHours,
-			HorlogeState.timeMinutes);
+		UE_LOG(
+	   LogTemp,
+	   Log,
+	   TEXT("Horloge %s is in the correct state: [%f:%f]"),
+	   *HorlogeState.HorlogeSymbole,
+	   HorlogeState.timeHours,
+	   HorlogeState.timeMinutes
+   );
 
 		if (HorlogeActor)
 		{
 			HorlogeActor->PlaySuccessCue();
+			HorlogeActor->LockClock();
 		}
+
 
 		if (nbHorlogesToSolve == nbHorlogesAreSolve)
 		{
@@ -205,46 +238,128 @@ void AGamePuzzleHorloge::VerifyPuzzleSolution(FHorlogeState& HorlogeState)
 
 void AGamePuzzleHorloge::GetAllHorloges()
 {
-	FName HorlogeTag = FName(TEXT("Horloge"));
+	const FName HorlogeTag = FName(TEXT("Horloge"));
 
 	TArray<AActor*> TempFoundHorloges;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), HorlogeTag, TempFoundHorloges);
 
-	UE_LOG(LogTemp, Log, TEXT("Found %d horloges in the scene."), TempFoundHorloges.Num());
+	UGameplayStatics::GetAllActorsWithTag(
+		GetWorld(),
+		HorlogeTag,
+		TempFoundHorloges
+	);
 
 	FoundHorloges.Empty();
 	HorlogeLookup.Empty();
 	HorlogeActorLookup.Empty();
 
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("========== GET ALL HORLOGES ==========")
+	);
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Nombre d'acteurs trouvés avec le tag Horloge : %d"),
+		TempFoundHorloges.Num()
+	);
+
 	for (AActor* Horloge : TempFoundHorloges)
 	{
+		AHorlogeActor* HorlogeActor =
+			Cast<AHorlogeActor>(Horloge);
+
+		if (!HorlogeActor)
+		{
+			UE_LOG(
+				LogTemp,
+				Warning,
+				TEXT("Actor %s possède le tag Horloge mais n'est pas AHorlogeActor"),
+				*Horloge->GetName()
+			);
+
+			continue;
+		}
+
+		// ========================================================
+		// Récupération du symbole
+		// ========================================================
+
+		FString Symbol = NormalizeSymbol(HorlogeActor->Symbole);
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Horloge trouvée : Actor=%s | Label=%s | Symbole=%s"),
+			*HorlogeActor->GetName(),
+			*HorlogeActor->GetActorLabel(),
+			*Symbol
+		);
+
+		if (Symbol.IsEmpty())
+		{
+			UE_LOG(
+				LogTemp,
+				Error,
+				TEXT("L'horloge %s n'a aucun symbole !"),
+				*HorlogeActor->GetName()
+			);
+
+			continue;
+		}
+
+		// ========================================================
+		// Création du state
+		// ========================================================
+
 		FHorlogeState NewHorlogeState;
-		NewHorlogeState.HorlogeSymbole = Horloge->GetActorLabel();
 
-		FProperty* timeHoursProperty = Horloge->GetClass()->FindPropertyByName("timeHours");
-		FProperty* timeMinutesProperty = Horloge->GetClass()->FindPropertyByName("timeMinutes");
+		NewHorlogeState.HorlogeSymbole = Symbol;
+		NewHorlogeState.Symbole = Symbol;
 
-		if (FDoubleProperty* DoubleHoursProp = CastField<FDoubleProperty>(timeHoursProperty))
-			NewHorlogeState.timeHours = DoubleHoursProp->GetPropertyValue_InContainer(Horloge);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Horloge %s does not have a public variable 'timeHours'."), *NewHorlogeState.HorlogeSymbole);
+		NewHorlogeState.timeHours =
+			static_cast<double>(HorlogeActor->Hours);
 
-		if (FDoubleProperty* DoubleMinutesProp = CastField<FDoubleProperty>(timeMinutesProperty))
-			NewHorlogeState.timeMinutes = DoubleMinutesProp->GetPropertyValue_InContainer(Horloge);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Horloge %s does not have a public variable 'timeMinutes'."), *NewHorlogeState.HorlogeSymbole);
+		NewHorlogeState.timeMinutes =
+			static_cast<double>(HorlogeActor->Minutes);
+
+		NewHorlogeState.bIsSolved = false;
+
+		// ========================================================
+		// Ajout
+		// ========================================================
 
 		int32 Index = FoundHorloges.Add(NewHorlogeState);
-		HorlogeLookup.Add(NewHorlogeState.HorlogeSymbole, Index);
 
-		if (AHorlogeActor* HorlogeActor = Cast<AHorlogeActor>(Horloge))
-		{
-			HorlogeActorLookup.Add(NewHorlogeState.HorlogeSymbole, HorlogeActor);
-			HorlogeActor->Hours = NewHorlogeState.timeHours;
-			HorlogeActor->Minutes = NewHorlogeState.timeMinutes;
-			HorlogeActor->SyncToPuzzleValues();
-		}
+		HorlogeLookup.Add(Symbol, Index);
+
+		HorlogeActorLookup.Add(
+			Symbol,
+			HorlogeActor
+		);
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Ajoutée au lookup : [%s] -> Index %d"),
+			*Symbol,
+			Index
+		);
 	}
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Total FoundHorloges = %d"),
+		FoundHorloges.Num()
+	);
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("======================================")
+	);
 }
 
 
