@@ -13,6 +13,7 @@ void APuzzleChandelier::BeginPlay()
 
     InitColorRotation();
     InitSolution();
+
     GetWorld()->GetTimerManager().SetTimer(
         RotationTimer,
         this,
@@ -35,10 +36,6 @@ void APuzzleChandelier::InitColorRotation()
 
 void APuzzleChandelier::InitSolution()
 {
-    // Exemple : la solution est basée sur la couleur manquante
-    // North, West, South, East doivent être set dans l’éditeur
-    // via ExteriorLights[Cardinal].MissingColor
-
     Solution.Empty();
 
     for (const auto& Elem : ExteriorLights)
@@ -59,9 +56,7 @@ void APuzzleChandelier::RotateExteriorLights()
         Light.RotationIndex = (Light.RotationIndex + 1) % ColorRotation.Num();
         Light.CurrentColor = ColorRotation[Light.RotationIndex];
 
-        // Ici tu peux appeler un event BP pour changer la couleur visuelle
-        // Exemple : un Dynamic Material sur LightActor
-        // (fait côté Blueprint)
+        // Event BP pour changer la couleur visuelle
     }
 }
 
@@ -70,24 +65,19 @@ void APuzzleChandelier::OnPedestalActivated(FName CardinalPoint, EPuzzleColor Pl
     if (!Pedestals.Contains(CardinalPoint) || !Flames.Contains(CardinalPoint))
         return;
 
-    // Stocker la couleur du joueur sur le pédestrale
     FPedestal& Pedestal = Pedestals[CardinalPoint];
     Pedestal.PlayerColor = PlayerColor;
 
-    // Allumer la flamme correspondante
     FChandelierFlame& Flame = Flames[CardinalPoint];
     Flame.FlameColor = PlayerColor;
 
-    // Event BP pour mettre à jour la flamme visuelle
     OnFlameColorChanged.Broadcast(CardinalPoint, PlayerColor);
 
-    // Vérifier le puzzle
     CheckPuzzleSolved();
 }
 
 void APuzzleChandelier::CheckPuzzleSolved()
 {
-    // Vérifie que toutes les flammes matchent la solution
     for (const auto& Elem : Solution)
     {
         const FName Cardinal = Elem.Key;
@@ -100,15 +90,12 @@ void APuzzleChandelier::CheckPuzzleSolved()
 
         if (Flame.FlameColor != RequiredColor)
         {
-            // Une flamme n’est pas correcte → puzzle non résolu
             return;
         }
     }
 
-    // Si on arrive ici, les 4 flammes sont correctes
     OnPuzzleSolved.Broadcast();
 
-    // Calcul des statuettes à spawn
     const int32 MissingPlayers = FMath::Max(0, 4 - CurrentPlayerCount);
     const int32 StatueCount = MissingPlayers + 2;
 

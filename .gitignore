@@ -75,5 +75,9 @@ Thumbs.db
 p4config.txt
 *.p4ignore
 *.p4d
+<<<<<<< HEAD
 MemoriesFPS/Plugins/WwiseSoundEngine/ThirdParty/Mac_Xcode*
 MemoriesFPS/Plugins/WwiseSoundEngine/ThirdParty/Mac_Xcode*
+=======
+MemoriesFPS/Content/Blueprints/Environment/BP_Ladder.uasset
+>>>>>>> 7a93883fefa0aea5521606188bdafae28bf7cae5
