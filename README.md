@@ -11,7 +11,7 @@ Projet de création d'un jeu vidéo en équipe
 |Programmation 💻|Design 🎨|Art 🖌️|
 |-|-|-|
 |Dave|Ludo|Gabriel|
-|Pierre-Luc|Hugo|Alexane|
+|Pierre-Luc|Hugo|--|
 |Gabriel|Nathan|Michelle|
 |--|Loucas|Guillaume|
 
