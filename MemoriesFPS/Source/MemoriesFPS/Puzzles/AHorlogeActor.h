@@ -168,6 +168,13 @@ public:
 	void LockClock();
 	
 	// Delegates
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle|Randomization")
+	int32 MinimumHourDifference = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle|Randomization")
+	int32 MinimumMinuteDifference = 15;
+	
 	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnHoursChanged OnHoursChanged;
 
@@ -197,6 +204,8 @@ public:
 
 private:
 	void PrintCurrentClockTime();
+	
+	void RandomizeClockTime();
 	
 	// Rotation helpers
 	float GetContinuousHourRotation() const;
