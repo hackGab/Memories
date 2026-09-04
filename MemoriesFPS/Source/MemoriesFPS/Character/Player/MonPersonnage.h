@@ -9,9 +9,11 @@ class MEMORIESFPS_API AMonPersonnage : public ACharacter
 {
 	GENERATED_BODY()
 
+	
+
 public:
 	AMonPersonnage();
-
+	
 	// Nécessaire pour enregistrer les variables à répliquer
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

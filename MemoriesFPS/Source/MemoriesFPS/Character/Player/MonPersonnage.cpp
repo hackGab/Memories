@@ -9,7 +9,7 @@ AMonPersonnage::AMonPersonnage()
     Sante = 100.0f;
 }
 
-// RÈGLE OBLIGATOIRE : Enregistrement des variables réseau
+ 
 void AMonPersonnage::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -18,7 +18,6 @@ void AMonPersonnage::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AMonPersonnage, Sante);
 }
 
-// Logique serveur standard
 void AMonPersonnage::ModifierSante(float Montant)
 {
     // Sécurité : Seul le serveur a l'autorité pour modifier la santé
