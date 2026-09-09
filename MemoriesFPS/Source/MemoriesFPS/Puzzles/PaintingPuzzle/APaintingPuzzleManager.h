@@ -3,11 +3,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PaintingSpot.h"
-#include "PaintingPuzzleManager.generated.h"
+#include "APaintingSpot.h"
+#include "APaintingPuzzleManager.generated.h"
 
 UCLASS()
-class YOURGAME_API APaintingPuzzleManager : public AActor
+class MEMORIESFPS_API APaintingPuzzleManager : public AActor
 {
 	GENERATED_BODY()
 

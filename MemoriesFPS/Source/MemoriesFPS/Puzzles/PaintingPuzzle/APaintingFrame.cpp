@@ -1,7 +1,7 @@
 // PaintingFrame.cpp
 #include "APaintingFrame.h"
 
-AAPaintingFrame::AAPaintingFrame()
+APaintingFrame::APaintingFrame()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -12,12 +12,12 @@ AAPaintingFrame::AAPaintingFrame()
 	RotationIndex = 0;
 }
 
-void AAPaintingFrame::BeginPlay()
+void APaintingFrame::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AAPaintingFrame::RotateOnWall()
+void APaintingFrame::RotateOnWall()
 {
 	if (!bIsPlaced) return;
 

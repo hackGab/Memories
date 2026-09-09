@@ -7,7 +7,7 @@
 #include "APaintingSpot.generated.h"
 
 UCLASS()
-class YOURGAME_API APaintingSpot : public AActor
+class MEMORIESFPS_API APaintingSpot : public AActor
 {
 	GENERATED_BODY()
 
@@ -36,11 +36,11 @@ public:
 
 	// Cadre actuellement placé
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Puzzle")
-	AAPaintingFrame* CurrentPainting;
+	APaintingFrame* CurrentPainting;
 
 	// Attacher un cadre à ce spot
 	UFUNCTION(BlueprintCallable, Category="Puzzle")
-	void AttachPainting(AAPaintingFrame* Painting);
+	void AttachPainting(APaintingFrame* Painting);
 
 	// Vérifier si ce spot est correct
 	UFUNCTION(BlueprintCallable, Category="Puzzle")
