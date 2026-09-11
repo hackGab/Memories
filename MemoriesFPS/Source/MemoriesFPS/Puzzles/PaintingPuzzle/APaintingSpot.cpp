@@ -23,7 +23,7 @@ void APaintingSpot::BeginPlay()
 	Super::BeginPlay();
 }
 
-void APaintingSpot::AttachPainting(AAPaintingFrame* Painting)
+void APaintingSpot::AttachPainting(APaintingFrame* Painting)
 {
 	if (!Painting) return;
 

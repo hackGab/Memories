@@ -937,6 +937,7 @@ void AHorlogeActor::PlayFailCue()
 		);
 	}
 }
+
 void AHorlogeActor::PrintCurrentClockTime()
 {
 	FString CurrentTime = FString::Printf(
