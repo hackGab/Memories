@@ -35,7 +35,10 @@ struct FExteriorLight
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     AActor* LightActor = nullptr;
-    
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bLocked = false;
+
     TArray<EPuzzleColor> FilteredRotation;
 };
 
@@ -86,6 +89,7 @@ protected:
     void InitSolution();
     void BuildFilteredRotations(); 
     void RotateExteriorLights();
+    void RefreshPedestal(FName CardinalPoint);
     
     void UpdateFlameVisual(FName CardinalPoint, EPuzzleColor PlayerColor);
     void UpdateLightVisual(FName CardinalPoint, EPuzzleColor Color);
@@ -105,12 +109,53 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TMap<FName, EPuzzleColor> Solution;
-    
-    UFUNCTION(BlueprintCallable, Category="Puzzle")
-    void OnPedestalDeactivated(FName CardinalPoint);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
+    TMap<FName, bool> PedestalOccupied;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
+    TMap<FName, EPuzzleColor> PedestalActiveColor;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
+    TMap<FName, EPuzzleColor> PlayerColors;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
+    TMap<FName, EPuzzleColor> StatueColors;
 
     UFUNCTION(BlueprintCallable, Category="Puzzle")
-    void OnPedestalActivated(FName CardinalPoint, EPuzzleColor PlayerColor);
+    EPuzzleColor GetPedestalColor(FName CardinalPoint) const;
+
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void OnPedestalDeactivated(FName CardinalPoint);
+    
+    
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void OnPedestalActivated(
+        FName CardinalPoint,
+        EPuzzleColor PlayerColor
+    );
+    
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void SetPlayerOnPedestal(
+        FName CardinalPoint,
+        EPuzzleColor PlayerColor
+    );
+
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void SetStatueOnPedestal(
+        FName CardinalPoint,
+        EPuzzleColor StatueColor
+    );
+
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void RemovePlayerFromPedestal(
+        FName CardinalPoint
+    );
+
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void RemoveStatueFromPedestal(
+        FName CardinalPoint
+    );
 
     void CheckPuzzleSolved();
     void SpawnMissingStatues(int32 MissingCount);
