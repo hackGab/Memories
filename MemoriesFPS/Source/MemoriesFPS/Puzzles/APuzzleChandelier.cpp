@@ -1,6 +1,9 @@
 #include "APuzzleChandelier.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/PointLightComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 APuzzleChandelier::APuzzleChandelier()
 {
@@ -70,10 +73,58 @@ void APuzzleChandelier::OnPedestalActivated(FName CardinalPoint, EPuzzleColor Pl
 
     FChandelierFlame& Flame = Flames[CardinalPoint];
     Flame.FlameColor = PlayerColor;
+    
+    UpdateFlameVisual(CardinalPoint, PlayerColor);
+    
+    if (GEngine)
+    {
+        FString Msg = FString::Printf(TEXT("Pedestal %s activated -> Flame set to %s"),
+            *CardinalPoint.ToString(), *UEnum::GetValueAsString(PlayerColor));
+        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Cyan, Msg);
+    }
 
     OnFlameColorChanged.Broadcast(CardinalPoint, PlayerColor);
 
     CheckPuzzleSolved();
+}
+void APuzzleChandelier::UpdateFlameVisual(FName CardinalPoint, EPuzzleColor Color)
+{
+    if (!Flames.Contains(CardinalPoint)) return;
+
+    AActor* FlameActor = Flames[CardinalPoint].FlameActor;
+    if (!FlameActor) return;
+
+    FLinearColor RenderColor = ColorToLinearColor(Color);
+
+    // If the flame uses a static/skeletal mesh material
+    if (UStaticMeshComponent* Mesh = FlameActor->FindComponentByClass<UStaticMeshComponent>())
+    {
+        UMaterialInstanceDynamic* MID = Mesh->CreateAndSetMaterialInstanceDynamic(0);
+        if (MID)
+        {
+            MID->SetVectorParameterValue(TEXT("FlameColor"), RenderColor);
+        }
+    }
+
+    // If the flame also has a point light
+    if (UPointLightComponent* Light = FlameActor->FindComponentByClass<UPointLightComponent>())
+    {
+        Light->SetLightColor(RenderColor);
+    }
+}
+
+FLinearColor APuzzleChandelier::ColorToLinearColor(EPuzzleColor Color) const
+{
+    switch (Color)
+    {
+    case EPuzzleColor::Red:    return FLinearColor::Red;
+    case EPuzzleColor::Blue:   return FLinearColor::Blue;
+    case EPuzzleColor::Green:  return FLinearColor::Green;
+    case EPuzzleColor::Purple: return FLinearColor(0.5f, 0.f, 0.5f);
+    case EPuzzleColor::Yellow: return FLinearColor::Yellow;
+    case EPuzzleColor::Pink:   return FLinearColor(1.f, 0.4f, 0.7f);
+    default:                  return FLinearColor::Black;
+    }
 }
 
 void APuzzleChandelier::CheckPuzzleSolved()

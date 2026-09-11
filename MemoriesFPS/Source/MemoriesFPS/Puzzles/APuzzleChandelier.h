@@ -83,6 +83,9 @@ protected:
     void InitColorRotation();
     void InitSolution();
     void RotateExteriorLights();
+    
+    void UpdateFlameVisual(FName CardinalPoint, EPuzzleColor PlayerColor);
+    FLinearColor ColorToLinearColor(EPuzzleColor Color) const;
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
