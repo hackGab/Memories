@@ -15,6 +15,7 @@ void APuzzleChandelier::BeginPlay()
     Super::BeginPlay();
 
     InitColorRotation();
+    BuildFilteredRotations(); 
     InitSolution();
 
     GetWorld()->GetTimerManager().SetTimer(
@@ -37,6 +38,29 @@ void APuzzleChandelier::InitColorRotation()
     ColorRotation.Add(EPuzzleColor::Pink);
 }
 
+void APuzzleChandelier::BuildFilteredRotations()
+{
+    for (auto& Elem : ExteriorLights)
+    {
+        FExteriorLight& Light = Elem.Value;
+        Light.FilteredRotation.Empty();
+
+        for (const EPuzzleColor& Color : ColorRotation)
+        {
+            if (Color != Light.MissingColor)
+            {
+                Light.FilteredRotation.Add(Color);
+            }
+        }
+
+        Light.RotationIndex = 0;
+        if (Light.FilteredRotation.Num() > 0)
+        {
+            Light.CurrentColor = Light.FilteredRotation[0];
+        }
+    }
+}
+
 void APuzzleChandelier::InitSolution()
 {
     Solution.Empty();
@@ -54,12 +78,40 @@ void APuzzleChandelier::RotateExteriorLights()
 {
     for (auto& Elem : ExteriorLights)
     {
+        FName Cardinal = Elem.Key;
         FExteriorLight& Light = Elem.Value;
 
-        Light.RotationIndex = (Light.RotationIndex + 1) % ColorRotation.Num();
-        Light.CurrentColor = ColorRotation[Light.RotationIndex];
+        if (Light.FilteredRotation.Num() == 0)
+            continue;
 
-        // Event BP pour changer la couleur visuelle
+        Light.RotationIndex = (Light.RotationIndex + 1) % Light.FilteredRotation.Num();
+        Light.CurrentColor = Light.FilteredRotation[Light.RotationIndex];
+
+        UpdateLightVisual(Cardinal, Light.CurrentColor);
+    }
+}
+
+void APuzzleChandelier::UpdateLightVisual(FName CardinalPoint, EPuzzleColor Color)
+{
+    if (!ExteriorLights.Contains(CardinalPoint)) return;
+
+    AActor* LightActor = ExteriorLights[CardinalPoint].LightActor;
+    if (!LightActor) return;
+
+    FLinearColor RenderColor = ColorToLinearColor(Color);
+
+    if (UStaticMeshComponent* Mesh = LightActor->FindComponentByClass<UStaticMeshComponent>())
+    {
+        UMaterialInstanceDynamic* MID = Mesh->CreateAndSetMaterialInstanceDynamic(0);
+        if (MID)
+        {
+            MID->SetVectorParameterValue(TEXT("FlameColor"), RenderColor); // reuse same param name, or rename to match your material
+        }
+    }
+
+    if (UPointLightComponent* Light = LightActor->FindComponentByClass<UPointLightComponent>())
+    {
+        Light->SetLightColor(RenderColor);
     }
 }
 
@@ -86,6 +138,25 @@ void APuzzleChandelier::OnPedestalActivated(FName CardinalPoint, EPuzzleColor Pl
     OnFlameColorChanged.Broadcast(CardinalPoint, PlayerColor);
 
     CheckPuzzleSolved();
+}
+
+void APuzzleChandelier::OnPedestalDeactivated(FName CardinalPoint)
+{
+    if (!Pedestals.Contains(CardinalPoint) || !Flames.Contains(CardinalPoint))
+        return;
+
+    Pedestals[CardinalPoint].PlayerColor = EPuzzleColor::None;
+    Flames[CardinalPoint].FlameColor = EPuzzleColor::None;
+
+    UpdateFlameVisual(CardinalPoint, EPuzzleColor::None);
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange,
+            FString::Printf(TEXT("Pedestal %s deactivated"), *CardinalPoint.ToString()));
+    }
+
+    OnFlameColorChanged.Broadcast(CardinalPoint, EPuzzleColor::None); 
 }
 void APuzzleChandelier::UpdateFlameVisual(FName CardinalPoint, EPuzzleColor Color)
 {
@@ -155,26 +226,31 @@ void APuzzleChandelier::CheckPuzzleSolved()
 
 void APuzzleChandelier::SpawnMissingStatues(int32 MissingCount)
 {
-    if (!StatueClass)
-        return;
+    if (!StatueClass) return;
 
     UWorld* World = GetWorld();
-    if (!World)
-        return;
+    if (!World) return;
+    TArray<FName> Cardinals;
+    Solution.GetKeys(Cardinals);
 
     for (int32 i = 0; i < MissingCount; ++i)
     {
-        AActor* SpawnPoint = nullptr;
+        AActor* SpawnPoint = StatueSpawnPoints.IsValidIndex(i) ? StatueSpawnPoints[i] : nullptr;
+        FTransform SpawnTransform = SpawnPoint ? SpawnPoint->GetActorTransform() : GetActorTransform();
 
-        if (StatueSpawnPoints.IsValidIndex(i))
+        AActor* NewStatue = World->SpawnActor<AActor>(StatueClass, SpawnTransform);
+
+        // If StatueClass exposes a BlueprintReadWrite "StatueColor" property, set it:
+        if (NewStatue && Cardinals.IsValidIndex(i))
         {
-            SpawnPoint = StatueSpawnPoints[i];
+            FName Cardinal = Cardinals[i];
+            EPuzzleColor AssignedColor = Solution[Cardinal];
+
+            FProperty* ColorProp = NewStatue->GetClass()->FindPropertyByName(TEXT("StatueColor"));
+            if (FByteProperty* ByteProp = CastField<FByteProperty>(ColorProp))
+            {
+                ByteProp->SetPropertyValue_InContainer(NewStatue, static_cast<uint8>(AssignedColor));
+            }
         }
-
-        FTransform SpawnTransform = SpawnPoint
-            ? SpawnPoint->GetActorTransform()
-            : GetActorTransform();
-
-        World->SpawnActor<AActor>(StatueClass, SpawnTransform);
     }
 }

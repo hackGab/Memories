@@ -35,6 +35,8 @@ struct FExteriorLight
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     AActor* LightActor = nullptr;
+    
+    TArray<EPuzzleColor> FilteredRotation;
 };
 
 USTRUCT(BlueprintType)
@@ -82,10 +84,14 @@ protected:
 
     void InitColorRotation();
     void InitSolution();
+    void BuildFilteredRotations(); 
     void RotateExteriorLights();
     
     void UpdateFlameVisual(FName CardinalPoint, EPuzzleColor PlayerColor);
+    void UpdateLightVisual(FName CardinalPoint, EPuzzleColor Color);
     FLinearColor ColorToLinearColor(EPuzzleColor Color) const;
+    
+    
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
@@ -99,6 +105,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle")
     TMap<FName, EPuzzleColor> Solution;
+    
+    UFUNCTION(BlueprintCallable, Category="Puzzle")
+    void OnPedestalDeactivated(FName CardinalPoint);
 
     UFUNCTION(BlueprintCallable, Category="Puzzle")
     void OnPedestalActivated(FName CardinalPoint, EPuzzleColor PlayerColor);
