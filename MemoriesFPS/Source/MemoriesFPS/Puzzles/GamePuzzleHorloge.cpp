@@ -157,84 +157,181 @@ void AGamePuzzleHorloge::UpdateMinutesStateFromEvent(const FString& HorlogeSymbo
 
 void AGamePuzzleHorloge::VerifyPuzzleSolution(FHorlogeState& HorlogeState)
 {
-	FHorlogeSolutionConfig* SolutionPtr = HorlogeSolutionLookup.Find(HorlogeState.HorlogeSymbole);
-	if (!SolutionPtr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Horloge %s not found in solution."), *HorlogeState.HorlogeSymbole);
-		return;
-	}
+    // Find the solution for this clock
 
-	AHorlogeActor* HorlogeActor = nullptr;
-	if (AHorlogeActor** ActorPtr = HorlogeActorLookup.Find(HorlogeState.HorlogeSymbole))
-	{
-		HorlogeActor = *ActorPtr;
-	}
+    FHorlogeSolutionConfig* SolutionPtr =
+        HorlogeSolutionLookup.Find(HorlogeState.HorlogeSymbole);
 
-	const bool bIsCorrect =
-		SolutionPtr->ShouldBeTimeHours == HorlogeState.timeHours &&
-		SolutionPtr->ShouldBeTimeMinutes == HorlogeState.timeMinutes;
+    if (!SolutionPtr)
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("Horloge %s not found in solution."),
+            *HorlogeState.HorlogeSymbole
+        );
 
-	if (bIsCorrect && !HorlogeState.bIsSolved)
-	{
-		// Cette horloge vient d'être réglée correctement
-		HorlogeState.bIsSolved = true;
-		nbHorlogesAreSolve++;
+        return;
+    }
+	
+    // Find the actual clock actor
 
-		UE_LOG(
-	   LogTemp,
-	   Log,
-	   TEXT("Horloge %s is in the correct state: [%f:%f]"),
-	   *HorlogeState.HorlogeSymbole,
-	   HorlogeState.timeHours,
-	   HorlogeState.timeMinutes
-   );
+    AHorlogeActor* HorlogeActor = nullptr;
 
-		if (HorlogeActor)
-		{
-			HorlogeActor->PlaySuccessCue();
-			HorlogeActor->LockClock();
-		}
+    if (AHorlogeActor** ActorPtr =
+        HorlogeActorLookup.Find(HorlogeState.HorlogeSymbole))
+    {
+        HorlogeActor = *ActorPtr;
+    }
+    // Check if the clock has the correct time
 
+    const bool bIsCorrect =
+        SolutionPtr->ShouldBeTimeHours == HorlogeState.timeHours &&
+        SolutionPtr->ShouldBeTimeMinutes == HorlogeState.timeMinutes;
+    // CLOCK SOLVED
 
-		if (nbHorlogesToSolve == nbHorlogesAreSolve)
-		{
-			isPuzzleHorlogeResolve = true;
+    if (bIsCorrect && !HorlogeState.bIsSolved)
+    {
+        // Mark this clock as solved
+        HorlogeState.bIsSolved = true;
 
-			AMemoriesGameMode* GM = Cast<AMemoriesGameMode>(UGameplayStatics::GetGameMode(this));
-			if (!GM)
-			{
-				UE_LOG(LogTemp, Error, TEXT("AMemoriesGameMode introuvable ou mauvais type !"));
-				return;
-			}
+        nbHorlogesAreSolve++;
 
-			GM->SetIsPuzzleCandleResolve(isPuzzleHorlogeResolve);
-			UE_LOG(LogTemp, Display, TEXT("Tous les horloges sont set à la bonne heure ! Le AMemoriesGameMode recoit : %hhd"), GM->GetIsPuzzleHorlogeResolve());
+        UE_LOG(
+            LogTemp,
+            Log,
+            TEXT(
+                "Horloge %s is in the correct state: [%02d:%02d]"
+            ),
+            *HorlogeState.HorlogeSymbole,
+            static_cast<int32>(HorlogeState.timeHours),
+            static_cast<int32>(HorlogeState.timeMinutes)
+        );
+        // Play success feedback and lock the clock
+        if (HorlogeActor)
+        {
+            HorlogeActor->PlaySuccessCue();
 
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green,
-				FString::Printf(TEXT("Puzzle horloge : %s"),
-					GM->GetIsPuzzleHorlogeResolve() ? TEXT("résolu") : TEXT("non résolu")));
+            // Prevent the player from modifying this clock anymore
+            HorlogeActor->LockClock();
+        }
+        // Check if ALL clocks are solved
 
-			if (YaySound)
-			{
-				UGameplayStatics::PlaySound2D(this, YaySound);
-			}
+        if (nbHorlogesAreSolve >= nbHorlogesToSolve)
+        {
+            isPuzzleHorlogeResolve = true;
 
-			// La porte est ouverte en écoutant ce délégué depuis une Blueprint (ou une autre classe C++)
-			OnPuzzleSolved.Broadcast();
-		}
-	}
-	else if (!bIsCorrect && HorlogeState.bIsSolved)
-	{
-		// Le joueur a débougé une horloge qui était correcte : on décompte
-		HorlogeState.bIsSolved = false;
-		nbHorlogesAreSolve = FMath::Max(0, nbHorlogesAreSolve - 1);
-	}
-	else if (!bIsCorrect && HorlogeActor)
-	{
-		HorlogeActor->PlayFailCue();
-	}
+            UE_LOG(
+                LogTemp,
+                Display,
+                TEXT(
+                    "Tous les horloges sont réglées correctement !"
+                )
+            );
+            // Notify GameMode
+            AMemoriesGameMode* GM =
+                Cast<AMemoriesGameMode>(
+                    UGameplayStatics::GetGameMode(this)
+                );
+
+            if (!GM)
+            {
+                UE_LOG(
+                    LogTemp,
+                    Error,
+                    TEXT(
+                        "AMemoriesGameMode introuvable ou mauvais type !"
+                    )
+                );
+
+                return;
+            }
+
+            GM->SetIsPuzzleCandleResolve(
+                isPuzzleHorlogeResolve
+            );
+
+            UE_LOG(
+                LogTemp,
+                Display,
+                TEXT(
+                    "AMemoriesGameMode reçoit PuzzleHorlogeResolve = %hhd"
+                ),
+                GM->GetIsPuzzleHorlogeResolve()
+            );
+
+            // ====================================================
+            // On-screen debug
+            // ====================================================
+
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    3.f,
+                    FColor::Green,
+                    FString::Printf(
+                        TEXT("Puzzle horloge : %s"),
+                        GM->GetIsPuzzleHorlogeResolve()
+                            ? TEXT("RÉSOLU")
+                            : TEXT("NON RÉSOLU")
+                    )
+                );
+            }
+
+            // ====================================================
+            // Play puzzle completion sound
+            // ====================================================
+
+            if (YaySound)
+            {
+                UGameplayStatics::PlaySound2D(
+                    this,
+                    YaySound
+                );
+            }
+
+            // ====================================================
+            // Notify Blueprint / other C++ systems
+            // ====================================================
+
+            OnPuzzleSolved.Broadcast();
+        }
+    }
+
+    // ========================================================
+    // CLOCK WAS SOLVED BUT PLAYER MOVED IT AGAIN
+    // ========================================================
+
+    else if (!bIsCorrect && HorlogeState.bIsSolved)
+    {
+        HorlogeState.bIsSolved = false;
+
+        nbHorlogesAreSolve =
+            FMath::Max(
+                0,
+                nbHorlogesAreSolve - 1
+            );
+
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT(
+                "Horloge %s n'est plus dans la bonne position."
+            ),
+            *HorlogeState.HorlogeSymbole
+        );
+    }
+
+    // ========================================================
+    // WRONG TIME
+    // ========================================================
+
+    else if (!bIsCorrect && HorlogeActor)
+    {
+        HorlogeActor->PlayFailCue();
+    }
 }
-
 
 void AGamePuzzleHorloge::GetAllHorloges()
 {
@@ -362,6 +459,63 @@ void AGamePuzzleHorloge::GetAllHorloges()
 	);
 }
 
+void AGamePuzzleHorloge::RandomizeHorloge(
+	AHorlogeActor* HorlogeActor,
+	const FHorlogeSolutionConfig& Solution
+)
+{
+	if (!HorlogeActor)
+	{
+		return;
+	}
+
+	// How far the randomized time must be from the solution
+	const int32 MinimumHourDistance = 2;
+	const int32 MinimumMinuteDistance = 10;
+
+	int32 RandomHours = 0;
+	int32 RandomMinutes = 0;
+
+	int32 Attempts = 0;
+
+	do
+	{
+		RandomHours = FMath::RandRange(0, 11);
+		RandomMinutes = FMath::RandRange(0, 59);
+
+		Attempts++;
+
+		// Prevent an infinite loop
+		if (Attempts > 100)
+		{
+			break;
+		}
+
+	} while (
+		FMath::Abs(RandomHours - static_cast<int32>(Solution.ShouldBeTimeHours)) 
+			< MinimumHourDistance
+		||
+		FMath::Abs(RandomMinutes - static_cast<int32>(Solution.ShouldBeTimeMinutes))
+			< MinimumMinuteDistance
+	);
+
+	HorlogeActor->Hours = RandomHours;
+	HorlogeActor->Minutes = RandomMinutes;
+
+	// Reset the visual position of the hands
+	HorlogeActor->SyncToPuzzleValues();
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Horloge '%s' randomisée à %02d:%02d | Solution: %02d:%02d"),
+		*HorlogeActor->Symbole,
+		RandomHours,
+		RandomMinutes,
+		static_cast<int32>(Solution.ShouldBeTimeHours),
+		static_cast<int32>(Solution.ShouldBeTimeMinutes)
+	);
+}
 
 void AGamePuzzleHorloge::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
