@@ -2,7 +2,7 @@
 
 
 #include "GamePuzzleHorloge.h"
-#include "../MemoriesGameMode.h"
+#include "../../MemoriesGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 
