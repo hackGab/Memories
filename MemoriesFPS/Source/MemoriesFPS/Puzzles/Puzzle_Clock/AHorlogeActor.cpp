@@ -12,90 +12,53 @@ AHorlogeActor::AHorlogeActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(
-		TEXT("SceneRoot")
-	);
-
+	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
+
 	// Clock face
-
-	ClockFaceMesh = CreateDefaultSubobject<UStaticMeshComponent>(
-		TEXT("ClockFace")
-	);
-
+	ClockFaceMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ClockFace"));
 	ClockFaceMesh->SetupAttachment(SceneRoot);
-	
+
 	// Logo
-	LogoMesh = CreateDefaultSubobject<UStaticMeshComponent>(
-		TEXT("LogoMesh")
-	);
-
+	LogoMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LogoMesh"));
 	LogoMesh->SetupAttachment(SceneRoot);
+
+	// Pivots (must be created before the hands)
+	SmallHandPivot = CreateDefaultSubobject<USceneComponent>(TEXT("SmallHandPivot"));
+	SmallHandPivot->SetupAttachment(SceneRoot);
+
+	BigHandPivot = CreateDefaultSubobject<USceneComponent>(TEXT("BigHandPivot"));
+	BigHandPivot->SetupAttachment(SceneRoot);
+
 	// Small hand
-
-	SmallHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(
-		TEXT("PetiteAiguille")
-	);
-
-	SmallHandMesh->SetupAttachment(SceneRoot);
-
+	SmallHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PetiteAiguille"));
+	SmallHandMesh->SetupAttachment(SmallHandPivot);
 	SmallHandMesh->SetGenerateOverlapEvents(true);
-
-	SmallHandMesh->SetCollisionEnabled(
-		ECollisionEnabled::QueryOnly
-	);
-
-	SmallHandMesh->SetCollisionResponseToChannel(
-		ECC_Visibility,
-		ECR_Block
-	);
+	SmallHandMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SmallHandMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	// Big hand
-	BigHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(
-		TEXT("GrosseAiguille")
-	);
-
-	BigHandMesh->SetupAttachment(SceneRoot);
-
+	BigHandMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GrosseAiguille"));
+	BigHandMesh->SetupAttachment(BigHandPivot);
 	BigHandMesh->SetGenerateOverlapEvents(true);
-
-	BigHandMesh->SetCollisionEnabled(
-		ECollisionEnabled::QueryOnly
-	);
-
-	BigHandMesh->SetCollisionResponseToChannel(
-		ECC_Visibility,
-		ECR_Block
-	);
+	BigHandMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	BigHandMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	// Light
-
-	LightCue = CreateDefaultSubobject<UPointLightComponent>(
-		TEXT("LightCue")
-	);
-
+	LightCue = CreateDefaultSubobject<UPointLightComponent>(TEXT("LightCue"));
 	LightCue->SetupAttachment(SceneRoot);
-	
+
 	// Success audio
-
-	AudioSuccess = CreateDefaultSubobject<UAudioComponent>(
-		TEXT("AudioSuccess")
-	);
-
+	AudioSuccess = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioSuccess"));
 	AudioSuccess->SetupAttachment(SceneRoot);
-
 	AudioSuccess->bAutoActivate = false;
-	
+
 	// Fail audio
-	AudioFail = CreateDefaultSubobject<UAudioComponent>(
-		TEXT("AudioFail")
-	);
-
+	AudioFail = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioFail"));
 	AudioFail->SetupAttachment(SceneRoot);
-
 	AudioFail->bAutoActivate = false;
-	// Initial values
 
+	// Initial values
 	Hours = 0;
 	Minutes = 0;
 
@@ -118,15 +81,11 @@ void AHorlogeActor::BeginPlay()
 	Super::BeginPlay();
 
 	DebugMessage(
-		FString::Printf(
-			TEXT("Horloge BeginPlay: %s"),
-			*Symbole
-		),
+		FString::Printf(TEXT("Horloge BeginPlay: %s"), *Symbole),
 		FColor::Magenta
 	);
-	
-	// Audio
 
+	// Audio
 	if (AudioSuccess)
 	{
 		AudioSuccess->Stop();
@@ -136,32 +95,27 @@ void AHorlogeActor::BeginPlay()
 	{
 		AudioFail->Stop();
 	}
-	
-	// Light
 
+	// Light
 	if (LightCue)
 	{
 		LightCue->SetVisibility(false);
 		LightCue->SetIntensity(0.f);
 	}
-	
-	// Logo material
 
+	// Logo material
 	if (LogoMesh && LogoMesh->GetNumMaterials() > 0)
 	{
-		LogoDynMat =
-			LogoMesh->CreateAndSetMaterialInstanceDynamic(0);
+		LogoDynMat = LogoMesh->CreateAndSetMaterialInstanceDynamic(0);
 	}
 	else
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("Horloge %s: LogoMesh has no material in slot 0."),
-			*Symbole
-		);
+		UE_LOG(LogTemp, Warning, TEXT("Horloge %s: LogoMesh has no material in slot 0."), *Symbole);
 	}
-	
+
+	// Save the original hand materials (used to remove the outline)
+	if (SmallHandMesh) SmallHandOriginalMaterial = SmallHandMesh->GetMaterial(0);
+	if (BigHandMesh)   BigHandOriginalMaterial   = BigHandMesh->GetMaterial(0);
 
 	// Bind click events
 	if (SmallHandMesh)
@@ -177,7 +131,22 @@ void AHorlogeActor::BeginPlay()
 		BigHandMesh->OnBeginCursorOver.AddDynamic(this, &AHorlogeActor::OnBigHandHoverBegin);
 		BigHandMesh->OnEndCursorOver.AddDynamic(this, &AHorlogeActor::OnBigHandHoverEnd);
 	}
-	
+	if (SmallHandMesh && SmallHandPivot)
+	{
+		SmallHandMesh->AttachToComponent(
+			SmallHandPivot,
+			FAttachmentTransformRules::KeepWorldTransform
+		);
+	}
+
+	if (BigHandMesh && BigHandPivot)
+	{
+		BigHandMesh->AttachToComponent(
+			BigHandPivot,
+			FAttachmentTransformRules::KeepWorldTransform
+		);
+	}
+
 	// Initial clock position
 	RandomizeClockTime();
 
@@ -187,26 +156,14 @@ void AHorlogeActor::BeginPlay()
 	TargetSmallHandRotation = SmallHandRotation;
 	TargetBigHandRotation = BigHandRotation;
 
-	if (SmallHandMesh)
+	if (SmallHandPivot)
 	{
-		SmallHandMesh->SetRelativeRotation(
-			FRotator(
-				SmallHandRotation,
-				0.f,
-				0.f
-			)
-		);
+		SmallHandPivot->SetRelativeRotation(FRotator(SmallHandRotation, 0.f, 0.f));
 	}
 
-	if (BigHandMesh)
+	if (BigHandPivot)
 	{
-		BigHandMesh->SetRelativeRotation(
-			FRotator(
-				BigHandRotation,
-				0.f,
-				0.f
-			)
-		);
+		BigHandPivot->SetRelativeRotation(FRotator(BigHandRotation, 0.f, 0.f));
 	}
 }
 
@@ -220,15 +177,10 @@ void AHorlogeActor::Tick(float DeltaTime)
 	UpdateBigHandAnimation(DeltaTime);
 }
 
-
-
 float AHorlogeActor::GetContinuousHourRotation() const
 {
-	return
-		(Hours * 30.f) +
-		(Minutes * 0.5f);
+	return (Hours * 30.f) + (Minutes * 0.5f);
 }
-
 
 // Get minute rotation
 
@@ -236,6 +188,7 @@ float AHorlogeActor::GetMinuteRotation() const
 {
 	return Minutes * 6.f;
 }
+
 // Start small hand animation
 
 void AHorlogeActor::StartSmallHandAnimation(float Degrees)
@@ -248,21 +201,14 @@ void AHorlogeActor::StartSmallHandAnimation(float Degrees)
 	{
 		SmallHandAnimationStart = SmallHandRotation;
 	}
-	TargetSmallHandRotation =
-		SmallHandAnimationStart + Degrees;
+
+	TargetSmallHandRotation = SmallHandAnimationStart + Degrees;
 
 	SmallHandAnimationElapsed = 0.f;
 
-	float Distance = FMath::Abs(
-		TargetSmallHandRotation -
-		SmallHandAnimationStart
-	);
+	const float Distance = FMath::Abs(TargetSmallHandRotation - SmallHandAnimationStart);
 
-	SmallHandAnimationDuration =
-		FMath::Max(
-			Distance / RotationSpeedDegreesPerSecond,
-			0.08f
-		);
+	SmallHandAnimationDuration = FMath::Max(Distance / RotationSpeedDegreesPerSecond, 0.08f);
 
 	bAnimatingSmallHand = true;
 }
@@ -280,75 +226,42 @@ void AHorlogeActor::StartBigHandAnimation(float Degrees)
 		BigHandAnimationStart = BigHandRotation;
 	}
 
-	TargetBigHandRotation =
-		BigHandAnimationStart + Degrees;
+	TargetBigHandRotation = BigHandAnimationStart + Degrees;
 
 	BigHandAnimationElapsed = 0.f;
 
-	float Distance = FMath::Abs(
-		TargetBigHandRotation -
-		BigHandAnimationStart
-	);
+	const float Distance = FMath::Abs(TargetBigHandRotation - BigHandAnimationStart);
 
-	BigHandAnimationDuration =
-		FMath::Max(
-			Distance / RotationSpeedDegreesPerSecond,
-			0.08f
-		);
+	BigHandAnimationDuration = FMath::Max(Distance / RotationSpeedDegreesPerSecond, 0.08f);
 
 	bAnimatingBigHand = true;
 }
+
 // Update small hand
+
 void AHorlogeActor::UpdateSmallHandAnimation(float DeltaTime)
 {
-	if (!bAnimatingSmallHand || !SmallHandMesh)
+	if (!bAnimatingSmallHand || !SmallHandPivot)
 	{
 		return;
 	}
 
 	SmallHandAnimationElapsed += DeltaTime;
 
-	float Alpha =
-		FMath::Clamp(
-			SmallHandAnimationElapsed /
-			SmallHandAnimationDuration,
-			0.f,
-			1.f
-		);
+	const float Alpha = FMath::Clamp(SmallHandAnimationElapsed / SmallHandAnimationDuration, 0.f, 1.f);
 
-	// SmoothStep:
-	// Starts slowly
-	// Speeds up
-	// Slows down before stopping
-	float EaseAlpha =
-		Alpha * Alpha * (3.f - 2.f * Alpha);
+	// SmoothStep ease-in / ease-out
+	const float EaseAlpha = Alpha * Alpha * (3.f - 2.f * Alpha);
 
-	SmallHandRotation =
-		FMath::Lerp(
-			SmallHandAnimationStart,
-			TargetSmallHandRotation,
-			EaseAlpha
-		);
+	SmallHandRotation = FMath::Lerp(SmallHandAnimationStart, TargetSmallHandRotation, EaseAlpha);
 
-	SmallHandMesh->SetRelativeRotation(
-		FRotator(
-			SmallHandRotation,
-			0.f,
-			0.f
-		)
-	);
-
+	SmallHandPivot->SetRelativeRotation(FRotator(SmallHandRotation, 0.f, 0.f));
 	if (Alpha >= 1.f)
 	{
 		SmallHandRotation = TargetSmallHandRotation;
 
-		SmallHandMesh->SetRelativeRotation(
-			FRotator(
-				SmallHandRotation,
-				0.f,
-				0.f
-			)
-		);
+		SmallHandPivot->SetRelativeRotation(FRotator(SmallHandRotation, 0.f, 0.f));
+
 		bAnimatingSmallHand = false;
 	}
 }
@@ -357,69 +270,62 @@ void AHorlogeActor::UpdateSmallHandAnimation(float DeltaTime)
 
 void AHorlogeActor::UpdateBigHandAnimation(float DeltaTime)
 {
-	if (!bAnimatingBigHand || !BigHandMesh)
+	if (!bAnimatingBigHand || !BigHandPivot)
 	{
 		return;
 	}
 
 	BigHandAnimationElapsed += DeltaTime;
 
-	float Alpha =
-		FMath::Clamp(
-			BigHandAnimationElapsed /
-			BigHandAnimationDuration,
-			0.f,
-			1.f
-		);
+	const float Alpha = FMath::Clamp(BigHandAnimationElapsed / BigHandAnimationDuration, 0.f, 1.f);
 
-	// SmoothStep ease-in/ease-out
-	float EaseAlpha =
-		Alpha * Alpha * (3.f - 2.f * Alpha);
+	// SmoothStep ease-in / ease-out
+	const float EaseAlpha = Alpha * Alpha * (3.f - 2.f * Alpha);
 
-	BigHandRotation =
-		FMath::Lerp(
-			BigHandAnimationStart,
-			TargetBigHandRotation,
-			EaseAlpha
-		);
+	BigHandRotation = FMath::Lerp(BigHandAnimationStart, TargetBigHandRotation, EaseAlpha);
 
-	BigHandMesh->SetRelativeRotation(
-		FRotator(
-			BigHandRotation,
-			0.f,
-			0.f
-		)
-	);
-
+	BigHandPivot->SetRelativeRotation(FRotator(BigHandRotation, 0.f, 0.f));
 	if (Alpha >= 1.f)
 	{
 		BigHandRotation = TargetBigHandRotation;
 
-		BigHandMesh->SetRelativeRotation(
-			FRotator(
-				BigHandRotation,
-				0.f,
-				0.f
-			)
-		);
-		
+		BigHandPivot->SetRelativeRotation(FRotator(BigHandRotation, 0.f, 0.f));
+
+		bAnimatingBigHand = false;
 		bWaitingForClockAnimation = false;
 	}
 }
+
 // Debug
 
-void AHorlogeActor::DebugMessage(
-	const FString& Msg,
-	FColor Color
-)
+void AHorlogeActor::DebugMessage(const FString& Msg, FColor Color)
 {
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,
-			2.f,
-			Color,
-			Msg
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, Color, Msg);
+	}
+}
+
+// Materials / outline
+// A hand is outlined if it is hovered OR selected. Otherwise it uses its original material.
+
+void AHorlogeActor::UpdateHandMaterials()
+{
+	if (SmallHandMesh && SmallHandOriginalMaterial)
+	{
+		const bool bOutline = bSmallHovered || SelectedHand == EClockHand::Small;
+		SmallHandMesh->SetMaterial(
+			0,
+			(bOutline && M_OutlineHover) ? M_OutlineHover : SmallHandOriginalMaterial
+		);
+	}
+
+	if (BigHandMesh && BigHandOriginalMaterial)
+	{
+		const bool bOutline = bBigHovered || SelectedHand == EClockHand::Big;
+		BigHandMesh->SetMaterial(
+			0,
+			(bOutline && M_OutlineHover) ? M_OutlineHover : BigHandOriginalMaterial
 		);
 	}
 }
@@ -429,43 +335,17 @@ void AHorlogeActor::DebugMessage(
 void AHorlogeActor::SelectHand(EClockHand Hand)
 {
 	SelectedHand = Hand;
+	UpdateHandMaterials();
+	OnSelectionChanged(Hand);
+}
 
-	if (DefaultMaterial)
-	{
-		if (SmallHandMesh)
-		{
-			SmallHandMesh->SetMaterial(
-				0,
-				DefaultMaterial
-			);
-		}
+// Clear selection (removes outline)
 
-		if (BigHandMesh)
-		{
-			BigHandMesh->SetMaterial(
-				0,
-				DefaultMaterial
-			);
-		}
-	}
-
-	if (M_OutlineHover)
-	{
-		if (Hand == EClockHand::Small)
-		{
-			SmallHandMesh->SetMaterial(
-				0,
-				M_OutlineHover
-			);
-		}
-		else if (Hand == EClockHand::Big)
-		{
-			BigHandMesh->SetMaterial(
-				0,
-				M_OutlineHover
-			);
-		}
-	}
+void AHorlogeActor::ClearSelection()
+{
+	bSmallHovered = false;
+	bBigHovered = false;
+	SelectHand(EClockHand::None);
 }
 
 // Cycle selected hand
@@ -475,14 +355,11 @@ void AHorlogeActor::CycleSelectedHand()
 	switch (SelectedHand)
 	{
 	case EClockHand::None:
-
 	case EClockHand::Big:
-
 		SelectHand(EClockHand::Small);
 		break;
 
 	case EClockHand::Small:
-
 		SelectHand(EClockHand::Big);
 		break;
 
@@ -493,23 +370,17 @@ void AHorlogeActor::CycleSelectedHand()
 
 void AHorlogeActor::RotateSelectedHand(int32 Amount)
 {
-	DebugMessage(
-		FString("RotateSelectedHand Amount = ") +
-		FString::FromInt(Amount),
-		FColor::Cyan
-	);
-
 	if (Amount == 0)
 	{
 		return;
 	}
-	
+
 	if (bIsLocked)
 	{
 		DebugMessage("Clock is locked", FColor::Red);
 		return;
 	}
-	
+
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	if (CurrentTime - LastRotationTime < RotationRepeatInterval)
 	{
@@ -517,29 +388,23 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 	}
 	LastRotationTime = CurrentTime;
 
-	AGamePuzzleHorloge* Puzzle =
-		Cast<AGamePuzzleHorloge>(
-			UGameplayStatics::GetActorOfClass(
-				GetWorld(),
-				AGamePuzzleHorloge::StaticClass()
-			)
-		);
+	AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
+		UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
+	);
+
 	// SMALL HAND
 	if (SelectedHand == EClockHand::Small)
 	{
 		Hours = (Hours + Amount + 12) % 12;
 
 		// One hour = 30 degrees
-		float Degrees = Amount * 30.f;
+		const float Degrees = Amount * 30.f;
 
 		StartSmallHandAnimation(Degrees);
 
 		if (Puzzle)
 		{
-			Puzzle->OnHoursTimeChanged(
-				Symbole,
-				Hours
-			);
+			Puzzle->OnClockTimeChanged(Symbole, Hours, Minutes);
 		}
 
 		OnHoursChanged.Broadcast(Hours);
@@ -551,9 +416,8 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 
 		// Calculate new minutes
 		Minutes = (Minutes + Amount + 60) % 60;
-		
-		// Detect hour rollover
 
+		// Detect hour rollover
 		if (Amount > 0 && OldMinutes == 59 && Minutes == 0)
 		{
 			Hours = (Hours + 1) % 12;
@@ -564,24 +428,16 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 		}
 
 		const float BigDegrees = Amount * 6.f;
-
 		StartBigHandAnimation(BigDegrees);
 
 		const float SmallDegrees = Amount * 0.5f;
-
 		StartSmallHandAnimation(SmallDegrees);
+
 		// Notify puzzle
 		if (Puzzle)
 		{
-			Puzzle->OnMinutesTimeChanged(
-				Symbole,
-				Minutes
-			);
-
-			Puzzle->OnHoursTimeChanged(
-				Symbole,
-				Hours
-			);
+			Puzzle->OnMinutesTimeChanged(Symbole, Minutes);
+			Puzzle->OnHoursTimeChanged(Symbole, Hours);
 		}
 
 		OnMinutesChanged.Broadcast(Minutes);
@@ -589,11 +445,10 @@ void AHorlogeActor::RotateSelectedHand(int32 Amount)
 	}
 	else
 	{
-		DebugMessage(
-			TEXT("Aucune aiguille sélectionnée !"),
-			FColor::Red);
+		DebugMessage(TEXT("Aucune aiguille sélectionnée !"), FColor::Red);
 		return;
 	}
+
 	PrintCurrentClockTime();
 }
 
@@ -610,75 +465,49 @@ void AHorlogeActor::SyncToPuzzleValues()
 	bAnimatingSmallHand = false;
 	bAnimatingBigHand = false;
 
-	if (SmallHandMesh)
+	if (SmallHandPivot)
 	{
-		SmallHandMesh->SetRelativeRotation(
-			FRotator(
-				SmallHandRotation,
-				0.f,
-				0.f
-			)
-		);
+		SmallHandPivot->SetRelativeRotation(FRotator(SmallHandRotation, 0.f, 0.f));
 	}
 
-	if (BigHandMesh)
+	if (BigHandPivot)
 	{
-		BigHandMesh->SetRelativeRotation(
-			FRotator(
-				BigHandRotation,
-				0.f,
-				0.f
-			)
-		);
+		BigHandPivot->SetRelativeRotation(FRotator(BigHandRotation, 0.f, 0.f));
 	}
 }
 
-// Small hand hover
+// Hover
 
-void AHorlogeActor::OnSmallHandHoverBegin(
-	UPrimitiveComponent* TouchedComponent
-)
+void AHorlogeActor::OnSmallHandHoverBegin(UPrimitiveComponent* TouchedComponent)
 {
-	if (M_OutlineHover && SmallHandMesh)
-	{
-		SmallHandMesh->SetMaterial(
-			0,
-			M_OutlineHover
-		);
-	}
-
-	DebugMessage(
-		TEXT("Hover Small Hand"),
-		FColor::Blue
-	);
+	bSmallHovered = true;
+	UpdateHandMaterials();
 }
 
-
-void AHorlogeActor::OnSmallHandHoverEnd(
-	UPrimitiveComponent* TouchedComponent
-)
+void AHorlogeActor::OnSmallHandHoverEnd(UPrimitiveComponent* TouchedComponent)
 {
-	if (
-		SelectedHand != EClockHand::Small &&
-		DefaultMaterial &&
-		SmallHandMesh
-	)
-	{
-		SmallHandMesh->SetMaterial(
-			0,
-			DefaultMaterial
-		);
-	}
+	bSmallHovered = false;
+	UpdateHandMaterials();
+}
 
-	DebugMessage(
-		TEXT("End Hover Small Hand"),
-		FColor::Blue
-	);
+void AHorlogeActor::OnBigHandHoverBegin(UPrimitiveComponent* TouchedComponent)
+{
+	bBigHovered = true;
+	UpdateHandMaterials();
+}
+
+void AHorlogeActor::OnBigHandHoverEnd(UPrimitiveComponent* TouchedComponent)
+{
+	bBigHovered = false;
+	UpdateHandMaterials();
 }
 
 void AHorlogeActor::LockClock()
 {
 	bIsLocked = true;
+
+	// Remove the outline when the clock is solved
+	ClearSelection();
 
 	if (AudioSuccess)
 	{
@@ -687,99 +516,51 @@ void AHorlogeActor::LockClock()
 
 	if (LogoDynMat)
 	{
-		LogoDynMat->SetVectorParameterValue(
-			LogoEmissiveParamName,
-			SuccessColor
-		);
+		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, SuccessColor);
 	}
 }
+
 void AHorlogeActor::ActivatePuzzleEntry()
 {
-	// Lumière qui augmente
+	// Light intensity up
 	if (LightCue)
+	{
 		LightCue->SetIntensity(5000.f);
+	}
 
-	// Logo qui s’allume
+	// Logo lights up
 	if (LogoDynMat)
+	{
 		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, FLinearColor(1.f, 1.f, 1.f));
-
-	// Aiguilles qui se recentrent légèrement
-	StartSmallHandAnimation(5.f); // petit mouvement
-	StartBigHandAnimation(-5.f);  // petit mouvement inverse
-}
-void AHorlogeActor::OnBigHandHoverBegin(
-	UPrimitiveComponent* TouchedComponent
-)
-{
-	if (M_OutlineHover && BigHandMesh)
-	{
-		BigHandMesh->SetMaterial(
-			0,
-			M_OutlineHover
-		);
-	}
-	DebugMessage(
-		TEXT("Hover Big Hand"),
-		FColor::Blue
-	);
-}
-
-
-void AHorlogeActor::OnBigHandHoverEnd(
-	UPrimitiveComponent* TouchedComponent
-)
-{
-	if (
-		SelectedHand != EClockHand::Big &&
-		DefaultMaterial &&
-		BigHandMesh
-	)
-	{
-		BigHandMesh->SetMaterial(
-			0,
-			DefaultMaterial
-		);
 	}
 
-	DebugMessage(
-		TEXT("End Hover Big Hand"),
-		FColor::Blue
-	);
+	// Hands re-center slightly
+	StartSmallHandAnimation(5.f);
+	StartBigHandAnimation(-5.f);
 }
+
 // Click
 
-
-void AHorlogeActor::OnSmallHandClicked(
-	UPrimitiveComponent* TouchedComponent,
-	FKey ButtonPressed
-)
+void AHorlogeActor::OnSmallHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed)
 {
 	if (ButtonPressed != EKeys::LeftMouseButton)
 	{
 		return;
 	}
-	DebugMessage(
-		TEXT("Clicked Small Hand"),
-		FColor::Red
-	);
+
+	DebugMessage(TEXT("Clicked Small Hand"), FColor::Red);
 
 	SelectHand(EClockHand::Small);
 }
 
-void AHorlogeActor::OnBigHandClicked(
-	UPrimitiveComponent* TouchedComponent,
-	FKey ButtonPressed
-)
+void AHorlogeActor::OnBigHandClicked(UPrimitiveComponent* TouchedComponent, FKey ButtonPressed)
 {
 	if (ButtonPressed != EKeys::LeftMouseButton)
 	{
 		return;
 	}
 
-	DebugMessage(
-		TEXT("Clicked Big Hand"),
-		FColor::Red
-	);
+	DebugMessage(TEXT("Clicked Big Hand"), FColor::Red);
 
 	SelectHand(EClockHand::Big);
 }
@@ -789,85 +570,57 @@ void AHorlogeActor::OnBigHandClicked(
 void AHorlogeActor::PlaySuccessCue()
 {
 	// Light
-
 	if (LightCue)
 	{
 		LightCue->SetVisibility(true);
 		LightCue->SetLightColor(FLinearColor::Green);
-
-		// Give it a visible intensity
 		LightCue->SetIntensity(500.f);
 	}
-	
+
 	// Sound
 	if (AudioSuccess)
 	{
 		AudioSuccess->Play();
 	}
-	// Logo
 
-	if (
-		!LogoDynMat &&
-		LogoMesh &&
-		LogoMesh->GetNumMaterials() > 0
-	)
+	// Logo
+	if (!LogoDynMat && LogoMesh && LogoMesh->GetNumMaterials() > 0)
 	{
-		LogoDynMat =
-			LogoMesh->CreateAndSetMaterialInstanceDynamic(0);
+		LogoDynMat = LogoMesh->CreateAndSetMaterialInstanceDynamic(0);
 	}
 
 	if (LogoDynMat)
 	{
-		LogoDynMat->SetVectorParameterValue(
-			LogoEmissiveParamName,
-			SuccessColor
-		);
+		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, SuccessColor);
 	}
 }
+
 void AHorlogeActor::RandomizeClockTime()
 {
-	AGamePuzzleHorloge* Puzzle =
-		Cast<AGamePuzzleHorloge>(
-			UGameplayStatics::GetActorOfClass(
-				GetWorld(),
-				AGamePuzzleHorloge::StaticClass()
-			)
-		);
+	AGamePuzzleHorloge* Puzzle = Cast<AGamePuzzleHorloge>(
+		UGameplayStatics::GetActorOfClass(GetWorld(), AGamePuzzleHorloge::StaticClass())
+	);
 
 	if (!Puzzle)
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("No GamePuzzleHorloge found for clock %s"),
-			*Symbole
-		);
+		UE_LOG(LogTemp, Warning, TEXT("No GamePuzzleHorloge found for clock %s"), *Symbole);
 		return;
 	}
 
 	// Find this clock's solution
-	FHorlogeSolutionConfig* Solution =
-		Puzzle->HorlogeSolutionLookup.Find(Symbole);
+	FHorlogeSolutionConfig* Solution = Puzzle->HorlogeSolutionLookup.Find(Symbole);
 
 	if (!Solution)
 	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("No solution found for clock %s"),
-			*Symbole
-		);
+		UE_LOG(LogTemp, Warning, TEXT("No solution found for clock %s"), *Symbole);
 		return;
 	}
 
-	const int32 SolutionHours =
-		FMath::RoundToInt(Solution->ShouldBeTimeHours);
+	const int32 SolutionHours = FMath::RoundToInt(Solution->ShouldBeTimeHours);
+	const int32 SolutionMinutes = FMath::RoundToInt(Solution->ShouldBeTimeMinutes);
 
-	const int32 SolutionMinutes =
-		FMath::RoundToInt(Solution->ShouldBeTimeMinutes);
-
-	int32 NewHours;
-	int32 NewMinutes;
+	int32 NewHours = 0;
+	int32 NewMinutes = 0;
 
 	// Try several times to find a sufficiently different time
 	for (int32 Attempt = 0; Attempt < 100; ++Attempt)
@@ -875,11 +628,8 @@ void AHorlogeActor::RandomizeClockTime()
 		NewHours = FMath::RandRange(0, 11);
 		NewMinutes = FMath::RandRange(0, 59);
 
-		const int32 HourDifference =
-			FMath::Abs(NewHours - SolutionHours);
-
-		const int32 MinuteDifference =
-			FMath::Abs(NewMinutes - SolutionMinutes);
+		const int32 HourDifference = FMath::Abs(NewHours - SolutionHours);
+		const int32 MinuteDifference = FMath::Abs(NewMinutes - SolutionMinutes);
 
 		if (HourDifference >= MinimumHourDifference ||
 			MinuteDifference >= MinimumMinuteDifference)
@@ -902,6 +652,7 @@ void AHorlogeActor::RandomizeClockTime()
 		SolutionMinutes
 	);
 }
+
 // Fail cue
 
 void AHorlogeActor::PlayFailCue()
@@ -912,46 +663,31 @@ void AHorlogeActor::PlayFailCue()
 		LightCue->SetVisibility(false);
 		LightCue->SetLightColor(FLinearColor::Red);
 	}
-	
+
 	// Sound
 	if (AudioFail)
 	{
 		AudioFail->Play();
 	}
+
 	// Logo
-	if (
-		!LogoDynMat &&
-		LogoMesh &&
-		LogoMesh->GetNumMaterials() > 0
-	)
+	if (!LogoDynMat && LogoMesh && LogoMesh->GetNumMaterials() > 0)
 	{
-		LogoDynMat =
-			LogoMesh->CreateAndSetMaterialInstanceDynamic(0);
+		LogoDynMat = LogoMesh->CreateAndSetMaterialInstanceDynamic(0);
 	}
 
 	if (LogoDynMat)
 	{
-		LogoDynMat->SetVectorParameterValue(
-			LogoEmissiveParamName,
-			FailColor
-		);
+		LogoDynMat->SetVectorParameterValue(LogoEmissiveParamName, FailColor);
 	}
 }
 
 void AHorlogeActor::PrintCurrentClockTime()
 {
-	FString CurrentTime = FString::Printf(
-		TEXT("%02d:%02d"),
-		Hours,
-		Minutes
-	);
+	const FString CurrentTime = FString::Printf(TEXT("%02d:%02d"), Hours, Minutes);
 
 	DebugMessage(
-		FString::Printf(
-			TEXT("Horloge %s : %s"),
-			*Symbole,
-			*CurrentTime
-		),
+		FString::Printf(TEXT("Horloge %s : %s"), *Symbole, *CurrentTime),
 		FColor::Yellow
 	);
 }
