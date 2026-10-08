@@ -3,7 +3,7 @@
 
 #include "GamePuzzleChandelle.h"
 #include "Kismet/GameplayStatics.h"
-#include "../MemoriesGameMode.h"
+#include "../../MemoriesGameMode.h"
 
 
 void AGamePuzzleChandelle::BeginPlay()

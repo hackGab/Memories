@@ -2,7 +2,7 @@
 
 
 #include "GamePuzzleHorloge.h"
-#include "../MemoriesGameMode.h"
+#include "../../MemoriesGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -75,6 +75,30 @@ void AGamePuzzleHorloge::OnMinutesTimeChanged(const FString& HorlogeSymbole, dou
 	}
 
 	UpdateMinutesStateFromEvent(HorlogeSymbole, timeMinutes);
+}
+
+void AGamePuzzleHorloge::OnClockTimeChanged(const FString& HorlogeSymbole, double InHours, double InMinutes)
+{
+	if (isPuzzleHorlogeResolve)
+	{
+		return;
+	}
+
+	int32* IndexPtr = HorlogeLookup.Find(NormalizeSymbol(HorlogeSymbole));
+	if (!IndexPtr || !FoundHorloges.IsValidIndex(*IndexPtr))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnClockTimeChanged: clock '%s' not found."), *HorlogeSymbole);
+		return;
+	}
+
+	FHorlogeState& State = FoundHorloges[*IndexPtr];
+	State.timeHours = InHours;
+	State.timeMinutes = InMinutes;
+
+	OnHoursStateChanged.Broadcast(HorlogeSymbole, InHours);
+	OnMinutesStateChanged.Broadcast(HorlogeSymbole, InMinutes);
+
+	VerifyPuzzleSolution(State);
 }
 
 FString AGamePuzzleHorloge::NormalizeSymbol(const FString& RawSymbol)
