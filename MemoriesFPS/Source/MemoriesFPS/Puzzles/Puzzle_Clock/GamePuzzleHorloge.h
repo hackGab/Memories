@@ -111,6 +111,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Horloge")
 	void OnMinutesTimeChanged(const FString& HorlogeSymbole, double timeMinutes);
+	
+	UFUNCTION(BlueprintCallable, Category="Horloge")
+	void OnClockTimeChanged(const FString& HorlogeSymbole, double InHours, double InMinutes);
 
 	FString NormalizeSymbol(const FString& RawSymbol);
 

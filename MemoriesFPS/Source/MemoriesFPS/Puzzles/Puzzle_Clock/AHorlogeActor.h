@@ -36,7 +36,7 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
+
 	// Components
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
@@ -47,6 +47,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
 	UStaticMeshComponent* LogoMesh;
+
+	// Pivots: the hands are attached to these, and these are what rotates
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	USceneComponent* SmallHandPivot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
+	USceneComponent* BigHandPivot;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
 	UStaticMeshComponent* SmallHandMesh;
@@ -62,11 +69,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Horloge")
 	UAudioComponent* AudioFail;
-	
+
 	// Materials
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
-	UMaterialInterface* DefaultMaterial;
+	UMaterialInterface* DefaultMaterial; // no longer used, can be removed
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Materials")
 	UMaterialInterface* M_OutlineHover;
@@ -82,18 +89,31 @@ protected:
 
 	UPROPERTY()
 	UMaterialInstanceDynamic* LogoDynMat;
-	
+
+	// Outline state
+	UPROPERTY(Transient)
+	UMaterialInterface* SmallHandOriginalMaterial = nullptr;
+
+	UPROPERTY(Transient)
+	UMaterialInterface* BigHandOriginalMaterial = nullptr;
+
+	bool bSmallHovered = false;
+	bool bBigHovered = false;
+
+	void UpdateHandMaterials();
+
 	// Rotation
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Rotation")
 	float RotationSpeedDegreesPerSecond = 180.f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
 	bool bIsLocked = false;
 
-	UFUNCTION(BlueprintCallable, Category="Horloge")
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
 	void ActivatePuzzleEntry();
-		float SmallHandRotation = 0.f;
+
+	float SmallHandRotation = 0.f;
 	float BigHandRotation = 0.f;
 
 	float TargetSmallHandRotation = 0.f;
@@ -111,14 +131,13 @@ protected:
 
 	bool bAnimatingSmallHand = false;
 	bool bAnimatingBigHand = false;
-	
+
 	bool bWaitingForClockAnimation = false;
-	
+
 	// Input state
 
-	bool bRotateLeft = false;
-	bool bRotateRight = false;
-	
+
+
 	// Selected hand
 
 	EClockHand SelectedHand;
@@ -160,30 +179,44 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
 	int32 Minutes = 0;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Horloge")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge")
 	float RotationRepeatInterval = 0.2f; // seconds between steps while holding
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Horloge|Rotation")
+	float RotationDirection = -1.f;  
 	
-	UFUNCTION(BlueprintCallable, Category="Horloge")
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
 	void LockClock();
-	
-	// Delegates
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle|Randomization")
+
+	// Randomization
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|Randomization")
 	int32 MinimumHourDifference = 2;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Puzzle|Randomization")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Puzzle|Randomization")
 	int32 MinimumMinuteDifference = 15;
-	
+
+	// Delegates
+
 	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnHoursChanged OnHoursChanged;
 
 	UPROPERTY(BlueprintAssignable, Category = "Horloge")
 	FOnMinutesChanged OnMinutesChanged;
-	
+
 	// Functions
+
 	UFUNCTION(BlueprintCallable, Category = "Horloge")
 	void SelectHand(EClockHand Hand);
+
+	// Deselects the hand and removes the outline
+	UFUNCTION(BlueprintCallable, Category = "Horloge")
+	void ClearSelection();
+
+	// Fired every time the selection changes; implement it in BP_Clock
+	UFUNCTION(BlueprintImplementableEvent, Category = "Horloge")
+	void OnSelectionChanged(EClockHand NewHand);
 
 	UFUNCTION(BlueprintCallable, Category = "Horloge")
 	void CycleSelectedHand();
@@ -204,9 +237,9 @@ public:
 
 private:
 	void PrintCurrentClockTime();
-	
+
 	void RandomizeClockTime();
-	
+
 	// Rotation helpers
 	float GetContinuousHourRotation() const;
 	float GetMinuteRotation() const;
