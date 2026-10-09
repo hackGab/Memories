@@ -75,3 +75,6 @@ Thumbs.db
 p4config.txt
 *.p4ignore
 *.p4d
+
+# Audiokinetic Wwise validation caches
+*.validationcache
